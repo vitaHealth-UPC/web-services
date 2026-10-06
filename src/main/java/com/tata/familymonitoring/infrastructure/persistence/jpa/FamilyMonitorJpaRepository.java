@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FamilyMonitorJpaRepository extends JpaRepository<FamilyMonitor, Long> {
 
-  Optional<FamilyMonitor> findByCareLinkId(Long careLinkId);
+  Optional<FamilyMonitor> findByCareLinkId(String careLinkId);
 
-  Optional<FamilyMonitor> findByOlderAdultId(Long olderAdultId);
+  Optional<FamilyMonitor> findByOlderAdultId(String olderAdultId);
 }

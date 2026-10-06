@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OmissionCaseJpaRepository extends JpaRepository<OmissionCase, Long> {
 
-  Optional<OmissionCase> findByIntakeId(Long intakeId);
+  Optional<OmissionCase> findByIntakeId(String intakeId);
 
   List<OmissionCase> findByStatusAndGracePeriodEndsAtLessThanEqual(
       OmissionCaseStatus status, Instant now);

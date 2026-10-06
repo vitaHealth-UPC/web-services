@@ -51,7 +51,7 @@ public class FamilyMonitoringController {
   @ApiResponse(responseCode = "404", description = "The older adult has no active follow-up",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/status")
-  public OlderAdultStatusResource getStatus(@PathVariable Long olderAdultId) {
+  public OlderAdultStatusResource getStatus(@PathVariable String olderAdultId) {
     return OlderAdultStatusResourceFromEntityAssembler.toResourceFromEntity(
         statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId)));
   }
@@ -67,7 +67,7 @@ public class FamilyMonitoringController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/intakes")
   public List<IntakeSummaryResource> getRecentIntakes(
-      @PathVariable Long olderAdultId,
+      @PathVariable String olderAdultId,
       @Parameter(description = "Days to look back, from 1 to 30")
       @RequestParam(defaultValue = "7") int days) {
     return historyHandler.handle(new GetRecentIntakeHistoryQuery(olderAdultId, days)).stream()
@@ -82,7 +82,7 @@ public class FamilyMonitoringController {
   @ApiResponse(responseCode = "404", description = "No follow-up or no contact channel available",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/contact-channel")
-  public ContactChannelResource getContactChannel(@PathVariable Long olderAdultId) {
+  public ContactChannelResource getContactChannel(@PathVariable String olderAdultId) {
     return ContactChannelResourceFromEntityAssembler.toResourceFromEntity(
         contactChannelHandler.handle(new GetContactChannelQuery(olderAdultId)));
   }

@@ -6,5 +6,5 @@ import java.util.Optional;
 /** Port to the context that owns the older adult's contact data. */
 public interface IContactChannelPort {
 
-  Optional<ContactChannel> findContactChannel(Long olderAdultId);
+  Optional<ContactChannel> findContactChannel(String olderAdultId);
 }

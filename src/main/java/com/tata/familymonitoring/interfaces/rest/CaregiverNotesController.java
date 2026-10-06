@@ -50,7 +50,7 @@ public class CaregiverNotesController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public CaregiverNoteResource createNote(
-      @PathVariable Long olderAdultId, @Valid @RequestBody CreateCaregiverNoteResource resource) {
+      @PathVariable String olderAdultId, @Valid @RequestBody CreateCaregiverNoteResource resource) {
     return CaregiverNoteResourceFromEntityAssembler.toResourceFromEntity(
         createNoteHandler.handle(
             CreateCaregiverNoteCommandFromResourceAssembler.toCommandFromResource(
@@ -64,7 +64,7 @@ public class CaregiverNotesController {
   @ApiResponse(responseCode = "404", description = "The older adult has no active follow-up",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping
-  public List<CaregiverNoteResource> getNotes(@PathVariable Long olderAdultId) {
+  public List<CaregiverNoteResource> getNotes(@PathVariable String olderAdultId) {
     return notesHandler.handle(new GetCaregiverNotesQuery(olderAdultId)).stream()
         .map(CaregiverNoteResourceFromEntityAssembler::toResourceFromEntity)
         .toList();

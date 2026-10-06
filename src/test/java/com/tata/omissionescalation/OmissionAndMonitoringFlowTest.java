@@ -53,27 +53,27 @@ class OmissionAndMonitoringFlowTest {
 
   private static long sequence = 1000;
 
-  private long nextId() {
-    return ++sequence;
+  private String nextId() {
+    return new java.util.UUID(0, ++sequence).toString();
   }
 
-  private void givenMonitorFor(long olderAdultId) {
+  private void givenMonitorFor(String olderAdultId) {
     if (monitors.findByOlderAdultId(olderAdultId).isEmpty()) {
-      monitors.save(new FamilyMonitor(olderAdultId, olderAdultId, 5L));
+      monitors.save(new FamilyMonitor(olderAdultId, olderAdultId, "account-5"));
     }
   }
 
-  private void unconfirmed(long intakeId, long olderAdultId) {
+  private void unconfirmed(String intakeId, String olderAdultId) {
     events.publishEvent(
         new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", Instant.now()));
   }
 
   @Test
   void unconfirmedIntake_opensAPendingCaseOnlyOnce() {
-    long intakeId = nextId();
+    String intakeId = nextId();
 
-    unconfirmed(intakeId, 1L);
-    unconfirmed(intakeId, 1L);
+    unconfirmed(intakeId, "adult-1");
+    unconfirmed(intakeId, "adult-1");
 
     OmissionCase omissionCase = omissionCases.findByIntakeId(intakeId).orElseThrow();
     assertThat(omissionCase.getStatus()).isEqualTo(OmissionCaseStatus.PENDING);
@@ -82,8 +82,8 @@ class OmissionAndMonitoringFlowTest {
 
   @Test
   void expiredCase_becomesOneOmissionWithOneAlert_evenIfEvaluatedTwice() {
-    long olderAdultId = nextId();
-    long intakeId = nextId();
+    String olderAdultId = nextId();
+    String intakeId = nextId();
     unconfirmed(intakeId, olderAdultId);
     Instant now = Instant.now().plusSeconds(5);
 
@@ -100,8 +100,8 @@ class OmissionAndMonitoringFlowTest {
 
   @Test
   void omittedCase_escalatesThroughTheLevelsAndEndsClosed() {
-    long olderAdultId = nextId();
-    long intakeId = nextId();
+    String olderAdultId = nextId();
+    String intakeId = nextId();
     unconfirmed(intakeId, olderAdultId);
     Instant now = Instant.now().plusSeconds(5);
     evaluateHandler.handle(new EvaluateGracePeriodCommand(now));
@@ -117,10 +117,10 @@ class OmissionAndMonitoringFlowTest {
 
   @Test
   void confirmationOutsideTheGracePeriod_doesNotResolveTheCase() {
-    long intakeId = nextId();
+    String intakeId = nextId();
     unconfirmed(intakeId, nextId());
 
-    events.publishEvent(new IntakeConfirmed(intakeId, Instant.now()));
+    events.publishEvent(new IntakeConfirmed(intakeId, "medication-1", "adult-1", Instant.now()));
 
     assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getStatus())
         .isEqualTo(OmissionCaseStatus.PENDING);
@@ -128,7 +128,7 @@ class OmissionAndMonitoringFlowTest {
 
   @Test
   void omission_reachesTheCaregiver_whoCanAttendAndCloseTheAlert() {
-    long olderAdultId = nextId();
+    String olderAdultId = nextId();
     givenMonitorFor(olderAdultId);
     unconfirmed(nextId(), olderAdultId);
     evaluateHandler.handle(new EvaluateGracePeriodCommand(Instant.now().plusSeconds(5)));
@@ -152,15 +152,15 @@ class OmissionAndMonitoringFlowTest {
 
   @Test
   void note_isStoredWithAuthorAndTime_andStaysAvailable() {
-    long olderAdultId = nextId();
+    String olderAdultId = nextId();
     givenMonitorFor(olderAdultId);
 
-    createNoteHandler.handle(new CreateCaregiverNoteCommand(olderAdultId, 5L, "Called her"));
+    createNoteHandler.handle(new CreateCaregiverNoteCommand(olderAdultId, "account-5", "Called her"));
 
     var notes = notesHandler.handle(new GetCaregiverNotesQuery(olderAdultId));
     assertThat(notes).hasSize(1);
     assertThat(notes.getFirst().getId()).isNotNull();
-    assertThat(notes.getFirst().getFamiliarId()).isEqualTo(5L);
+    assertThat(notes.getFirst().getFamiliarId()).isEqualTo("account-5");
     assertThat(notes.getFirst().getRecordedAt()).isNotNull();
   }
 }

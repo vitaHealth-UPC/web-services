@@ -4,7 +4,7 @@ import java.time.Instant;
 
 public record CaregiverAlertGenerated(
     Long omissionCaseId,
-    Long intakeId,
-    Long olderAdultId,
+    String intakeId,
+    String olderAdultId,
     Instant occurredAt) {
 }

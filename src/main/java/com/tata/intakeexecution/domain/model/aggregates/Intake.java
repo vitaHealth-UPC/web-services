@@ -1,5 +1,6 @@
 package com.tata.intakeexecution.domain.model.aggregates;
 
+import com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 import com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot;
 
@@ -16,6 +17,8 @@ public final class Intake {
     private final Instant scheduledAt;
     private IntakeStatus status;
     private final Instant createdAt;
+    private Instant confirmedAt;
+    private ConfirmationChannel confirmationChannel;
 
     private Intake(
             String id,
@@ -70,6 +73,18 @@ public final class Intake {
         return new Intake(id, treatmentId, medicationId, olderAdultId, medication, scheduledAt, status, createdAt);
     }
 
+    public static Intake rehydrate(String id, String treatmentId, String medicationId, String olderAdultId,
+            MedicationSnapshot medication, Instant scheduledAt, IntakeStatus status, Instant createdAt,
+            Instant confirmedAt, ConfirmationChannel channel) {
+        var intake = rehydrate(id, treatmentId, medicationId, olderAdultId, medication, scheduledAt, status, createdAt);
+        intake.confirmedAt = confirmedAt;
+        intake.confirmationChannel = channel;
+        return intake;
+    }
+
+    public Instant confirmedAt() { return confirmedAt; }
+    public ConfirmationChannel confirmationChannel() { return confirmationChannel; }
+
     public boolean isPending() {
         return status == IntakeStatus.PENDING;
     }
@@ -82,6 +97,12 @@ public final class Intake {
      * this operation; the late-confirmation policy is handled separately.
      */
     public boolean confirm() {
+        return confirm(Instant.now(), ConfirmationChannel.TOUCH);
+    }
+
+    public boolean confirm(Instant now, ConfirmationChannel channel) {
+        Objects.requireNonNull(now);
+        Objects.requireNonNull(channel);
         if (status == IntakeStatus.CONFIRMED || status == IntakeStatus.LATE) {
             return false;
         }
@@ -90,6 +111,8 @@ public final class Intake {
         }
 
         status = IntakeStatus.CONFIRMED;
+        confirmedAt = now;
+        confirmationChannel = channel;
         return true;
     }
 

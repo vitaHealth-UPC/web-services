@@ -33,6 +33,11 @@ public class IntakeRepositoryImpl implements IntakeRepository {
     }
 
     @Override
+    public Optional<Intake> findByIdForConfirmation(String id) {
+        return repository.findByIdForConfirmation(id).map(this::toDomain);
+    }
+
+    @Override
     public List<Intake> findFutureByTreatmentId(String treatmentId, Instant from) {
         return repository.findByTreatmentIdAndScheduledAtGreaterThanEqualOrderByScheduledAtAsc(treatmentId, from)
                 .stream()
@@ -69,12 +74,14 @@ public class IntakeRepositoryImpl implements IntakeRepository {
                 ),
                 entity.getScheduledAt(),
                 entity.getStatus(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getConfirmedAt(),
+                entity.getConfirmationChannel()
         );
     }
 
     private IntakePersistenceEntity toEntity(Intake intake) {
-        return new IntakePersistenceEntity(
+        var entity = new IntakePersistenceEntity(
                 intake.id(),
                 intake.treatmentId(),
                 intake.medicationId(),
@@ -86,5 +93,7 @@ public class IntakeRepositoryImpl implements IntakeRepository {
                 intake.status(),
                 intake.createdAt()
         );
+        entity.setConfirmation(intake.confirmedAt(), intake.confirmationChannel());
+        return entity;
     }
 }

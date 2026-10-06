@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class ContactChannelAdapter implements IContactChannelPort {
 
   @Override
-  public Optional<ContactChannel> findContactChannel(Long olderAdultId) {
+  public Optional<ContactChannel> findContactChannel(String olderAdultId) {
     return Optional.empty();
   }
 }

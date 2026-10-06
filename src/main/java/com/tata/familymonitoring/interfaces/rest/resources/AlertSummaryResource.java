@@ -7,7 +7,7 @@ import java.time.Instant;
 @Schema(description = "Follow-up state of an alert raised by an omitted intake")
 public record AlertSummaryResource(
     @Schema(example = "1") Long id,
-    @Schema(example = "101") Long intakeId,
+    @Schema(example = "101") String intakeId,
     @Schema(example = "Losartan 50 mg") String medicationName,
     @Schema(example = "2026-10-05T13:00:00Z") Instant scheduledAt,
     @Schema(example = "Intake not confirmed within the grace period") String reason,

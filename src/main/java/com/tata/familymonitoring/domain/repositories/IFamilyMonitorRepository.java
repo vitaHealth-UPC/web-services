@@ -7,7 +7,7 @@ public interface IFamilyMonitorRepository {
 
   FamilyMonitor save(FamilyMonitor monitor);
 
-  Optional<FamilyMonitor> findByCareLinkId(Long careLinkId);
+  Optional<FamilyMonitor> findByCareLinkId(String careLinkId);
 
-  Optional<FamilyMonitor> findByOlderAdultId(Long olderAdultId);
+  Optional<FamilyMonitor> findByOlderAdultId(String olderAdultId);
 }

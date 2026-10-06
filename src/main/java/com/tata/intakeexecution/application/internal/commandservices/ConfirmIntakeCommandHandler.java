@@ -1,5 +1,9 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
+import com.tata.intakeexecution.domain.model.events.IntakeConfirmed;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.Clock;
+import org.springframework.context.ApplicationEventPublisher;
 import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
 import com.tata.intakeexecution.application.internal.IntakeApplicationException;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
@@ -14,13 +18,22 @@ import java.util.List;
 @Transactional
 public class ConfirmIntakeCommandHandler {
     private final IntakeRepository repository;
+    private final ApplicationEventPublisher events;
+    private final Clock clock;
 
-    public ConfirmIntakeCommandHandler(IntakeRepository repository) {
+    @Autowired
+    public ConfirmIntakeCommandHandler(IntakeRepository repository, ApplicationEventPublisher events) {
+        this(repository, events, Clock.systemUTC());
+    }
+
+    ConfirmIntakeCommandHandler(IntakeRepository repository, ApplicationEventPublisher events, Clock clock) {
         this.repository = repository;
+        this.events = events;
+        this.clock = clock;
     }
 
     public IntakeResult handle(ConfirmIntakeCommand command) {
-        var intake = repository.findById(command.intakeId())
+        var intake = repository.findByIdForConfirmation(command.intakeId())
                 .orElseThrow(() -> new IntakeApplicationException(
                         IntakeApplicationException.Code.INTAKE_NOT_FOUND,
                         "intake not found"
@@ -28,7 +41,7 @@ public class ConfirmIntakeCommandHandler {
 
         final boolean changed;
         try {
-            changed = intake.confirm();
+            changed = intake.confirm(clock.instant(), command.channel());
         } catch (IllegalStateException exception) {
             throw new IntakeApplicationException(
                     IntakeApplicationException.Code.INTAKE_NOT_CONFIRMABLE,
@@ -38,6 +51,8 @@ public class ConfirmIntakeCommandHandler {
 
         if (changed) {
             repository.saveAll(List.of(intake));
+            events.publishEvent(new IntakeConfirmed(
+                    intake.id(), intake.medicationId(), intake.olderAdultId(), intake.confirmedAt()));
         }
 
         return IntakeMapper.toResult(intake);
