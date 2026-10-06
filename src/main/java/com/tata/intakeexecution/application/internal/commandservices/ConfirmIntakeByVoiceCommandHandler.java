@@ -11,6 +11,7 @@ import com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 import com.tata.intakeexecution.domain.repositories.IntakeRepository;
 import com.tata.intakeexecution.domain.services.VoiceConfirmationValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class ConfirmIntakeByVoiceCommandHandler {
     private final ConfirmIntakeCommandHandler confirmIntake;
     private final VoiceConfirmationValidationService validation;
 
+    @Autowired
     public ConfirmIntakeByVoiceCommandHandler(
             IVoiceRecognitionPort voiceRecognition,
             IntakeRepository repository,
