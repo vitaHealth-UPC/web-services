@@ -39,19 +39,25 @@ public class MedicationsController {
             @Valid @RequestBody UpdateMedicationRequest resource
     ) {
         return TreatmentResourceAssembler.toResource(commands.updateMedication(
-                new UpdateMedicationCommand(medicationId, resource.name(), resource.presentation())
+                new UpdateMedicationCommand(resource.caregiverId(), medicationId, resource.name(), resource.presentation())
         ));
     }
 
     @PostMapping("/medications/{medicationId}/deactivation")
-    public MedicationResponse deactivate(@PathVariable String medicationId) {
+    public MedicationResponse deactivate(
+            @PathVariable String medicationId,
+            @RequestParam String caregiverId
+    ) {
         return TreatmentResourceAssembler.toResource(
-                commands.deactivateMedication(new DeactivateMedicationCommand(medicationId))
+                commands.deactivateMedication(new DeactivateMedicationCommand(caregiverId, medicationId))
         );
     }
 
     @GetMapping("/medications/{medicationId}")
-    public MedicationResponse detail(@PathVariable String medicationId) {
-        return TreatmentResourceAssembler.toResource(queries.getMedication(medicationId));
+    public MedicationResponse detail(
+            @PathVariable String medicationId,
+            @RequestParam String caregiverId
+    ) {
+        return TreatmentResourceAssembler.toResource(queries.getMedication(caregiverId, medicationId));
     }
 }

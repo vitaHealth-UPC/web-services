@@ -10,7 +10,13 @@ public final class MedicationResources {
             @NotBlank String name,
             @NotBlank String presentation
     ) {}
-    public record UpdateMedicationRequest(@NotBlank String name, @NotBlank String presentation) {}
+
+    public record UpdateMedicationRequest(
+            @NotBlank String caregiverId,
+            @NotBlank String name,
+            @NotBlank String presentation
+    ) {}
+
     public record MedicationResponse(
             String id, String olderAdultId, String name, String presentation, boolean active
     ) {}

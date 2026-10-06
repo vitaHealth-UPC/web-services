@@ -47,6 +47,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     @Override
     public MedicationResult updateMedication(UpdateMedicationCommand command) {
         var medication = medication(command.medicationId());
+        requireAuthorizedCareLink(command.caregiverId(), medication.olderAdultId());
         try {
             medication.update(command.name(), command.presentation());
         } catch (IllegalStateException exception) {
@@ -58,6 +59,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     @Override
     public MedicationResult deactivateMedication(DeactivateMedicationCommand command) {
         var medication = medication(command.medicationId());
+        requireAuthorizedCareLink(command.caregiverId(), medication.olderAdultId());
         medication.deactivate();
         return TreatmentMapper.toResult(medicationRepository.save(medication));
     }
@@ -73,6 +75,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     @Override
     public TreatmentResult configureTreatment(ConfigureTreatmentCommand command) {
         var treatment = treatment(command.treatmentId());
+        requireAuthorizedCareLink(command.caregiverId(), treatment.olderAdultId());
         var medication = medication(command.medicationId());
         if (!medication.active()) {
             throw error(TreatmentApplicationException.Code.MEDICATION_INACTIVE, "medication is inactive");
@@ -94,6 +97,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     @Override
     public TreatmentResult activate(ChangeTreatmentStatusCommand command) {
         var treatment = treatment(command.treatmentId());
+        requireAuthorizedCareLink(command.caregiverId(), treatment.olderAdultId());
         try {
             treatment.activate();
         } catch (IllegalStateException exception) {
@@ -105,6 +109,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     @Override
     public TreatmentResult pause(ChangeTreatmentStatusCommand command) {
         var treatment = treatment(command.treatmentId());
+        requireAuthorizedCareLink(command.caregiverId(), treatment.olderAdultId());
         try {
             treatment.pause();
         } catch (IllegalStateException exception) {
@@ -116,6 +121,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     @Override
     public TreatmentResult resume(ChangeTreatmentStatusCommand command) {
         var treatment = treatment(command.treatmentId());
+        requireAuthorizedCareLink(command.caregiverId(), treatment.olderAdultId());
         try {
             treatment.resume();
         } catch (IllegalStateException exception) {

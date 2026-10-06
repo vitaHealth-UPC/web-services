@@ -6,7 +6,9 @@ import com.tata.treatmentmanagement.application.internal.queryservices.Treatment
 import com.tata.treatmentmanagement.domain.model.aggregates.Medication;
 import com.tata.treatmentmanagement.domain.model.aggregates.Treatment;
 import com.tata.treatmentmanagement.domain.model.commands.CreateTreatmentCommand;
+import com.tata.treatmentmanagement.domain.model.commands.DeactivateMedicationCommand;
 import com.tata.treatmentmanagement.domain.model.commands.RegisterMedicationCommand;
+import com.tata.treatmentmanagement.domain.model.commands.UpdateMedicationCommand;
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
 import com.tata.treatmentmanagement.domain.repositories.MedicationRepository;
 import com.tata.treatmentmanagement.domain.repositories.TreatmentRepository;
@@ -73,6 +75,55 @@ class TreatmentAuthorizationTest {
         );
 
         assertEquals(TreatmentApplicationException.Code.CARE_LINK_NOT_AUTHORIZED, exception.code());
+    }
+
+    @Test
+    void medicationMutationAndDetailRejectCaregiverWithoutActiveLink() {
+        var medications = new InMemoryMedicationRepository();
+        var medication = Medication.register(
+                "adult-1",
+                "Losartán",
+                "50 mg",
+                Instant.parse("2026-10-05T12:00:00Z")
+        );
+        medications.save(medication);
+
+        var service = new TreatmentCommandServiceImpl(
+                medications,
+                new InMemoryTreatmentRepository(),
+                (caregiverId, olderAdultId) -> false
+        );
+        var queries = new TreatmentQueryServiceImpl(
+                medications,
+                new InMemoryTreatmentRepository(),
+                (caregiverId, olderAdultId) -> false
+        );
+
+        assertEquals(
+                TreatmentApplicationException.Code.CARE_LINK_NOT_AUTHORIZED,
+                assertThrows(
+                        TreatmentApplicationException.class,
+                        () -> service.updateMedication(
+                                new UpdateMedicationCommand("caregiver-2", medication.id(), "Losartán", "100 mg")
+                        )
+                ).code()
+        );
+        assertEquals(
+                TreatmentApplicationException.Code.CARE_LINK_NOT_AUTHORIZED,
+                assertThrows(
+                        TreatmentApplicationException.class,
+                        () -> service.deactivateMedication(
+                                new DeactivateMedicationCommand("caregiver-2", medication.id())
+                        )
+                ).code()
+        );
+        assertEquals(
+                TreatmentApplicationException.Code.CARE_LINK_NOT_AUTHORIZED,
+                assertThrows(
+                        TreatmentApplicationException.class,
+                        () -> queries.getMedication("caregiver-2", medication.id())
+                ).code()
+        );
     }
 
     @Test

@@ -29,11 +29,12 @@ public class TreatmentQueryServiceImpl implements TreatmentQueryService {
     }
 
     @Override
-    public MedicationResult getMedication(String medicationId) {
-        return medications.findById(medicationId)
-                .map(TreatmentMapper::toResult)
+    public MedicationResult getMedication(String caregiverId, String medicationId) {
+        var medication = medications.findById(medicationId)
                 .orElseThrow(() -> new TreatmentApplicationException(
                         TreatmentApplicationException.Code.MEDICATION_NOT_FOUND, "medication not found"));
+        requireAuthorizedCareLink(caregiverId, medication.olderAdultId());
+        return TreatmentMapper.toResult(medication);
     }
 
     @Override
@@ -41,13 +42,17 @@ public class TreatmentQueryServiceImpl implements TreatmentQueryService {
         var treatment = treatments.findById(treatmentId)
                 .orElseThrow(() -> new TreatmentApplicationException(
                         TreatmentApplicationException.Code.TREATMENT_NOT_FOUND, "treatment not found"));
+        requireAuthorizedCareLink(caregiverId, treatment.olderAdultId());
+        return TreatmentMapper.toResult(treatment);
+    }
+
+    private void requireAuthorizedCareLink(String caregiverId, String olderAdultId) {
         if (caregiverId == null || caregiverId.isBlank()
-                || !careLinkVerificationPort.isAuthorized(caregiverId, treatment.olderAdultId())) {
+                || !careLinkVerificationPort.isAuthorized(caregiverId, olderAdultId)) {
             throw new TreatmentApplicationException(
                     TreatmentApplicationException.Code.CARE_LINK_NOT_AUTHORIZED,
-                    "treatment is not available to this caregiver"
+                    "resource is not available to this caregiver"
             );
         }
-        return TreatmentMapper.toResult(treatment);
     }
 }
