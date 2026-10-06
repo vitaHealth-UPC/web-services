@@ -39,7 +39,7 @@ public class TreatmentsController {
         return TreatmentResourceAssembler.toResource(commands.configureTreatment(
                 new ConfigureTreatmentCommand(
                         resource.caregiverId(), treatmentId, resource.medicationId(), resource.dose(), resource.frequency(),
-                        resource.scheduledTime(), resource.instructions(), resource.reminderLeadMinutes()
+                        resource.scheduledTimes(), resource.instructions(), resource.reminderLeadMinutes()
                 )
         ));
     }

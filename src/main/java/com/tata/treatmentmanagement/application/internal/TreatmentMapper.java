@@ -25,7 +25,7 @@ public final class TreatmentMapper {
                 regimen == null ? null : regimen.medicationId(),
                 regimen == null ? null : regimen.dose(),
                 regimen == null ? null : regimen.frequency(),
-                regimen == null ? null : regimen.scheduledTime(),
+                regimen == null ? null : regimen.scheduledTimes(),
                 regimen == null ? null : regimen.instructions(),
                 regimen == null ? null : regimen.reminderLeadMinutes()
         );
