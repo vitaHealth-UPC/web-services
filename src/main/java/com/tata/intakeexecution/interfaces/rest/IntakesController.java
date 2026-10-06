@@ -4,6 +4,9 @@ import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
 import com.tata.intakeexecution.application.internal.commandservices.ConfirmIntakeCommandHandler;
 import com.tata.intakeexecution.application.internal.queryservices.GetIntakeDetailQueryHandler;
 import com.tata.intakeexecution.application.internal.queryservices.GetNextIntakeQueryHandler;
+import com.tata.intakeexecution.application.internal.queryservices.GetIntakeAgendaQueryHandler;
+import java.time.Instant;
+import java.util.List;
 import com.tata.intakeexecution.application.models.IntakeResult;
 import com.tata.intakeexecution.interfaces.rest.resources.ConfirmIntakeResource;
 import com.tata.intakeexecution.interfaces.rest.resources.IntakeResource;
@@ -17,15 +20,23 @@ public class IntakesController {
     private final GetNextIntakeQueryHandler getNextIntake;
     private final GetIntakeDetailQueryHandler getIntakeDetail;
     private final ConfirmIntakeCommandHandler confirmIntake;
+    private final GetIntakeAgendaQueryHandler getAgenda;
 
     public IntakesController(
             GetNextIntakeQueryHandler getNextIntake,
             GetIntakeDetailQueryHandler getIntakeDetail,
-            ConfirmIntakeCommandHandler confirmIntake
+            ConfirmIntakeCommandHandler confirmIntake,
+            GetIntakeAgendaQueryHandler getAgenda
     ) {
         this.getNextIntake = getNextIntake;
         this.getIntakeDetail = getIntakeDetail;
         this.confirmIntake = confirmIntake;
+        this.getAgenda = getAgenda;
+    }
+
+    @GetMapping("/older-adults/{olderAdultId}/intakes/agenda")
+    public List<IntakeResource> agenda(@PathVariable String olderAdultId, @RequestParam Instant from, @RequestParam Instant to) {
+        return getAgenda.handle(olderAdultId, from, to).stream().map(this::toResource).toList();
     }
 
     @GetMapping("/older-adults/{olderAdultId}/intakes/next")

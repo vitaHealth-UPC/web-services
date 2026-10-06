@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IntakeRepository {
+    List<Intake> findAgenda(String olderAdultId, Instant from, Instant to);
     List<Intake> saveAll(List<Intake> intakes);
     Optional<Intake> findById(String id);
     default Optional<Intake> findByIdForConfirmation(String id) { return findById(id); }
