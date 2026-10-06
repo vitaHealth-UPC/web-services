@@ -11,6 +11,7 @@ import com.tata.identitysubscription.application.models.SessionResult;
 import com.tata.identitysubscription.domain.model.aggregates.Account;
 import com.tata.identitysubscription.domain.model.commands.AuthenticateFamilyCommand;
 import com.tata.identitysubscription.domain.model.commands.RegisterFamilyAccountCommand;
+import com.tata.identitysubscription.domain.model.commands.RequestNewVerificationCommand;
 import com.tata.identitysubscription.domain.model.commands.VerifyEmailCommand;
 import com.tata.identitysubscription.domain.model.valueobjects.EmailAddress;
 import com.tata.identitysubscription.domain.repositories.AccountRepository;
@@ -99,6 +100,28 @@ public class AccountCommandServiceImpl implements AccountCommandService {
 
         account.completeVerification();
         return toResult(accountRepository.save(account));
+    }
+
+    @Override
+    public AccountResult requestNewVerification(RequestNewVerificationCommand command) {
+        var email = new EmailAddress(command.email());
+        var account = accountRepository.findByEmail(email.value())
+                .orElseThrow(() -> error(IdentityApplicationException.Code.ACCOUNT_NOT_FOUND, "account not found"));
+
+        if (account.status() != com.tata.identitysubscription.domain.model.valueobjects.AccountStatus.PENDING_VERIFICATION) {
+            throw error(IdentityApplicationException.Code.ACCOUNT_NOT_ACTIVE, "account is not pending verification");
+        }
+
+        var verificationCode = verificationCodeGenerator.generate();
+        account.renewVerificationCode(
+                passwordHasher.hash(verificationCode),
+                clock.instant(),
+                VERIFICATION_TTL
+        );
+
+        var saved = accountRepository.save(account);
+        verificationDeliveryPort.send(saved.email().value(), verificationCode);
+        return toResult(saved);
     }
 
     @Override
