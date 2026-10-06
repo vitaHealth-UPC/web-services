@@ -11,6 +11,7 @@ public interface IntakeRepository {
     List<Intake> saveAll(List<Intake> intakes);
     Optional<Intake> findById(String id);
     default Optional<Intake> findByIdForConfirmation(String id) { return findById(id); }
+    default List<Intake> findUnreportedPendingDue(Instant cutoff) { return List.of(); }
     List<Intake> findFutureByTreatmentId(String treatmentId, Instant from);
     void deleteAll(List<Intake> intakes);
     Optional<Intake> findNextPendingByOlderAdultId(String olderAdultId, Instant from);

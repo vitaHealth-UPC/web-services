@@ -33,8 +33,15 @@ class IntakeInventoryIntegrationTest {
     @Autowired PlatformTransactionManager transactionManager;
 
     private Intake intake() {
-        var intake = Intake.createScheduled(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(),
-            new MedicationSnapshot("Losartan", "1 tablet", "With water"), Instant.now(), Instant.now());
+        var now = Instant.now();
+        var intake = Intake.createScheduled(
+            UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
+            UUID.randomUUID().toString(),
+            new MedicationSnapshot("Losartan", "1 tablet", "With water"),
+            now.plusSeconds(60),
+            now
+        );
         return intakes.saveAll(List.of(intake)).getFirst();
     }
     private void publish(IntakeConfirmed event) {
