@@ -34,16 +34,31 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     private Account toDomain(AccountPersistenceEntity entity) {
         return Account.rehydrate(
-                entity.getId(), entity.getName(), new EmailAddress(entity.getEmail()),
-                entity.getPasswordHash(), entity.getStatus(), entity.getVerificationCodeHash(),
-                entity.getVerificationExpiresAt()
+                entity.getId(),
+                entity.getName(),
+                new EmailAddress(entity.getEmail()),
+                entity.getPasswordHash(),
+                entity.getStatus(),
+                entity.getVerificationCodeHash(),
+                entity.getVerificationExpiresAt(),
+                entity.getSubscriptionPlanCode(),
+                entity.getSubscriptionStatus(),
+                entity.getSubscriptionRenewsAt()
         );
     }
 
     private AccountPersistenceEntity toEntity(Account account) {
         return new AccountPersistenceEntity(
-                account.id(), account.name(), account.email().value(), account.passwordHash(),
-                account.status(), account.verificationCodeHash(), account.verificationExpiresAt()
+                account.id(),
+                account.name(),
+                account.email().value(),
+                account.passwordHash(),
+                account.status(),
+                account.verificationCodeHash(),
+                account.verificationExpiresAt(),
+                account.currentPlanCode(),
+                account.subscriptionStatus(),
+                account.subscriptionRenewsAt()
         );
     }
 }

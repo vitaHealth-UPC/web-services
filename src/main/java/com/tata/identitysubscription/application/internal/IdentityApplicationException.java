@@ -11,7 +11,8 @@ public final class IdentityApplicationException extends RuntimeException {
         PIN_ALREADY_REGISTERED,
         PIN_NOT_FOUND,
         INVALID_PIN,
-        PIN_LOCKED
+        PIN_LOCKED,
+        PLAN_NOT_FOUND
     }
 
     private final Code code;
