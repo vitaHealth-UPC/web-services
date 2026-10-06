@@ -7,21 +7,32 @@ import com.tata.adherenceanalytics.domain.services.AdherenceInsightGenerationSer
 import java.time.*;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
 public class AdherenceQueryService {
     private final IntakeOutcomePort outcomes;
+    private final int minimumOmissionDays;
     private final AdherencePatternDetectionService detector = new AdherencePatternDetectionService();
     public record Metrics(String olderAdultId, Instant from, Instant to, int confirmedIntakes,
-                          int totalIntakes, double percentage) {}
-    public AdherenceQueryService(IntakeOutcomePort outcomes) { this.outcomes = outcomes; }
+                          int totalIntakes, double percentage, int onTimeIntakes, int lateIntakes, int omittedIntakes) {}
+    public AdherenceQueryService(IntakeOutcomePort outcomes,
+            @Value("${adherence.pattern.minimum-omission-days:3}") int minimumOmissionDays) {
+        if (minimumOmissionDays < 2 || minimumOmissionDays > 8)
+            throw new IllegalArgumentException("minimum omission days must be between two and eight");
+        this.outcomes = outcomes;
+        this.minimumOmissionDays = minimumOmissionDays;
+    }
     public Metrics weekly(String owner, Instant from, Instant to) {
         var evidence = history(owner, from, to);
         int confirmed = (int) evidence.stream().filter(i -> i.status() == Status.CONFIRMED || i.status() == Status.LATE).count();
         return new Metrics(owner.trim(), from, to, confirmed, evidence.size(),
-                evidence.isEmpty() ? 0d : confirmed * 100d / evidence.size());
+                evidence.isEmpty() ? 0d : confirmed * 100d / evidence.size(),
+                (int) evidence.stream().filter(i -> i.status() == Status.CONFIRMED).count(),
+                (int) evidence.stream().filter(i -> i.status() == Status.LATE).count(),
+                (int) evidence.stream().filter(i -> i.status() == Status.OMITTED).count());
     }
     public List<IntakeOutcomePort.Outcome> history(String owner, Instant from, Instant to) {
         validateRange(owner, from, to);
@@ -33,7 +44,7 @@ public class AdherenceQueryService {
         catch (DateTimeException exception) { throw new IllegalArgumentException("invalid calendar zone", exception); }
         return detector.detect(history(owner, from, to).stream().map(i ->
                 new AdherencePatternDetectionService.Outcome(i.medicationId(), i.scheduledAt(), i.status() == Status.OMITTED))
-                .toList(), calendarZone, 3);
+                .toList(), calendarZone, minimumOmissionDays);
     }
     public List<AdherenceInsightGenerationService.Insight> recommendations(String owner, Instant from, Instant to, String zone) {
         return new AdherenceInsightGenerationService().generate(patterns(owner, from, to, zone));

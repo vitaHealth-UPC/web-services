@@ -46,6 +46,9 @@ class WeeklyAdherenceIntegrationTest {
                 .param("from", from.toString()).param("to", from.plusSeconds(86400).toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.confirmedIntakes").value(2))
                 .andExpect(jsonPath("$.totalIntakes").value(3))
+                .andExpect(jsonPath("$.onTimeIntakes").value(1))
+                .andExpect(jsonPath("$.lateIntakes").value(1))
+                .andExpect(jsonPath("$.omittedIntakes").value(1))
                 .andExpect(jsonPath("$.percentage").value(org.hamcrest.Matchers.closeTo(66.6666667, .0001)));
         mvc.perform(get("/api/v1/older-adults/{id}/adherence/history", owner)
                 .param("from", from.toString()).param("to", from.plusSeconds(86400).toString()))

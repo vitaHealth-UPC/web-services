@@ -16,7 +16,8 @@ public class AdherenceController {
     @GetMapping("/weekly")
     public WeeklyAdherenceResource weekly(@PathVariable String olderAdultId, @RequestParam Instant from, @RequestParam Instant to) {
         var metrics = queries.weekly(olderAdultId, from, to);
-        return new WeeklyAdherenceResource(metrics.olderAdultId(), from, to, metrics.confirmedIntakes(), metrics.totalIntakes(), metrics.percentage());
+        return new WeeklyAdherenceResource(metrics.olderAdultId(), from, to, metrics.confirmedIntakes(),
+                metrics.totalIntakes(), metrics.percentage(), metrics.onTimeIntakes(), metrics.lateIntakes(), metrics.omittedIntakes());
     }
     @GetMapping("/patterns")
     public List<AdherencePatternDetectionService.Pattern> patterns(@PathVariable String olderAdultId, @RequestParam Instant from,

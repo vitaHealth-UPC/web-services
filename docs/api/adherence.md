@@ -4,9 +4,16 @@
 
 Counts confirmed and late intakes against definitive persisted outcomes (confirmed, late and omitted). Pending outcomes do not enter the denominator. Empty evidence returns zero counts and percentage. Time bounds are inclusive start and exclusive end, ordered and limited to eight elapsed days.
 
+`confirmedIntakes` includes both timely and late confirmations. The additive
+`onTimeIntakes`, `lateIntakes` and `omittedIntakes` fields provide the outcome
+breakdown without changing that existing count. Their sum equals `totalIntakes`.
+
 `GET /api/v1/older-adults/{olderAdultId}/adherence/patterns?from=...&to=...&zone=America/Bogota`
 
 Returns medication IDs with omissions on at least three distinct calendar days within the requested bounds. Multiple omissions on the same day count once. The optional IANA calendar zone defaults to UTC. Invalid zones or ranges return 400. Results are ordered by medication ID and contain omissionDays, firstDay and lastDay. This query reads persisted outcomes and does not infer omissions from pending intakes or change medication prescriptions.
+
+The server configures the recurrence threshold with
+`adherence.pattern.minimum-omission-days` (default 3, allowed 2–8).
 # Outcome history
 
 `GET /api/v1/older-adults/{olderAdultId}/adherence/history?from=...&to=...`
