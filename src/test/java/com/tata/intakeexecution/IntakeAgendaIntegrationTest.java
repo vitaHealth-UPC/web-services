@@ -35,7 +35,7 @@ class IntakeAgendaIntegrationTest {
     @Test void agendaIsOrderedScopedAndIncludesResolvedHistoryWithExclusiveEnd() throws Exception {
         var owner = UUID.randomUUID().toString();
         var first = intake(owner, from);
-        first.confirm(from.plusSeconds(60), ConfirmationChannel.TOUCH);
+        first.confirm(from, ConfirmationChannel.TOUCH);
         repository.saveAll(List.of(intake(owner, from.plusSeconds(3600)), first,
                 intake(owner, from.plusSeconds(86400)), intake(UUID.randomUUID().toString(), from), intake(owner, from.minusSeconds(1))));
         mvc.perform(get("/api/v1/older-adults/{id}/intakes/agenda", owner).param("from", from.toString()).param("to", from.plusSeconds(86400).toString()))
