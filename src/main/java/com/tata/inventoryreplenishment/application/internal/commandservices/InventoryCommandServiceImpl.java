@@ -67,11 +67,12 @@ public class InventoryCommandServiceImpl implements InventoryCommandService {
 
     @Override
     public boolean consumeUnit(ConsumeUnitCommand command) {
+        var inventory = repository.findByMedicationIdForUpdate(command.medicationId())
+                .orElseThrow(() -> error(InventoryApplicationException.Code.INVENTORY_NOT_FOUND, "inventory not found"));
         if (repository.hasConsumed(command.intakeId())) {
             return false;
         }
 
-        var inventory = findInventory(command.medicationId());
         var now = clock.instant();
         try {
             inventory.consumeUnit(now);

@@ -23,20 +23,20 @@ public class CaregiverNote {
   @Column(nullable = false)
   private Instant recordedAt;
 
-  @Column(nullable = false)
-  private Long familiarId;
+  @Column(nullable = false, length = 36)
+  private String familiarId;
 
   protected CaregiverNote() {
   }
 
-  public CaregiverNote(String text, Long familiarId, Instant recordedAt) {
+  public CaregiverNote(String text, String familiarId, Instant recordedAt) {
     if (text == null || text.isBlank()) {
       throw new IllegalArgumentException("The note text must not be blank");
     }
     if (text.length() > MAX_LENGTH) {
       throw new IllegalArgumentException("The note text must not exceed " + MAX_LENGTH + " characters");
     }
-    if (familiarId == null) {
+    if (familiarId == null || familiarId.isBlank()) {
       throw new IllegalArgumentException("The note author is required");
     }
     this.text = text.strip();
@@ -56,7 +56,7 @@ public class CaregiverNote {
     return recordedAt;
   }
 
-  public Long getFamiliarId() {
+  public String getFamiliarId() {
     return familiarId;
   }
 }

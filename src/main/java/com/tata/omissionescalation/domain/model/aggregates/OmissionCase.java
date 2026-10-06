@@ -34,11 +34,11 @@ public class OmissionCase {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true)
-  private Long intakeId;
+  @Column(nullable = false, unique = true, length = 36)
+  private String intakeId;
 
-  @Column(nullable = false)
-  private Long olderAdultId;
+  @Column(nullable = false, length = 36)
+  private String olderAdultId;
 
   @Column(nullable = false)
   private String medicationName;
@@ -78,8 +78,8 @@ public class OmissionCase {
   }
 
   public OmissionCase(
-      Long intakeId,
-      Long olderAdultId,
+      String intakeId,
+      String olderAdultId,
       String medicationName,
       Instant scheduledAt,
       GracePeriod gracePeriod) {
@@ -175,11 +175,11 @@ public class OmissionCase {
     return id;
   }
 
-  public Long getIntakeId() {
+  public String getIntakeId() {
     return intakeId;
   }
 
-  public Long getOlderAdultId() {
+  public String getOlderAdultId() {
     return olderAdultId;
   }
 

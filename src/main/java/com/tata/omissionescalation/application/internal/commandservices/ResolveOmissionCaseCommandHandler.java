@@ -19,7 +19,7 @@ public class ResolveOmissionCaseCommandHandler {
   /** Resolves the case only when the confirmation arrives during the grace period. */
   @Transactional
   public void handle(ResolveOmissionCaseCommand command) {
-    Instant now = Instant.now();
+    Instant now = command.confirmedAt();
     repository.findByIntakeId(command.intakeId())
         .filter(c -> c.getStatus() == OmissionCaseStatus.PENDING)
         .filter(c -> c.getGracePeriod().isActive(now))

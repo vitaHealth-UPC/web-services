@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class NotificationPreferencesAdapter implements INotificationPreferencesPort {
 
   @Override
-  public NotificationPreferences getPreferences(Long userId) {
+  public NotificationPreferences getPreferences(String userId) {
     return NotificationPreferences.defaults();
   }
 }

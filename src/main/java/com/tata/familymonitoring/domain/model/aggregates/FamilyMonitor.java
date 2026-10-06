@@ -29,14 +29,14 @@ public class FamilyMonitor {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
-  private Long careLinkId;
+  @Column(nullable = false, length = 36)
+  private String careLinkId;
 
-  @Column(nullable = false)
-  private Long olderAdultId;
+  @Column(nullable = false, length = 36)
+  private String olderAdultId;
 
-  @Column(nullable = false)
-  private Long familiarId;
+  @Column(nullable = false, length = 36)
+  private String familiarId;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "family_monitor_id")
@@ -56,7 +56,7 @@ public class FamilyMonitor {
   protected FamilyMonitor() {
   }
 
-  public FamilyMonitor(Long careLinkId, Long olderAdultId, Long familiarId) {
+  public FamilyMonitor(String careLinkId, String olderAdultId, String familiarId) {
     this.careLinkId = careLinkId;
     this.olderAdultId = olderAdultId;
     this.familiarId = familiarId;
@@ -64,7 +64,7 @@ public class FamilyMonitor {
 
   /** Adds the alert for an omitted intake. If the intake already has one, nothing changes. */
   public AlertSummary addAlert(
-      Long intakeId, String medicationName, Instant scheduledAt, String reason, Instant now) {
+      String intakeId, String medicationName, Instant scheduledAt, String reason, Instant now) {
     return alerts.stream()
         .filter(alert -> alert.getIntakeId().equals(intakeId))
         .findFirst()
@@ -87,7 +87,7 @@ public class FamilyMonitor {
     return alert;
   }
 
-  public CaregiverNote addNote(String text, Long familiarId, Instant now) {
+  public CaregiverNote addNote(String text, String familiarId, Instant now) {
     CaregiverNote note = new CaregiverNote(text, familiarId, now);
     notes.add(note);
     return note;
@@ -116,15 +116,15 @@ public class FamilyMonitor {
     return id;
   }
 
-  public Long getCareLinkId() {
+  public String getCareLinkId() {
     return careLinkId;
   }
 
-  public Long getOlderAdultId() {
+  public String getOlderAdultId() {
     return olderAdultId;
   }
 
-  public Long getFamiliarId() {
+  public String getFamiliarId() {
     return familiarId;
   }
 

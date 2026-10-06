@@ -60,6 +60,11 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     }
 
     @Override
+    public Optional<Inventory> findByMedicationIdForUpdate(String medicationId) {
+        return repository.findByMedicationIdForUpdate(medicationId).map(this::toDomain);
+    }
+
+    @Override
     public boolean existsByMedicationId(String medicationId) {
         return repository.existsByMedicationId(medicationId);
     }

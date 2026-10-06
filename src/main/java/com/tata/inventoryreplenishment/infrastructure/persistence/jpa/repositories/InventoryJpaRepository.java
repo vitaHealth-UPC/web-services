@@ -7,5 +7,8 @@ import java.util.Optional;
 
 public interface InventoryJpaRepository extends JpaRepository<InventoryPersistenceEntity, String> {
     Optional<InventoryPersistenceEntity> findByMedicationId(String medicationId);
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select i from InventoryPersistenceEntity i where i.medicationId = :medicationId")
+    Optional<InventoryPersistenceEntity> findByMedicationIdForUpdate(@org.springframework.data.repository.query.Param("medicationId") String medicationId);
     boolean existsByMedicationId(String medicationId);
 }

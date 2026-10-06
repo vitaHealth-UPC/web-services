@@ -18,8 +18,8 @@ public class AlertSummary {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
-  private Long intakeId;
+  @Column(nullable = false, length = 36)
+  private String intakeId;
 
   @Column(nullable = false)
   private String medicationName;
@@ -43,7 +43,7 @@ public class AlertSummary {
   }
 
   public AlertSummary(
-      Long intakeId,
+      String intakeId,
       String medicationName,
       Instant scheduledAt,
       String reason,
@@ -80,7 +80,7 @@ public class AlertSummary {
     return id;
   }
 
-  public Long getIntakeId() {
+  public String getIntakeId() {
     return intakeId;
   }
 

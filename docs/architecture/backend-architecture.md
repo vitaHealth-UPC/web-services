@@ -156,3 +156,11 @@ src/test/resources/features/
 ~~~
 
 A story is not complete because it compiles: tests must cover the layer and acceptance behavior it changes.
+
+## Cross-context IDs and intake confirmation
+
+Account, OlderAdult, CareLink, Medication, Treatment and Intake identities are UUID strings. References retain the owning context type (`String`, PostgreSQL `varchar(36)`). Internal Omission, Monitoring and Inventory IDs may remain `Long`/`BIGINT`. No physical foreign keys cross contexts.
+
+The first confirmation persists server UTC `confirmedAt` and `confirmationChannel`, and publishes `IntakeConfirmed(String intakeId, String medicationId, String olderAdultId, Instant confirmedAt)` in the same transaction. Retries preserve that metadata and do not republish. A pessimistic row lock serializes concurrent confirmations. Omission resolution uses the event confirmation time. Status vocabulary remains `PENDING / CONFIRMED / LATE / OMITTED`; late-window classification is a separate pending policy.
+
+Existing databases require explicit schema/data migration for numeric Omission/Monitoring references before production deployment. Demo numeric IDs cannot be mapped automatically to real UUID accounts. Hibernate schema update is not a production migration.

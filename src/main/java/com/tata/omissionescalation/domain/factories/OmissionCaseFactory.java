@@ -10,8 +10,8 @@ public final class OmissionCaseFactory {
   }
 
   public static OmissionCase createPending(
-      Long intakeId,
-      Long olderAdultId,
+      String intakeId,
+      String olderAdultId,
       String medicationName,
       Instant scheduledAt,
       GracePeriod gracePeriod) {

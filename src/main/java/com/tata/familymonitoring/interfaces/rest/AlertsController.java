@@ -50,7 +50,7 @@ public class AlertsController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/{alertId}")
   public AlertSummaryResource getAlertDetail(
-      @PathVariable Long olderAdultId, @PathVariable Long alertId) {
+      @PathVariable String olderAdultId, @PathVariable Long alertId) {
     return AlertSummaryResourceFromEntityAssembler.toResourceFromEntity(
         alertDetailHandler.handle(new GetAlertDetailQuery(olderAdultId, alertId)));
   }
@@ -68,7 +68,7 @@ public class AlertsController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @PutMapping("/{alertId}/status")
   public AlertSummaryResource updateAlertStatus(
-      @PathVariable Long olderAdultId,
+      @PathVariable String olderAdultId,
       @PathVariable Long alertId,
       @Valid @RequestBody UpdateAlertStatusResource resource) {
     AlertSummary alert = switch (resource.status()) {

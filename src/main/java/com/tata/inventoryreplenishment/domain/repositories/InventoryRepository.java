@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface InventoryRepository {
     Inventory save(Inventory inventory);
     Optional<Inventory> findByMedicationId(String medicationId);
+    default Optional<Inventory> findByMedicationIdForUpdate(String medicationId) { return findByMedicationId(medicationId); }
     boolean existsByMedicationId(String medicationId);
 
     /** Whether the unit for this intake was already consumed; guarantees one decrement per intake. */

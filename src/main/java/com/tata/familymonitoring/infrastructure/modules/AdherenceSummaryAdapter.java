@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class AdherenceSummaryAdapter implements IAdherenceSummaryPort {
 
   @Override
-  public AdherenceSnapshot getWeeklySummary(Long olderAdultId) {
+  public AdherenceSnapshot getWeeklySummary(String olderAdultId) {
     return new AdherenceSnapshot(0, 0);
   }
 }
