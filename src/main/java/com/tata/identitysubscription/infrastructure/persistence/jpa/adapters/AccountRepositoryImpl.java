@@ -6,6 +6,7 @@ import com.tata.identitysubscription.domain.repositories.AccountRepository;
 import com.tata.identitysubscription.infrastructure.persistence.jpa.entities.AccountPersistenceEntity;
 import com.tata.identitysubscription.infrastructure.persistence.jpa.repositories.AccountJpaRepository;
 import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
 @Repository
@@ -14,6 +15,11 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     public AccountRepositoryImpl(AccountJpaRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public Optional<Account> findById(String id) {
+        return repository.findById(id).map(this::toDomain);
     }
 
     @Override
