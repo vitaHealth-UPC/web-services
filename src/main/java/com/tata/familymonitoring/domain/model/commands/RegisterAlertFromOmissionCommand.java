@@ -3,8 +3,8 @@ package com.tata.familymonitoring.domain.model.commands;
 import java.time.Instant;
 
 public record RegisterAlertFromOmissionCommand(
-    Long olderAdultId,
-    Long intakeId,
+    String olderAdultId,
+    String intakeId,
     String medicationName,
     Instant scheduledAt,
     String reason) {

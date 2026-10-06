@@ -15,10 +15,10 @@ import org.springframework.stereotype.Component;
 @Profile("dev")
 public class DevelopmentContactChannelAdapter implements IContactChannelPort {
 
-  private static final Long SAMPLE_OLDER_ADULT_ID = 1L;
+  private static final String SAMPLE_OLDER_ADULT_ID = "00000000-0000-0000-0000-000000000001";
 
   @Override
-  public Optional<ContactChannel> findContactChannel(Long olderAdultId) {
+  public Optional<ContactChannel> findContactChannel(String olderAdultId) {
     if (SAMPLE_OLDER_ADULT_ID.equals(olderAdultId)) {
       return Optional.of(new ContactChannel(ContactChannelType.PHONE, "+51 999 888 777"));
     }

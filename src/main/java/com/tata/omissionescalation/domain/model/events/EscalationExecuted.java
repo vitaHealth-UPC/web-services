@@ -4,8 +4,8 @@ import java.time.Instant;
 
 public record EscalationExecuted(
     Long omissionCaseId,
-    Long intakeId,
-    Long olderAdultId,
+    String intakeId,
+    String olderAdultId,
     int level,
     Instant occurredAt) {
 }

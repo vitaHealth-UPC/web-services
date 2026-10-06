@@ -9,7 +9,7 @@ public final class CreateCaregiverNoteCommandFromResourceAssembler {
   }
 
   public static CreateCaregiverNoteCommand toCommandFromResource(
-      Long olderAdultId, CreateCaregiverNoteResource resource) {
+      String olderAdultId, CreateCaregiverNoteResource resource) {
     return new CreateCaregiverNoteCommand(olderAdultId, resource.familiarId(), resource.text());
   }
 }

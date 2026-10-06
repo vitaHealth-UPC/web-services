@@ -1,4 +1,4 @@
 package com.tata.familymonitoring.domain.model.commands;
 
-public record MarkAlertAttendedCommand(Long olderAdultId, Long alertId) {
+public record MarkAlertAttendedCommand(String olderAdultId, Long alertId) {
 }

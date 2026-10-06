@@ -19,7 +19,7 @@ public class PushNotificationAdapter implements INotificationPort {
 
   @Override
   public NotificationResult sendReinforcedReminder(
-      Long olderAdultId, String medicationName, Instant scheduledAt) {
+      String olderAdultId, String medicationName, Instant scheduledAt) {
     return send(new PushProviderMessage(
         "user-" + olderAdultId,
         "Medication reminder",
@@ -28,7 +28,7 @@ public class PushNotificationAdapter implements INotificationPort {
 
   @Override
   public NotificationResult sendCaregiverAlert(
-      Long olderAdultId, String medicationName, Instant scheduledAt) {
+      String olderAdultId, String medicationName, Instant scheduledAt) {
     return send(new PushProviderMessage(
         "caregivers-of-" + olderAdultId,
         "Medication not confirmed",

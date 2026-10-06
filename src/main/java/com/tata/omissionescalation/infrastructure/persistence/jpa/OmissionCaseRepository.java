@@ -28,7 +28,7 @@ public class OmissionCaseRepository implements IOmissionCaseRepository {
   }
 
   @Override
-  public Optional<OmissionCase> findByIntakeId(Long intakeId) {
+  public Optional<OmissionCase> findByIntakeId(String intakeId) {
     return jpaRepository.findByIntakeId(intakeId);
   }
 

@@ -64,7 +64,9 @@ public class IntakesController {
                 result.dose(),
                 result.instructions(),
                 result.scheduledAt(),
-                result.status()
+                result.status(),
+                result.confirmedAt(),
+                result.confirmationChannel()
         );
     }
 }

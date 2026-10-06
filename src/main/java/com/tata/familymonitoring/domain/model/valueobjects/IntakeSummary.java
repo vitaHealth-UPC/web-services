@@ -4,7 +4,7 @@ import java.time.Instant;
 
 /** Result of a past intake, as shown in the recent history. */
 public record IntakeSummary(
-    Long intakeId,
+    String intakeId,
     String medicationName,
     Instant scheduledAt,
     IntakeStatus status) {

@@ -5,5 +5,5 @@ import com.tata.familymonitoring.domain.model.valueobjects.AdherenceSnapshot;
 /** Port to Adherence Analytics. */
 public interface IAdherenceSummaryPort {
 
-  AdherenceSnapshot getWeeklySummary(Long olderAdultId);
+  AdherenceSnapshot getWeeklySummary(String olderAdultId);
 }

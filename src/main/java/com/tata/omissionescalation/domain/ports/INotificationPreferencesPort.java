@@ -5,5 +5,5 @@ import com.tata.omissionescalation.domain.model.valueobjects.NotificationPrefere
 /** Business-facing port to Accessibility & Preferences. */
 public interface INotificationPreferencesPort {
 
-  NotificationPreferences getPreferences(Long userId);
+  NotificationPreferences getPreferences(String userId);
 }

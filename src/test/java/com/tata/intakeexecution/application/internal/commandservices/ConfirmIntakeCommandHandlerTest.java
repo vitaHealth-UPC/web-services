@@ -20,7 +20,7 @@ class ConfirmIntakeCommandHandlerTest {
     @Test
     void confirmsPendingIntakeAndPersistsTransition() {
         var repository = new SingleIntakeRepository(pendingIntake());
-        var handler = new ConfirmIntakeCommandHandler(repository);
+        var handler = new ConfirmIntakeCommandHandler(repository, event -> {});
 
         var result = handler.handle(new ConfirmIntakeCommand(" intake-1 ", ConfirmationChannel.TOUCH));
 
@@ -31,18 +31,25 @@ class ConfirmIntakeCommandHandlerTest {
     @Test
     void retryFromAnotherChannelDoesNotCreateAnotherTransition() {
         var repository = new SingleIntakeRepository(pendingIntake());
-        var handler = new ConfirmIntakeCommandHandler(repository);
+        var events = new java.util.ArrayList<Object>();
+        var handler = new ConfirmIntakeCommandHandler(repository, events::add);
 
         handler.handle(new ConfirmIntakeCommand("intake-1", ConfirmationChannel.TOUCH));
         var retry = handler.handle(new ConfirmIntakeCommand("intake-1", ConfirmationChannel.VOICE));
 
         assertEquals(IntakeStatus.CONFIRMED, retry.status());
         assertEquals(1, repository.saveCalls);
+        assertEquals(1, events.size());
+        var event = (com.tata.intakeexecution.domain.model.events.IntakeConfirmed) events.getFirst();
+        assertEquals("medication-1", event.medicationId());
+        assertEquals("adult-1", event.olderAdultId());
+        assertEquals(repository.intake.confirmedAt(), event.confirmedAt());
+        assertEquals(ConfirmationChannel.TOUCH, repository.intake.confirmationChannel());
     }
 
     @Test
     void returnsNotFoundWhenIntakeDoesNotExist() {
-        var handler = new ConfirmIntakeCommandHandler(new SingleIntakeRepository(null));
+        var handler = new ConfirmIntakeCommandHandler(new SingleIntakeRepository(null), event -> {});
 
         var exception = assertThrows(
                 IntakeApplicationException.class,
@@ -64,7 +71,7 @@ class ConfirmIntakeCommandHandlerTest {
                 IntakeStatus.OMITTED,
                 Instant.parse("2026-10-05T12:00:00Z")
         ));
-        var handler = new ConfirmIntakeCommandHandler(repository);
+        var handler = new ConfirmIntakeCommandHandler(repository, event -> {});
 
         var exception = assertThrows(
                 IntakeApplicationException.class,

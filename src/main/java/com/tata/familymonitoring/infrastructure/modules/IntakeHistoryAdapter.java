@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
 public class IntakeHistoryAdapter implements IIntakeHistoryPort {
 
   @Override
-  public List<IntakeSummary> getRecentIntakes(Long olderAdultId, int days) {
+  public List<IntakeSummary> getRecentIntakes(String olderAdultId, int days) {
     return List.of();
   }
 
   @Override
-  public Optional<Instant> findNextIntakeAt(Long olderAdultId) {
+  public Optional<Instant> findNextIntakeAt(String olderAdultId) {
     return Optional.empty();
   }
 }

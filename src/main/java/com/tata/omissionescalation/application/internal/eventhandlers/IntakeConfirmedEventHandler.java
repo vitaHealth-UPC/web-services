@@ -15,6 +15,6 @@ public class IntakeConfirmedEventHandler {
   }
 
   public void handle(IntakeConfirmed event) {
-    resolveHandler.handle(new ResolveOmissionCaseCommand(event.intakeId()));
+    resolveHandler.handle(new ResolveOmissionCaseCommand(event.intakeId(), event.confirmedAt()));
   }
 }

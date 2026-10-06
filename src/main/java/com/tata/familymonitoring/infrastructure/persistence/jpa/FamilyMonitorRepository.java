@@ -20,12 +20,12 @@ public class FamilyMonitorRepository implements IFamilyMonitorRepository {
   }
 
   @Override
-  public Optional<FamilyMonitor> findByCareLinkId(Long careLinkId) {
+  public Optional<FamilyMonitor> findByCareLinkId(String careLinkId) {
     return jpaRepository.findByCareLinkId(careLinkId);
   }
 
   @Override
-  public Optional<FamilyMonitor> findByOlderAdultId(Long olderAdultId) {
+  public Optional<FamilyMonitor> findByOlderAdultId(String olderAdultId) {
     return jpaRepository.findByOlderAdultId(olderAdultId);
   }
 }

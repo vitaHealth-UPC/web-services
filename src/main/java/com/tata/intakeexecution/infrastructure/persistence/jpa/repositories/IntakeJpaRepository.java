@@ -1,5 +1,9 @@
 package com.tata.intakeexecution.infrastructure.persistence.jpa.repositories;
 
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Query;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 import com.tata.intakeexecution.infrastructure.persistence.jpa.entities.IntakePersistenceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IntakeJpaRepository extends JpaRepository<IntakePersistenceEntity, String> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from IntakePersistenceEntity i where i.id = :id")
+    Optional<IntakePersistenceEntity> findByIdForConfirmation(@Param("id") String id);
+
     List<IntakePersistenceEntity> findByTreatmentIdAndScheduledAtGreaterThanEqualOrderByScheduledAtAsc(
             String treatmentId,
             Instant from

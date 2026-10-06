@@ -19,7 +19,7 @@ class OmissionCaseTest {
 
   private OmissionCase pendingCase() {
     return OmissionCaseFactory.createPending(
-        1L, 10L, "Losartan 50 mg", START, GracePeriod.startingAt(START, Duration.ofMinutes(30)));
+        "intake-1", "adult-10", "Losartan 50 mg", START, GracePeriod.startingAt(START, Duration.ofMinutes(30)));
   }
 
   private OmissionCase omittedCase() {

@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface IntakeRepository {
     List<Intake> saveAll(List<Intake> intakes);
     Optional<Intake> findById(String id);
+    default Optional<Intake> findByIdForConfirmation(String id) { return findById(id); }
     List<Intake> findFutureByTreatmentId(String treatmentId, Instant from);
     void deleteAll(List<Intake> intakes);
     Optional<Intake> findNextPendingByOlderAdultId(String olderAdultId, Instant from);
