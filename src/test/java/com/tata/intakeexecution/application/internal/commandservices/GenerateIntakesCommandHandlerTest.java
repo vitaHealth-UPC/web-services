@@ -94,6 +94,7 @@ class GenerateIntakesCommandHandlerTest {
     }
 
     private static final class InMemoryIntakeRepository implements IntakeRepository {
+        public java.util.List<Intake> findAgenda(String olderAdultId, java.time.Instant from, java.time.Instant to) { throw new UnsupportedOperationException(); }
         private final List<Intake> values = new ArrayList<>();
 
         @Override
