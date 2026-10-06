@@ -16,11 +16,10 @@ public class HttpSpeechToTextProviderClient implements SpeechToTextProviderClien
     private final String apiKey;
 
     public HttpSpeechToTextProviderClient(
-            RestClient.Builder builder,
             @Value("${tata.speech-to-text.endpoint:}") String endpoint,
             @Value("${tata.speech-to-text.api-key:}") String apiKey
     ) {
-        this.restClient = builder.build();
+        this.restClient = RestClient.builder().build();
         this.endpoint = endpoint == null ? "" : endpoint.trim();
         this.apiKey = apiKey == null ? "" : apiKey.trim();
     }
