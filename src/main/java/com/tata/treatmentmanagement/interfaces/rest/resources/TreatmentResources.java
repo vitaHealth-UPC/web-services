@@ -13,6 +13,7 @@ public final class TreatmentResources {
     public record CreateTreatmentRequest(@NotBlank String caregiverId, @NotBlank String name) {}
 
     public record ConfigureTreatmentRequest(
+            @NotBlank String caregiverId,
             @NotBlank String medicationId,
             @NotBlank String dose,
             @NotBlank String frequency,

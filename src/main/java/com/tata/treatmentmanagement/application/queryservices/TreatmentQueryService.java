@@ -4,6 +4,6 @@ import com.tata.treatmentmanagement.application.models.MedicationResult;
 import com.tata.treatmentmanagement.application.models.TreatmentResult;
 
 public interface TreatmentQueryService {
-    MedicationResult getMedication(String medicationId);
+    MedicationResult getMedication(String caregiverId, String medicationId);
     TreatmentResult getTreatment(String caregiverId, String treatmentId);
 }

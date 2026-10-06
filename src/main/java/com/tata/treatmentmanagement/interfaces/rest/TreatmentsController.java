@@ -38,30 +38,39 @@ public class TreatmentsController {
     ) {
         return TreatmentResourceAssembler.toResource(commands.configureTreatment(
                 new ConfigureTreatmentCommand(
-                        treatmentId, resource.medicationId(), resource.dose(), resource.frequency(),
+                        resource.caregiverId(), treatmentId, resource.medicationId(), resource.dose(), resource.frequency(),
                         resource.scheduledTime(), resource.instructions(), resource.reminderLeadMinutes()
                 )
         ));
     }
 
     @PostMapping("/treatments/{treatmentId}/activation")
-    public TreatmentResponse activate(@PathVariable String treatmentId) {
+    public TreatmentResponse activate(
+            @PathVariable String treatmentId,
+            @RequestParam String caregiverId
+    ) {
         return TreatmentResourceAssembler.toResource(
-                commands.activate(new ChangeTreatmentStatusCommand(treatmentId))
+                commands.activate(new ChangeTreatmentStatusCommand(caregiverId, treatmentId))
         );
     }
 
     @PostMapping("/treatments/{treatmentId}/pause")
-    public TreatmentResponse pause(@PathVariable String treatmentId) {
+    public TreatmentResponse pause(
+            @PathVariable String treatmentId,
+            @RequestParam String caregiverId
+    ) {
         return TreatmentResourceAssembler.toResource(
-                commands.pause(new ChangeTreatmentStatusCommand(treatmentId))
+                commands.pause(new ChangeTreatmentStatusCommand(caregiverId, treatmentId))
         );
     }
 
     @PostMapping("/treatments/{treatmentId}/resume")
-    public TreatmentResponse resume(@PathVariable String treatmentId) {
+    public TreatmentResponse resume(
+            @PathVariable String treatmentId,
+            @RequestParam String caregiverId
+    ) {
         return TreatmentResourceAssembler.toResource(
-                commands.resume(new ChangeTreatmentStatusCommand(treatmentId))
+                commands.resume(new ChangeTreatmentStatusCommand(caregiverId, treatmentId))
         );
     }
 
