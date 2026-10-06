@@ -74,6 +74,25 @@ public final class Intake {
         return status == IntakeStatus.PENDING;
     }
 
+    /**
+     * Confirms a pending intake exactly once.
+     *
+     * CONFIRMED and LATE are already definitive confirmation outcomes, so a retry
+     * is an idempotent no-op. An OMITTED intake cannot be replaced implicitly by
+     * this operation; the late-confirmation policy is handled separately.
+     */
+    public boolean confirm() {
+        if (status == IntakeStatus.CONFIRMED || status == IntakeStatus.LATE) {
+            return false;
+        }
+        if (status != IntakeStatus.PENDING) {
+            throw new IllegalStateException("intake can no longer be confirmed");
+        }
+
+        status = IntakeStatus.CONFIRMED;
+        return true;
+    }
+
     private static String requireText(String value, String field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
         return value.trim();
