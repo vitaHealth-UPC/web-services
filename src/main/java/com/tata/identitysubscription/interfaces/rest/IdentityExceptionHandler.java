@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice(assignableTypes = {
         AccountsController.class,
+        EmailVerificationRequestsController.class,
         SessionsController.class,
         PinCredentialsController.class,
         PinSessionsController.class
