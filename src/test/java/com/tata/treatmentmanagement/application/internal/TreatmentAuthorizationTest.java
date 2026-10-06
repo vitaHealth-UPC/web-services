@@ -43,7 +43,7 @@ class TreatmentAuthorizationTest {
     }
 
     @Test
-    void activeCareLinkCreatesDraftTreatmentForOlderAdult() {
+    void activeCareLinkCreatesIncompleteTreatmentForOlderAdult() {
         var service = new TreatmentCommandServiceImpl(
                 new InMemoryMedicationRepository(),
                 new InMemoryTreatmentRepository(),
@@ -56,7 +56,7 @@ class TreatmentAuthorizationTest {
         );
 
         assertEquals("adult-1", result.olderAdultId());
-        assertEquals(TreatmentStatus.DRAFT, result.status());
+        assertEquals(TreatmentStatus.INCOMPLETE, result.status());
     }
 
     @Test
