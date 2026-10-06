@@ -83,6 +83,20 @@ public final class Account {
         verificationExpiresAt = null;
     }
 
+    public void renewVerificationCode(
+            String newVerificationCodeHash,
+            Instant now,
+            Duration verificationTtl
+    ) {
+        if (status != AccountStatus.PENDING_VERIFICATION) {
+            throw new IllegalStateException("account is not pending verification");
+        }
+        Objects.requireNonNull(now);
+        Objects.requireNonNull(verificationTtl);
+        verificationCodeHash = requireText(newVerificationCodeHash, "verificationCodeHash");
+        verificationExpiresAt = now.plus(verificationTtl);
+    }
+
     public boolean canAuthenticate() {
         return status == AccountStatus.ACTIVE;
     }
