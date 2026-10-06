@@ -33,7 +33,7 @@ public final class Treatment {
 
     public static Treatment create(String olderAdultId, String name, Instant now) {
         return new Treatment(
-                UUID.randomUUID().toString(), olderAdultId, name, TreatmentStatus.DRAFT, null, now
+                UUID.randomUUID().toString(), olderAdultId, name, TreatmentStatus.INCOMPLETE, null, now
         );
     }
 

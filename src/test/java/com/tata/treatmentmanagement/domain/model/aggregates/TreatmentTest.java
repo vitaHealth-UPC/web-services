@@ -13,7 +13,7 @@ class TreatmentTest {
     @Test
     void incompleteTreatmentCannotActivate() {
         var treatment = Treatment.create("adult-1", "Control de presión", Instant.parse("2026-10-05T12:00:00Z"));
-        assertEquals(TreatmentStatus.DRAFT, treatment.status());
+        assertEquals(TreatmentStatus.INCOMPLETE, treatment.status());
         assertThrows(IllegalStateException.class, treatment::activate);
     }
 
