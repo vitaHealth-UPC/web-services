@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IntakeJpaRepository extends JpaRepository<IntakePersistenceEntity, String> {
+    List<IntakePersistenceEntity> findByOlderAdultIdAndStatusInAndScheduledAtGreaterThanEqualOrderByScheduledAtDesc(
+            String olderAdultId, java.util.Collection<IntakeStatus> statuses, Instant from);
+    Optional<IntakePersistenceEntity> findFirstByOlderAdultIdAndStatusOrderByScheduledAtAsc(
+            String olderAdultId, IntakeStatus status);
     List<IntakePersistenceEntity> findTop200ByStatusAndUnconfirmedReportedAtIsNullAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc(IntakeStatus status, Instant now);
     @Query("select i from IntakePersistenceEntity i where i.olderAdultId = :olderAdultId and i.scheduledAt >= :from and i.scheduledAt < :to order by i.scheduledAt, i.id")
     List<IntakePersistenceEntity> findAgenda(@Param("olderAdultId") String olderAdultId, @Param("from") Instant from, @Param("to") Instant to);

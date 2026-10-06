@@ -144,7 +144,7 @@ class OmissionAndMonitoringFlowTest {
     OlderAdultStatusView view = statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId));
     assertThat(view.status().hasOpenAlert()).isTrue();
     assertThat(view.status().nextIntakeAt()).isNull();
-    assertThat(view.status().lastIntakeStatus()).isNull();
+    assertThat(view.status().lastIntakeStatus()).isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.IntakeStatus.OMITTED);
     AlertSummary alert = view.openAlerts().getFirst();
 
     AlertSummary attended =
