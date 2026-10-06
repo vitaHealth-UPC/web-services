@@ -103,6 +103,11 @@ class GenerateIntakesCommandHandlerTest {
         }
 
         @Override
+        public Optional<Intake> findById(String id) {
+            return values.stream().filter(intake -> intake.id().equals(id)).findFirst();
+        }
+
+        @Override
         public List<Intake> findFutureByTreatmentId(String treatmentId, Instant from) {
             return values.stream()
                     .filter(intake -> intake.treatmentId().equals(treatmentId))

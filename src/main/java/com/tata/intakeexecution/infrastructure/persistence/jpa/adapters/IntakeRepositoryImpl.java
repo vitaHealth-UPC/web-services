@@ -28,6 +28,11 @@ public class IntakeRepositoryImpl implements IntakeRepository {
     }
 
     @Override
+    public Optional<Intake> findById(String id) {
+        return repository.findById(id).map(this::toDomain);
+    }
+
+    @Override
     public List<Intake> findFutureByTreatmentId(String treatmentId, Instant from) {
         return repository.findByTreatmentIdAndScheduledAtGreaterThanEqualOrderByScheduledAtAsc(treatmentId, from)
                 .stream()
