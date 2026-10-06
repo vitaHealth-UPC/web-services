@@ -17,7 +17,7 @@ public final class TreatmentResourceAssembler {
     public static TreatmentResponse toResource(TreatmentResult result) {
         return new TreatmentResponse(
                 result.id(), result.olderAdultId(), result.name(), result.status().name(),
-                result.medicationId(), result.dose(), result.frequency(), result.scheduledTime(),
+                result.medicationId(), result.dose(), result.frequency(), result.scheduledTimes(),
                 result.instructions(), result.reminderLeadMinutes()
         );
     }

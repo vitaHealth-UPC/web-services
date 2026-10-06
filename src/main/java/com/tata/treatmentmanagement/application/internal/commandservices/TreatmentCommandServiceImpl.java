@@ -87,7 +87,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
                 command.medicationId(),
                 command.dose(),
                 command.frequency(),
-                command.scheduledTime(),
+                command.scheduledTimes(),
                 command.instructions(),
                 command.reminderLeadMinutes()
         ));

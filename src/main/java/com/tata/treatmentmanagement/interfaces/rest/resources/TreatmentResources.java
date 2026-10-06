@@ -3,9 +3,11 @@ package com.tata.treatmentmanagement.interfaces.rest.resources;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalTime;
+import java.util.List;
 
 public final class TreatmentResources {
     private TreatmentResources() {}
@@ -17,7 +19,7 @@ public final class TreatmentResources {
             @NotBlank String medicationId,
             @NotBlank String dose,
             @NotBlank String frequency,
-            @NotNull LocalTime scheduledTime,
+            @NotEmpty List<@NotNull LocalTime> scheduledTimes,
             String instructions,
             @Min(0) @Max(1440) int reminderLeadMinutes
     ) {}
@@ -30,7 +32,7 @@ public final class TreatmentResources {
             String medicationId,
             String dose,
             String frequency,
-            LocalTime scheduledTime,
+            List<LocalTime> scheduledTimes,
             String instructions,
             Integer reminderLeadMinutes
     ) {}

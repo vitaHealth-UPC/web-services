@@ -1,6 +1,7 @@
 package com.tata.treatmentmanagement.domain.model.commands;
 
 import java.time.LocalTime;
+import java.util.List;
 
 public record ConfigureTreatmentCommand(
         String caregiverId,
@@ -8,7 +9,7 @@ public record ConfigureTreatmentCommand(
         String medicationId,
         String dose,
         String frequency,
-        LocalTime scheduledTime,
+        List<LocalTime> scheduledTimes,
         String instructions,
         int reminderLeadMinutes
 ) {}

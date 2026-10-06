@@ -34,7 +34,7 @@ public class TreatmentRepositoryImpl implements TreatmentRepository {
                     entity.getMedicationId(),
                     entity.getDose(),
                     entity.getFrequency(),
-                    entity.getScheduledTime(),
+                    entity.getScheduledTimes(),
                     entity.getInstructions(),
                     entity.getReminderLeadMinutes() == null ? 0 : entity.getReminderLeadMinutes()
             );
@@ -55,7 +55,7 @@ public class TreatmentRepositoryImpl implements TreatmentRepository {
                 regimen == null ? null : regimen.medicationId(),
                 regimen == null ? null : regimen.dose(),
                 regimen == null ? null : regimen.frequency(),
-                regimen == null ? null : regimen.scheduledTime(),
+                regimen == null ? null : regimen.scheduledTimes(),
                 regimen == null ? null : regimen.instructions(),
                 regimen == null ? null : regimen.reminderLeadMinutes(),
                 treatment.createdAt()
