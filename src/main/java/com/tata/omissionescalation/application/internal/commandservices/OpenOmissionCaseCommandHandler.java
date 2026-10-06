@@ -33,6 +33,6 @@ public class OpenOmissionCaseCommandHandler {
             command.olderAdultId(),
             command.medicationName(),
             command.scheduledAt(),
-            GracePeriod.startingAt(Instant.now(), gracePeriodLength))));
+            GracePeriod.startingAt(command.scheduledAt(), gracePeriodLength))));
   }
 }

@@ -32,7 +32,7 @@ public class EscalateOmissionCommandHandler {
   /** Raises the level when the policy says so, and closes the case once the top level is reached. */
   @Transactional
   public void handle(EscalateOmissionCommand command) {
-    OmissionCase omissionCase = repository.findById(command.omissionCaseId()).orElse(null);
+    OmissionCase omissionCase = repository.findByIdForUpdate(command.omissionCaseId()).orElse(null);
     if (omissionCase == null || !escalationPolicy.shouldEscalate(omissionCase, command.now())) {
       return;
     }

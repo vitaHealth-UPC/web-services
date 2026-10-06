@@ -28,6 +28,11 @@ public class OmissionCaseRepository implements IOmissionCaseRepository {
   }
 
   @Override
+  public Optional<OmissionCase> findByIdForUpdate(Long id) { return jpaRepository.findByIdForUpdate(id); }
+  @Override
+  public Optional<OmissionCase> findByIntakeIdForUpdate(String id) { return jpaRepository.findByIntakeIdForUpdate(id); }
+
+  @Override
   public Optional<OmissionCase> findByIntakeId(String intakeId) {
     return jpaRepository.findByIntakeId(intakeId);
   }

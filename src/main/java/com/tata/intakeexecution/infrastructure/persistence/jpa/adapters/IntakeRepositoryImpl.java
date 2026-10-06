@@ -26,6 +26,12 @@ public class IntakeRepositoryImpl implements IntakeRepository {
     }
 
     @Override
+    public List<String> findUnreportedDueIds(Instant now) {
+        return repository.findTop200ByStatusAndUnconfirmedReportedAtIsNullAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc(IntakeStatus.PENDING, now)
+                .stream().map(IntakePersistenceEntity::getId).toList();
+    }
+
+    @Override
     public List<Intake> saveAll(List<Intake> intakes) {
         return repository.saveAll(intakes.stream().map(this::toEntity).toList()).stream()
                 .map(this::toDomain)
@@ -81,7 +87,8 @@ public class IntakeRepositoryImpl implements IntakeRepository {
                 entity.getStatus(),
                 entity.getCreatedAt(),
                 entity.getConfirmedAt(),
-                entity.getConfirmationChannel()
+                entity.getConfirmationChannel(),
+                entity.getUnconfirmedReportedAt()
         );
     }
 
@@ -99,6 +106,7 @@ public class IntakeRepositoryImpl implements IntakeRepository {
                 intake.createdAt()
         );
         entity.setConfirmation(intake.confirmedAt(), intake.confirmationChannel());
+        entity.setUnconfirmedReportedAt(intake.unconfirmedReportedAt());
         return entity;
     }
 }

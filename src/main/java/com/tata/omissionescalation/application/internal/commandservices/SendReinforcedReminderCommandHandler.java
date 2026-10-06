@@ -30,7 +30,7 @@ public class SendReinforcedReminderCommandHandler {
   /** Sends one reinforced reminder per case, respecting the user's channel and quiet hours. */
   @Transactional
   public void handle(SendReinforcedReminderCommand command) {
-    OmissionCase omissionCase = repository.findById(command.omissionCaseId()).orElse(null);
+    OmissionCase omissionCase = repository.findByIdForUpdate(command.omissionCaseId()).orElse(null);
     if (omissionCase == null
         || omissionCase.getStatus() != OmissionCaseStatus.PENDING
         || omissionCase.getReinforcedReminderSentAt() != null) {

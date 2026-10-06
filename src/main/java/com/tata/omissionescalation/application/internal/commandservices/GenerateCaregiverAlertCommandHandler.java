@@ -33,7 +33,7 @@ public class GenerateCaregiverAlertCommandHandler {
    */
   @Transactional
   public void handle(GenerateCaregiverAlertCommand command) {
-    OmissionCase omissionCase = repository.findById(command.omissionCaseId()).orElse(null);
+    OmissionCase omissionCase = repository.findByIdForUpdate(command.omissionCaseId()).orElse(null);
     if (omissionCase == null
         || omissionCase.getStatus() != OmissionCaseStatus.OMITTED
         || !omissionCase.getAlerts().isEmpty()) {

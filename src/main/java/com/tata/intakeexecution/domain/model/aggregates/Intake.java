@@ -19,6 +19,7 @@ public final class Intake {
     private final Instant createdAt;
     private Instant confirmedAt;
     private ConfirmationChannel confirmationChannel;
+    private Instant unconfirmedReportedAt;
 
     private Intake(
             String id,
@@ -84,6 +85,29 @@ public final class Intake {
 
     public Instant confirmedAt() { return confirmedAt; }
     public ConfirmationChannel confirmationChannel() { return confirmationChannel; }
+    public Instant unconfirmedReportedAt() { return unconfirmedReportedAt; }
+
+    public static Intake rehydrate(String id, String treatmentId, String medicationId, String olderAdultId,
+            MedicationSnapshot medication, Instant scheduledAt, IntakeStatus status, Instant createdAt,
+            Instant confirmedAt, ConfirmationChannel channel, Instant unconfirmedReportedAt) {
+        var intake = rehydrate(id, treatmentId, medicationId, olderAdultId, medication, scheduledAt, status, createdAt, confirmedAt, channel);
+        intake.unconfirmedReportedAt = unconfirmedReportedAt;
+        return intake;
+    }
+
+    public boolean reportUnconfirmed(Instant now) {
+        Objects.requireNonNull(now);
+        if (!isPending() || unconfirmedReportedAt != null || now.isBefore(scheduledAt)) return false;
+        unconfirmedReportedAt = now;
+        return true;
+    }
+
+    public boolean omit() {
+        if (status == IntakeStatus.OMITTED) return false;
+        if (!isPending()) throw new IllegalStateException("a confirmed intake cannot be omitted");
+        status = IntakeStatus.OMITTED;
+        return true;
+    }
 
     public boolean isPending() {
         return status == IntakeStatus.PENDING;
