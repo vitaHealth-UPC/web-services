@@ -19,6 +19,7 @@ import com.tata.carelink.domain.model.valueobjects.OlderAdultBasicData;
 import com.tata.carelink.domain.repositories.CareLinkRepository;
 import com.tata.carelink.domain.repositories.OlderAdultProfileRepository;
 import com.tata.carelink.domain.services.CareLinkConfirmationPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
     private final CareLinkConfirmationPolicy confirmationPolicy;
     private final Clock clock;
 
+    @Autowired
     public CareLinkCommandServiceImpl(
             OlderAdultProfileRepository olderAdultRepository,
             CareLinkRepository careLinkRepository,

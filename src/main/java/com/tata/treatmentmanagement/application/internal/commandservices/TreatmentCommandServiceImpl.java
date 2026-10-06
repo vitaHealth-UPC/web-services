@@ -2,6 +2,8 @@ package com.tata.treatmentmanagement.application.internal.commandservices;
 
 import com.tata.treatmentmanagement.application.TreatmentApplicationException;
 import com.tata.treatmentmanagement.application.commandservices.TreatmentCommandService;
+import com.tata.treatmentmanagement.application.events.TreatmentScheduleChangedEvent;
+import com.tata.treatmentmanagement.application.events.TreatmentScheduleEventPublisher;
 import com.tata.treatmentmanagement.application.internal.TreatmentMapper;
 import com.tata.treatmentmanagement.application.models.MedicationResult;
 import com.tata.treatmentmanagement.application.models.TreatmentResult;
@@ -9,9 +11,11 @@ import com.tata.treatmentmanagement.domain.model.aggregates.Medication;
 import com.tata.treatmentmanagement.domain.model.aggregates.Treatment;
 import com.tata.treatmentmanagement.domain.model.commands.*;
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentRegimen;
+import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
 import com.tata.treatmentmanagement.domain.repositories.MedicationRepository;
 import com.tata.treatmentmanagement.domain.repositories.TreatmentRepository;
 import com.tata.treatmentmanagement.domain.services.ICareLinkVerificationPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +27,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     private final MedicationRepository medicationRepository;
     private final TreatmentRepository treatmentRepository;
     private final ICareLinkVerificationPort careLinkVerificationPort;
+    private final TreatmentScheduleEventPublisher scheduleEventPublisher;
     private final Clock clock = Clock.systemUTC();
 
     public TreatmentCommandServiceImpl(
@@ -30,9 +35,25 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
             TreatmentRepository treatmentRepository,
             ICareLinkVerificationPort careLinkVerificationPort
     ) {
+        this(
+                medicationRepository,
+                treatmentRepository,
+                careLinkVerificationPort,
+                event -> {}
+        );
+    }
+
+    @Autowired
+    public TreatmentCommandServiceImpl(
+            MedicationRepository medicationRepository,
+            TreatmentRepository treatmentRepository,
+            ICareLinkVerificationPort careLinkVerificationPort,
+            TreatmentScheduleEventPublisher scheduleEventPublisher
+    ) {
         this.medicationRepository = medicationRepository;
         this.treatmentRepository = treatmentRepository;
         this.careLinkVerificationPort = careLinkVerificationPort;
+        this.scheduleEventPublisher = scheduleEventPublisher;
     }
 
     @Override
@@ -91,7 +112,9 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
                 command.instructions(),
                 command.reminderLeadMinutes()
         ));
-        return TreatmentMapper.toResult(treatmentRepository.save(treatment));
+        var saved = treatmentRepository.save(treatment);
+        publishSchedule(saved);
+        return TreatmentMapper.toResult(saved);
     }
 
     @Override
@@ -103,7 +126,9 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
         } catch (IllegalStateException exception) {
             throw error(TreatmentApplicationException.Code.INCOMPLETE_TREATMENT, exception.getMessage());
         }
-        return TreatmentMapper.toResult(treatmentRepository.save(treatment));
+        var saved = treatmentRepository.save(treatment);
+        publishSchedule(saved);
+        return TreatmentMapper.toResult(saved);
     }
 
     @Override
@@ -115,7 +140,9 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
         } catch (IllegalStateException exception) {
             throw error(TreatmentApplicationException.Code.INVALID_TRANSITION, exception.getMessage());
         }
-        return TreatmentMapper.toResult(treatmentRepository.save(treatment));
+        var saved = treatmentRepository.save(treatment);
+        publishSchedule(saved);
+        return TreatmentMapper.toResult(saved);
     }
 
     @Override
@@ -127,7 +154,29 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
         } catch (IllegalStateException exception) {
             throw error(TreatmentApplicationException.Code.INVALID_TRANSITION, exception.getMessage());
         }
-        return TreatmentMapper.toResult(treatmentRepository.save(treatment));
+        var saved = treatmentRepository.save(treatment);
+        publishSchedule(saved);
+        return TreatmentMapper.toResult(saved);
+    }
+
+    private void publishSchedule(Treatment treatment) {
+        var regimen = treatment.regimen();
+        if (regimen == null) {
+            return;
+        }
+        var medication = medication(regimen.medicationId());
+        scheduleEventPublisher.publish(new TreatmentScheduleChangedEvent(
+                treatment.id(),
+                regimen.medicationId(),
+                treatment.olderAdultId(),
+                medication.name(),
+                regimen.dose(),
+                regimen.frequency(),
+                regimen.scheduledTimes(),
+                regimen.instructions(),
+                regimen.reminderLeadMinutes(),
+                treatment.status() == TreatmentStatus.ACTIVE
+        ));
     }
 
     private Medication medication(String id) {
