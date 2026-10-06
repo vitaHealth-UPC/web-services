@@ -10,6 +10,7 @@ import com.tata.identitysubscription.domain.model.commands.AuthenticateWithPinCo
 import com.tata.identitysubscription.domain.model.commands.RegisterPinCommand;
 import com.tata.identitysubscription.domain.model.valueobjects.PinPolicy;
 import com.tata.identitysubscription.domain.repositories.PinCredentialRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class PinCommandServiceImpl implements PinCommandService {
     private final Clock clock;
     private final PinPolicy policy;
 
+    @Autowired
     public PinCommandServiceImpl(
             PinCredentialRepository repository,
             PasswordHasher passwordHasher,

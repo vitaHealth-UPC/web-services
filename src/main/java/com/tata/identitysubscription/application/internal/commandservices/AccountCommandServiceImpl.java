@@ -15,6 +15,7 @@ import com.tata.identitysubscription.domain.model.commands.RequestNewVerificatio
 import com.tata.identitysubscription.domain.model.commands.VerifyEmailCommand;
 import com.tata.identitysubscription.domain.model.valueobjects.EmailAddress;
 import com.tata.identitysubscription.domain.repositories.AccountRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ public class AccountCommandServiceImpl implements AccountCommandService {
     private final SessionTokenService sessionTokenService;
     private final Clock clock;
 
+    @Autowired
     public AccountCommandServiceImpl(
             AccountRepository accountRepository,
             PasswordHasher passwordHasher,
