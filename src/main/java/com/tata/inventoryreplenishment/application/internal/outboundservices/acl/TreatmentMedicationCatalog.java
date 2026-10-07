@@ -12,6 +12,7 @@ public class TreatmentMedicationCatalog implements MedicationCatalog {
         this.treatments = treatments;
     }
 
+    @Override public Integer dailyConsumptionUnits(String medicationId) { return treatments.scheduledDailyUnits(medicationId).orElse(null); }
     @Override
     public Availability availability(String medicationId) {
         return treatments.findMedication(medicationId)

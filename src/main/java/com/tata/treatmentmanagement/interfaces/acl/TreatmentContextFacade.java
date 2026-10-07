@@ -17,4 +17,5 @@ public interface TreatmentContextFacade {
      */
     Optional<MedicationResult> findMedication(String medicationId);
     Optional<TreatmentResult> findTreatment(String treatmentId);
+    Optional<Integer> scheduledDailyUnits(String medicationId);
 }
