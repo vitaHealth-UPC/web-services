@@ -8,6 +8,7 @@ import com.tata.familymonitoring.domain.model.valueobjects.IntakeStatus;
 import com.tata.familymonitoring.domain.model.valueobjects.IntakeSummary;
 import com.tata.familymonitoring.domain.model.valueobjects.OlderAdultStatus;
 import com.tata.familymonitoring.domain.ports.IIntakeHistoryPort;
+import com.tata.familymonitoring.domain.ports.IAdherenceSummaryPort;
 import com.tata.familymonitoring.domain.repositories.IFamilyMonitorRepository;
 import java.time.Instant;
 import java.util.Comparator;
@@ -21,11 +22,13 @@ public class GetOlderAdultStatusQueryHandler {
 
   private final IFamilyMonitorRepository repository;
   private final IIntakeHistoryPort intakeHistoryPort;
+  private final IAdherenceSummaryPort adherenceSummaryPort;
 
   public GetOlderAdultStatusQueryHandler(
-      IFamilyMonitorRepository repository, IIntakeHistoryPort intakeHistoryPort) {
+      IFamilyMonitorRepository repository, IIntakeHistoryPort intakeHistoryPort, IAdherenceSummaryPort adherenceSummaryPort) {
     this.repository = repository;
     this.intakeHistoryPort = intakeHistoryPort;
+    this.adherenceSummaryPort = adherenceSummaryPort;
   }
 
   @Transactional(readOnly = true)
@@ -40,6 +43,6 @@ public class GetOlderAdultStatusQueryHandler {
     Instant nextIntakeAt = intakeHistoryPort.findNextIntakeAt(query.olderAdultId()).orElse(null);
     OlderAdultStatus status =
         new OlderAdultStatus(nextIntakeAt, lastIntakeStatus, monitor.hasOpenAlert());
-    return new OlderAdultStatusView(status, monitor.openAlerts());
+    return new OlderAdultStatusView(status, monitor.openAlerts(), adherenceSummaryPort.getWeeklySummary(query.olderAdultId()));
   }
 }

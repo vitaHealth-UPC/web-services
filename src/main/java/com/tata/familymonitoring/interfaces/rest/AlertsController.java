@@ -32,14 +32,17 @@ public class AlertsController {
   private final GetAlertDetailQueryHandler alertDetailHandler;
   private final MarkAlertAttendedCommandHandler markAttendedHandler;
   private final CloseAlertCommandHandler closeAlertHandler;
+  private final com.tata.familymonitoring.application.internal.RequireCareRelationship access;
 
   public AlertsController(
       GetAlertDetailQueryHandler alertDetailHandler,
       MarkAlertAttendedCommandHandler markAttendedHandler,
-      CloseAlertCommandHandler closeAlertHandler) {
+      CloseAlertCommandHandler closeAlertHandler,
+      com.tata.familymonitoring.application.internal.RequireCareRelationship access) {
     this.alertDetailHandler = alertDetailHandler;
     this.markAttendedHandler = markAttendedHandler;
     this.closeAlertHandler = closeAlertHandler;
+    this.access = access;
   }
 
   @Operation(
@@ -50,7 +53,9 @@ public class AlertsController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/{alertId}")
   public AlertSummaryResource getAlertDetail(
-      @PathVariable String olderAdultId, @PathVariable Long alertId) {
+      @PathVariable String olderAdultId, @PathVariable Long alertId,
+      @org.springframework.web.bind.annotation.RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
     return AlertSummaryResourceFromEntityAssembler.toResourceFromEntity(
         alertDetailHandler.handle(new GetAlertDetailQuery(olderAdultId, alertId)));
   }
@@ -70,7 +75,9 @@ public class AlertsController {
   public AlertSummaryResource updateAlertStatus(
       @PathVariable String olderAdultId,
       @PathVariable Long alertId,
+      @org.springframework.web.bind.annotation.RequestParam String caregiverId,
       @Valid @RequestBody UpdateAlertStatusResource resource) {
+    access.check(caregiverId, olderAdultId);
     AlertSummary alert = switch (resource.status()) {
       case ATTENDED -> markAttendedHandler.handle(new MarkAlertAttendedCommand(olderAdultId, alertId));
       case CLOSED -> closeAlertHandler.handle(new CloseAlertCommand(olderAdultId, alertId));

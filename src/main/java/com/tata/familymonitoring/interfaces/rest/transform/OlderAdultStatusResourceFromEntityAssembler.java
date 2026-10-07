@@ -15,6 +15,6 @@ public final class OlderAdultStatusResourceFromEntityAssembler {
         view.status().hasOpenAlert(),
         view.openAlerts().stream()
             .map(AlertSummaryResourceFromEntityAssembler::toResourceFromEntity)
-            .toList());
+            .toList(), view.weeklyAdherence());
   }
 }
