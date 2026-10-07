@@ -1,6 +1,7 @@
 package com.tata.treatmentmanagement.application.internal.fakes;
 
 import com.tata.treatmentmanagement.domain.model.aggregates.Treatment;
+import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
 import com.tata.treatmentmanagement.domain.repositories.TreatmentRepository;
 
 import java.util.HashMap;
@@ -34,6 +35,13 @@ public final class InMemoryTreatmentRepository implements TreatmentRepository {
         return values.values().stream()
                 .filter(treatment -> treatment.regimen() != null
                         && treatment.regimen().medicationId().equals(medicationId))
+                .toList();
+    }
+
+    @Override
+    public List<Treatment> findByStatus(TreatmentStatus status) {
+        return values.values().stream()
+                .filter(treatment -> treatment.status() == status)
                 .toList();
     }
 }
