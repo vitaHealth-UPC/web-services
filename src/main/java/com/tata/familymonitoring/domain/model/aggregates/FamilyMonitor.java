@@ -1,8 +1,10 @@
 package com.tata.familymonitoring.domain.model.aggregates;
 
 import com.tata.familymonitoring.domain.exceptions.AlertNotFoundException;
+import com.tata.familymonitoring.domain.model.entities.AdherenceInsight;
 import com.tata.familymonitoring.domain.model.entities.AlertSummary;
 import com.tata.familymonitoring.domain.model.entities.CaregiverNote;
+import com.tata.familymonitoring.domain.model.entities.LowStockNotice;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,8 +14,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -45,6 +49,14 @@ public class FamilyMonitor {
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "family_monitor_id")
   private List<CaregiverNote> notes = new ArrayList<>();
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "family_monitor_id")
+  private List<LowStockNotice> lowStockNotices = new ArrayList<>();
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "family_monitor_id")
+  private List<AdherenceInsight> adherenceInsights = new ArrayList<>();
 
   @CreationTimestamp
   @Column(updatable = false)
@@ -108,6 +120,54 @@ public class FamilyMonitor {
     return alerts.stream().anyMatch(AlertSummary::isOpen);
   }
 
+  /** Marks the medication as low on stock. A second notice for the same medication only refreshes it. */
+  public LowStockNotice registerLowStock(
+      String medicationId, String medicationName, int remainingStock, int replenishmentThreshold, Instant now) {
+    var existing = lowStockNotices.stream()
+        .filter(notice -> notice.getMedicationId().equals(medicationId))
+        .findFirst();
+    if (existing.isPresent()) {
+      existing.get().refresh(medicationName, remainingStock, replenishmentThreshold, now);
+      return existing.get();
+    }
+    var notice = new LowStockNotice(medicationId, medicationName, remainingStock, replenishmentThreshold, now);
+    lowStockNotices.add(notice);
+    return notice;
+  }
+
+  /** Clears the low-stock notice once a replenishment leaves the stock above its threshold. */
+  public void resolveLowStock(String medicationId, int remainingStock) {
+    lowStockNotices.removeIf(
+        notice -> notice.getMedicationId().equals(medicationId)
+            && remainingStock > notice.getReplenishmentThreshold());
+  }
+
+  /** Keeps the insight once; the same pattern reported again changes nothing. */
+  public AdherenceInsight registerInsight(
+      String medicationId, String medicationName, int omissionDays, LocalDate firstDay, LocalDate lastDay,
+      Instant now) {
+    return adherenceInsights.stream()
+        .filter(insight -> insight.isSamePattern(medicationId, firstDay, lastDay))
+        .findFirst()
+        .orElseGet(() -> {
+          var insight = new AdherenceInsight(medicationId, medicationName, omissionDays, firstDay, lastDay, now);
+          adherenceInsights.add(insight);
+          return insight;
+        });
+  }
+
+  public boolean hasLowStock() {
+    return !lowStockNotices.isEmpty();
+  }
+
+  /** Most recent first. */
+  public List<AdherenceInsight> recentInsights(int limit) {
+    return adherenceInsights.stream()
+        .sorted(Comparator.comparing(AdherenceInsight::getDetectedAt).reversed())
+        .limit(limit)
+        .toList();
+  }
+
   public CaregiverNote latestNote() {
     return notes.getLast();
   }
@@ -134,5 +194,9 @@ public class FamilyMonitor {
 
   public List<CaregiverNote> getNotes() {
     return Collections.unmodifiableList(notes);
+  }
+
+  public List<LowStockNotice> getLowStockNotices() {
+    return Collections.unmodifiableList(lowStockNotices);
   }
 }
