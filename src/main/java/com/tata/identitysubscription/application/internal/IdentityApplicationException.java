@@ -7,7 +7,12 @@ public final class IdentityApplicationException extends RuntimeException {
         INVALID_VERIFICATION,
         VERIFICATION_EXPIRED,
         ACCOUNT_NOT_ACTIVE,
-        INVALID_CREDENTIALS
+        INVALID_CREDENTIALS,
+        PIN_ALREADY_REGISTERED,
+        PIN_NOT_FOUND,
+        INVALID_PIN,
+        PIN_LOCKED,
+        PLAN_NOT_FOUND
     }
 
     private final Code code;
@@ -17,7 +22,5 @@ public final class IdentityApplicationException extends RuntimeException {
         this.code = code;
     }
 
-    public Code code() {
-        return code;
-    }
+    public Code code() { return code; }
 }

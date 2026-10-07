@@ -11,9 +11,13 @@ import com.tata.identitysubscription.application.models.SessionResult;
 import com.tata.identitysubscription.domain.model.aggregates.Account;
 import com.tata.identitysubscription.domain.model.commands.AuthenticateFamilyCommand;
 import com.tata.identitysubscription.domain.model.commands.RegisterFamilyAccountCommand;
+import com.tata.identitysubscription.domain.model.commands.RequestNewVerificationCommand;
 import com.tata.identitysubscription.domain.model.commands.VerifyEmailCommand;
+import com.tata.identitysubscription.domain.model.events.AccountEnabled;
 import com.tata.identitysubscription.domain.model.valueobjects.EmailAddress;
 import com.tata.identitysubscription.domain.repositories.AccountRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,17 +34,20 @@ public class AccountCommandServiceImpl implements AccountCommandService {
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final VerificationDeliveryPort verificationDeliveryPort;
     private final SessionTokenService sessionTokenService;
+    private final ApplicationEventPublisher events;
     private final Clock clock;
 
+    @Autowired
     public AccountCommandServiceImpl(
             AccountRepository accountRepository,
             PasswordHasher passwordHasher,
             VerificationCodeGenerator verificationCodeGenerator,
             VerificationDeliveryPort verificationDeliveryPort,
-            SessionTokenService sessionTokenService
+            SessionTokenService sessionTokenService,
+            ApplicationEventPublisher events
     ) {
         this(accountRepository, passwordHasher, verificationCodeGenerator, verificationDeliveryPort,
-                sessionTokenService, Clock.systemUTC());
+                sessionTokenService, events, Clock.systemUTC());
     }
 
     AccountCommandServiceImpl(
@@ -49,6 +56,7 @@ public class AccountCommandServiceImpl implements AccountCommandService {
             VerificationCodeGenerator verificationCodeGenerator,
             VerificationDeliveryPort verificationDeliveryPort,
             SessionTokenService sessionTokenService,
+            ApplicationEventPublisher events,
             Clock clock
     ) {
         this.accountRepository = accountRepository;
@@ -56,6 +64,7 @@ public class AccountCommandServiceImpl implements AccountCommandService {
         this.verificationCodeGenerator = verificationCodeGenerator;
         this.verificationDeliveryPort = verificationDeliveryPort;
         this.sessionTokenService = sessionTokenService;
+        this.events = events;
         this.clock = clock;
     }
 
@@ -98,7 +107,31 @@ public class AccountCommandServiceImpl implements AccountCommandService {
         }
 
         account.completeVerification();
-        return toResult(accountRepository.save(account));
+        var saved = accountRepository.save(account);
+        events.publishEvent(new AccountEnabled(saved.id(), clock.instant()));
+        return toResult(saved);
+    }
+
+    @Override
+    public AccountResult requestNewVerification(RequestNewVerificationCommand command) {
+        var email = new EmailAddress(command.email());
+        var account = accountRepository.findByEmail(email.value())
+                .orElseThrow(() -> error(IdentityApplicationException.Code.ACCOUNT_NOT_FOUND, "account not found"));
+
+        if (account.status() != com.tata.identitysubscription.domain.model.valueobjects.AccountStatus.PENDING_VERIFICATION) {
+            throw error(IdentityApplicationException.Code.ACCOUNT_NOT_ACTIVE, "account is not pending verification");
+        }
+
+        var verificationCode = verificationCodeGenerator.generate();
+        account.renewVerificationCode(
+                passwordHasher.hash(verificationCode),
+                clock.instant(),
+                VERIFICATION_TTL
+        );
+
+        var saved = accountRepository.save(account);
+        verificationDeliveryPort.send(saved.email().value(), verificationCode);
+        return toResult(saved);
     }
 
     @Override

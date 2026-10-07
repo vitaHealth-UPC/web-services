@@ -6,6 +6,7 @@ import com.tata.identitysubscription.domain.repositories.AccountRepository;
 import com.tata.identitysubscription.infrastructure.persistence.jpa.entities.AccountPersistenceEntity;
 import com.tata.identitysubscription.infrastructure.persistence.jpa.repositories.AccountJpaRepository;
 import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
 @Repository
@@ -14,6 +15,11 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     public AccountRepositoryImpl(AccountJpaRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public Optional<Account> findById(String id) {
+        return repository.findById(id).map(this::toDomain);
     }
 
     @Override
@@ -28,16 +34,31 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     private Account toDomain(AccountPersistenceEntity entity) {
         return Account.rehydrate(
-                entity.getId(), entity.getName(), new EmailAddress(entity.getEmail()),
-                entity.getPasswordHash(), entity.getStatus(), entity.getVerificationCodeHash(),
-                entity.getVerificationExpiresAt()
+                entity.getId(),
+                entity.getName(),
+                new EmailAddress(entity.getEmail()),
+                entity.getPasswordHash(),
+                entity.getStatus(),
+                entity.getVerificationCodeHash(),
+                entity.getVerificationExpiresAt(),
+                entity.getSubscriptionPlanCode(),
+                entity.getSubscriptionStatus(),
+                entity.getSubscriptionRenewsAt()
         );
     }
 
     private AccountPersistenceEntity toEntity(Account account) {
         return new AccountPersistenceEntity(
-                account.id(), account.name(), account.email().value(), account.passwordHash(),
-                account.status(), account.verificationCodeHash(), account.verificationExpiresAt()
+                account.id(),
+                account.name(),
+                account.email().value(),
+                account.passwordHash(),
+                account.status(),
+                account.verificationCodeHash(),
+                account.verificationExpiresAt(),
+                account.currentPlanCode(),
+                account.subscriptionStatus(),
+                account.subscriptionRenewsAt()
         );
     }
 }
