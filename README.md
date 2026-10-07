@@ -72,6 +72,31 @@ export DATABASE_PASSWORD=postgres
 mvn spring-boot:run
 ~~~
 
+## Deployment
+
+This backend is a long-running Spring Boot JVM process.
+
+**Do not deploy the API on Vercel.** Vercel is for serverless Node/edge and static sites. Use Vercel only for a landing page if needed.
+
+Recommended student/demo layout:
+
+1. **PostgreSQL on Railway** (managed database).
+2. **API on Railway** too (simplest: same project, second service from this `Dockerfile`), **or** on **Render** Web Service with the same Docker image.
+3. Point the API `DATABASE_URL` at the Railway Postgres URL.
+
+| Variable | Notes |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | `prod` |
+| `DATABASE_URL` | Railway Postgres URL (`postgresql://...`); mapped automatically to JDBC, including `sslmode` |
+| or `DATABASE_HOST` / `DATABASE_PORT` / `DATABASE_NAME` / `DATABASE_USER` / `DATABASE_PASSWORD` | discrete alternative |
+| `PORT` | provided by the host (Railway/Render) |
+| `TATA_REQUIRE_AUTHENTICATION` | defaults to `true` in prod |
+| `TATA_CORS_ALLOWED_ORIGINS` | comma-separated origins for mobile/web clients |
+
+Health check: `GET /health`.
+
+Swagger UI: `/swagger-ui.html` once the service is up.
+
 ## GitFlow
 
 ~~~text

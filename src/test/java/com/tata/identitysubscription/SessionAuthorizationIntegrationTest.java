@@ -50,6 +50,7 @@ class SessionAuthorizationIntegrationTest {
  }
  String bearer(Account a) { return "Bearer "+tokens.issue(a.id()).accessToken(); }
  @Test void anonymousInvalidAndExpiredSessionsCannotReadProtectedResources() throws Exception {
+  mvc.perform(get("/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
   mvc.perform(get("/api/v1/care-links").param("caregiverId",UUID.randomUUID().toString())).andExpect(status().isUnauthorized());
   mvc.perform(get("/api/v1/sessions/current").header("Authorization","Bearer invalid")).andExpect(status().isUnauthorized());
   var a=account(true);var token="expired-"+UUID.randomUUID();var hash=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));

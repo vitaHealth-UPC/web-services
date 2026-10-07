@@ -23,8 +23,13 @@ public class OpaqueSessionTokenService implements SessionTokenService {
  private final AccountSessionJpaRepository sessions;
  private final AccountRepository accounts;
  private final CareLinkContextFacade links;
+ private final java.time.Clock clock;
+ @org.springframework.beans.factory.annotation.Autowired
  public OpaqueSessionTokenService(AccountSessionJpaRepository sessions, AccountRepository accounts, CareLinkContextFacade links) {
-  this.sessions=sessions; this.accounts=accounts; this.links=links;
+  this(sessions,accounts,links,java.time.Clock.systemUTC());
+ }
+ OpaqueSessionTokenService(AccountSessionJpaRepository sessions, AccountRepository accounts, CareLinkContextFacade links, java.time.Clock clock) {
+  this.sessions=sessions; this.accounts=accounts; this.links=links; this.clock=clock;
  }
  public SessionResult issue(String accountId) { return issue(accountId, Role.CAREGIVER, null, 720); }
  public SessionResult issueLinkSetup(String owner, String linkId) { return issue(owner,Role.LINK_SETUP,linkId,15); }
@@ -35,14 +40,14 @@ public class OpaqueSessionTokenService implements SessionTokenService {
   return issue(owner,Role.OLDER_ADULT,link.id(),720);
  }
  private SessionResult issue(String owner, Role role, String linkId, int minutes) {
-  var raw=UUID.randomUUID()+"."+UUID.randomUUID(); var expiry=Instant.now().plus(minutes,ChronoUnit.MINUTES);
+  var raw=UUID.randomUUID()+"."+UUID.randomUUID(); var expiry=clock.instant().plus(minutes,ChronoUnit.MINUTES);
   sessions.save(new AccountSessionPersistenceEntity(owner,sha256(raw),expiry,role.name(),linkId));
   return new SessionResult(owner,raw,expiry);
  }
  @Transactional(readOnly=true)
  public Optional<AuthenticatedSession> authenticate(String token) {
   if(token==null || token.isBlank() || token.length()>256) return Optional.empty();
-  return sessions.findByTokenHash(sha256(token)).filter(s -> s.getExpiresAt().isAfter(Instant.now())).flatMap(s -> {
+  return sessions.findByTokenHash(sha256(token)).filter(s -> s.getExpiresAt().isAfter(clock.instant())).flatMap(s -> {
    if(s.getRole()==null) return Optional.empty();
    final Role role; try { role=Role.valueOf(s.getRole()); } catch(IllegalArgumentException ex) { return Optional.empty(); }
    if(role==Role.CAREGIVER) {

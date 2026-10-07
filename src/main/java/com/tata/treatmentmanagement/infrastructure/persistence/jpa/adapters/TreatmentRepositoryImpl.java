@@ -2,6 +2,7 @@ package com.tata.treatmentmanagement.infrastructure.persistence.jpa.adapters;
 
 import com.tata.treatmentmanagement.domain.model.aggregates.Treatment;
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentRegimen;
+import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
 import com.tata.treatmentmanagement.domain.repositories.TreatmentRepository;
 import com.tata.treatmentmanagement.infrastructure.persistence.jpa.entities.TreatmentPersistenceEntity;
 import com.tata.treatmentmanagement.infrastructure.persistence.jpa.repositories.TreatmentJpaRepository;
@@ -36,6 +37,11 @@ public class TreatmentRepositoryImpl implements TreatmentRepository {
     @Override
     public List<Treatment> findByMedicationId(String medicationId) {
         return repository.findByMedicationId(medicationId).stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<Treatment> findByStatus(TreatmentStatus status) {
+        return repository.findByStatus(status).stream().map(this::toDomain).toList();
     }
 
     private Treatment toDomain(TreatmentPersistenceEntity entity) {

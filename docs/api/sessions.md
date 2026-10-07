@@ -1,6 +1,6 @@
 # Session and resource authorization contract
 
-`POST /api/v1/accounts`, `POST /api/v1/accounts/verification`, `POST /api/v1/email-verification-requests`, `POST /api/v1/sessions`, `POST /api/v1/pin-sessions` and `POST /api/v1/care-links/acceptances` are public credential-establishment operations. Plans and OpenAPI documentation can be read publicly.
+`POST /api/v1/accounts`, `POST /api/v1/accounts/verification`, `POST /api/v1/email-verification-requests`, `POST /api/v1/sessions`, `POST /api/v1/pin-sessions` and `POST /api/v1/care-links/acceptances` are public credential-establishment operations. Plans, liveness endpoints (`/health`, `/actuator/health`) and OpenAPI documentation can be read publicly.
 
 Other API operations require `Authorization: Bearer <accessToken>`. Tokens are opaque, persisted as SHA-256 hashes and validated on every protected request. An invalid, expired or revoked session returns `401` with code `AUTHENTICATION_REQUIRED`. Resource ownership violations return `403` with code `RESOURCE_ACCESS_DENIED`.
 
