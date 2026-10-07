@@ -7,4 +7,5 @@ public interface CareLinkQueryService {
     CareLinkResult getById(String careLinkId);
     OlderAdultProfileResult getOlderAdult(String olderAdultId);
     boolean isAuthorized(String caregiverId, String olderAdultId);
+    java.util.List<CareLinkResult> getConfirmedByCaregiver(String caregiverId);
 }

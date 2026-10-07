@@ -174,7 +174,12 @@ public class AdherenceViewQueryService {
         Map<TimeBand, Integer> counts = new EnumMap<>(TimeBand.class);
         issues.forEach(record -> counts.merge(bandOf(record, zone), 1, Integer::sum));
         var dominant = counts.entrySet().stream().max(Map.Entry.comparingByValue()).orElse(null);
-        if (dominant == null || dominant.getValue() < issues.size() * MINIMUM_BAND_SHARE) return null;
+        if (dominant == null || dominant.getValue() < MINIMUM_ISSUES_FOR_PATTERN
+                || dominant.getValue() < issues.size() * MINIMUM_BAND_SHARE) return null;
+        // Several doses on one day do not establish a recurring routine.
+        if (issues.stream().filter(record -> bandOf(record, zone) == dominant.getKey())
+                .map(record -> record.scheduledAt().atZone(zone).toLocalDate()).distinct().count()
+                < MINIMUM_ISSUES_FOR_PATTERN) return null;
         return dominant.getKey();
     }
 

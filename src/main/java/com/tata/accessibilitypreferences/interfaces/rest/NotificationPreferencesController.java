@@ -41,6 +41,7 @@ public class NotificationPreferencesController {
     @ApiResponse(responseCode = "400", description = "Invalid interval or repeated channel",
             content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     @PutMapping
+    @org.springframework.transaction.annotation.Transactional
     public UserPreferencesResource update(
             @PathVariable String userId, @Valid @RequestBody UpdateQuietHoursResource resource) {
         // both commands are built first so an invalid interval is rejected before any change is saved

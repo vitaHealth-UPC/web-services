@@ -166,4 +166,21 @@ class AdherenceViewQueryServiceTest {
         assertThatThrownBy(() -> service.summary("owner", 0, LIMA, NOW)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> service.insights("owner", 32, LIMA, NOW)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void multipleIssuesOnOneDayDoNotEstablishRecurrence() {
+        add(4, eveningOf(1), Status.OMITTED);
+        assertThat(service.insights("owner", 30, LIMA, NOW)).isEmpty();
+        assertThat(service.summary("owner", 30, LIMA, NOW).orElseThrow().pattern()).isNull();
+    }
+
+    @Test
+    void dominantBandRequiresThreeDistinctDaysOfEvidence() {
+        add(eveningOf(1), Status.OMITTED);
+        add(eveningOf(2), Status.LATE);
+        add(NOW.minus(Duration.ofDays(3)).atZone(LIMA).toLocalDate().atTime(8, 0).atZone(LIMA).toInstant(), Status.LATE);
+        assertThat(service.insights("owner", 30, LIMA, NOW)).isEmpty();
+        add(eveningOf(3), Status.LATE);
+        assertThat(service.insights("owner", 30, LIMA, NOW)).isPresent();
+    }
 }

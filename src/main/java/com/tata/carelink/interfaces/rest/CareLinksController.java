@@ -52,6 +52,18 @@ public class CareLinksController {
         return CareLinkResourceAssembler.toResource(queryService.getById(careLinkId));
     }
 
+    public record ConfirmedCareLinkResource(String id, String olderAdultId, String olderAdultName,
+            java.time.Instant confirmedAt) {}
+
+    @GetMapping
+    @io.swagger.v3.oas.annotations.Operation(summary = "List confirmed care links of a caregiver",
+            description = "Returns active links with consent, newest first. An empty list means no confirmed links.")
+    public java.util.List<ConfirmedCareLinkResource> list(@RequestParam String caregiverId) {
+        return queryService.getConfirmedByCaregiver(caregiverId).stream()
+                .map(link -> new ConfirmedCareLinkResource(link.id(), link.olderAdultId(),
+                        queryService.getOlderAdult(link.olderAdultId()).fullName(), link.confirmedAt())).toList();
+    }
+
     @GetMapping("/authorization")
     public boolean isAuthorized(
             @RequestParam String caregiverId,

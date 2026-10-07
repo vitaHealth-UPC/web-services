@@ -73,6 +73,7 @@ class AdherenceViewIntegrationTest {
         String owner = UUID.randomUUID().toString();
         mvc.perform(get("/api/v1/older-adults/{id}/adherence/summary", owner)).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/older-adults/{id}/adherence/insight", owner)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/older-adults/{id}/adherence/insights", owner)).andExpect(status().isNoContent());
     }
 
     @Test
