@@ -4,6 +4,7 @@ import com.tata.intakeexecution.application.commands.ConfirmIntakeByVoiceCommand
 import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
 import com.tata.intakeexecution.application.internal.IntakeApplicationException;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
+import com.tata.intakeexecution.application.internal.outboundservices.IVoicePreferencePort;
 import com.tata.intakeexecution.application.internal.outboundservices.IVoiceRecognitionPort;
 import com.tata.intakeexecution.application.models.VoiceConfirmationResult;
 import com.tata.intakeexecution.application.models.VoiceConfirmationResult.VoiceConfirmationStatus;
@@ -22,19 +23,31 @@ public class ConfirmIntakeByVoiceCommandHandler {
     private final IntakeRepository repository;
     private final ConfirmIntakeCommandHandler confirmIntake;
     private final VoiceConfirmationValidationService validation;
+    private final IVoicePreferencePort voicePreference;
 
     @Autowired
     public ConfirmIntakeByVoiceCommandHandler(
             IVoiceRecognitionPort voiceRecognition,
             IntakeRepository repository,
-            ConfirmIntakeCommandHandler confirmIntake
+            ConfirmIntakeCommandHandler confirmIntake,
+            IVoicePreferencePort voicePreference
     ) {
         this(
                 voiceRecognition,
                 repository,
                 confirmIntake,
-                new VoiceConfirmationValidationService()
+                new VoiceConfirmationValidationService(),
+                voicePreference
         );
+    }
+
+    /** Voice is allowed for everybody; used where no preference source is needed. */
+    public ConfirmIntakeByVoiceCommandHandler(
+            IVoiceRecognitionPort voiceRecognition,
+            IntakeRepository repository,
+            ConfirmIntakeCommandHandler confirmIntake
+    ) {
+        this(voiceRecognition, repository, confirmIntake, olderAdultId -> true);
     }
 
     ConfirmIntakeByVoiceCommandHandler(
@@ -43,10 +56,21 @@ public class ConfirmIntakeByVoiceCommandHandler {
             ConfirmIntakeCommandHandler confirmIntake,
             VoiceConfirmationValidationService validation
     ) {
+        this(voiceRecognition, repository, confirmIntake, validation, olderAdultId -> true);
+    }
+
+    ConfirmIntakeByVoiceCommandHandler(
+            IVoiceRecognitionPort voiceRecognition,
+            IntakeRepository repository,
+            ConfirmIntakeCommandHandler confirmIntake,
+            VoiceConfirmationValidationService validation,
+            IVoicePreferencePort voicePreference
+    ) {
         this.voiceRecognition = voiceRecognition;
         this.repository = repository;
         this.confirmIntake = confirmIntake;
         this.validation = validation;
+        this.voicePreference = voicePreference;
     }
 
     @Transactional
@@ -70,6 +94,13 @@ public class ConfirmIntakeByVoiceCommandHandler {
             throw new IntakeApplicationException(
                     IntakeApplicationException.Code.INTAKE_NOT_CONFIRMABLE,
                     "intake can no longer be confirmed"
+            );
+        }
+
+        if (!voicePreference.isVoiceConfirmationEnabled(intake.olderAdultId())) {
+            throw new IntakeApplicationException(
+                    IntakeApplicationException.Code.VOICE_CONFIRMATION_DISABLED,
+                    "voice confirmation is turned off for this user"
             );
         }
 

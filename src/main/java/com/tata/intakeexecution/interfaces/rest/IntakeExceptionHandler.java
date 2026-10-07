@@ -14,7 +14,7 @@ public class IntakeExceptionHandler {
     public ProblemDetail handleIntake(IntakeApplicationException exception) {
         var status = switch (exception.code()) {
             case INTAKE_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case INTAKE_NOT_CONFIRMABLE -> HttpStatus.CONFLICT;
+            case INTAKE_NOT_CONFIRMABLE, VOICE_CONFIRMATION_DISABLED -> HttpStatus.CONFLICT;
         };
         var detail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
         detail.setTitle(exception.code().name());
