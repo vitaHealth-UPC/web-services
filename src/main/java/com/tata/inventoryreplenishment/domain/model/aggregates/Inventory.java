@@ -78,8 +78,10 @@ public final class Inventory {
     }
 
     /** US-43: a replenishment adds a batch and increases the remaining stock. */
-    public Batch registerBatch(int quantity, Instant now) {
-        var batch = Batch.register(quantity, now);
+    public Batch registerBatch(int quantity, Instant now) { return registerBatch(quantity, now, null); }
+
+    public Batch registerBatch(int quantity, Instant now, String lot) {
+        var batch = Batch.register(quantity, now, lot);
         addBatch(batch, now);
         domainEvents.add(new ReplenishmentRegistered(id, medicationId, batch.id(), batch.quantity(), remainingStock, now));
         return batch;

@@ -63,18 +63,18 @@ public class InventoryCommandServiceImpl implements InventoryCommandService {
         } catch (IllegalArgumentException | ArithmeticException exception) {
             throw error(InventoryApplicationException.Code.INVALID_QUANTITY, exception.getMessage());
         }
-        return InventoryMapper.toResult(saveAndPublish(inventory));
+        return InventoryMapper.toResult(saveAndPublish(inventory), medications.dailyConsumptionUnits(inventory.medicationId()));
     }
 
     @Override
     public InventoryResult registerReplenishment(RegisterReplenishmentCommand command) {
         var inventory = findInventory(command.medicationId());
         try {
-            inventory.registerBatch(command.quantity(), clock.instant());
+            inventory.registerBatch(command.quantity(), clock.instant(), command.lot());
         } catch (IllegalArgumentException | ArithmeticException exception) {
             throw error(InventoryApplicationException.Code.INVALID_QUANTITY, exception.getMessage());
         }
-        return InventoryMapper.toResult(saveAndPublish(inventory));
+        return InventoryMapper.toResult(saveAndPublish(inventory), medications.dailyConsumptionUnits(inventory.medicationId()));
     }
 
     @Override

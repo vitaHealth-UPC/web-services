@@ -15,5 +15,13 @@ public record InventoryResource(
         boolean lowStock,
         List<BatchResource> batches,
         Instant createdAt,
-        Instant updatedAt
-) {}
+        Instant updatedAt,
+        Integer daysRemaining,
+        Integer dailyConsumptionUnits
+) {
+    public InventoryResource(String id, String medicationId, int remainingStock, int replenishmentThreshold, boolean lowStock,
+            List<BatchResource> batches, Instant createdAt, Instant updatedAt) {
+        this(id,medicationId,remainingStock,replenishmentThreshold,lowStock,batches,createdAt,updatedAt,null,null);
+    }
+
+}

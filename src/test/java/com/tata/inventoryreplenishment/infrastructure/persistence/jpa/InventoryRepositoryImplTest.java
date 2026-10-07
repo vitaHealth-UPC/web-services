@@ -36,7 +36,7 @@ class InventoryRepositoryImplTest {
         repository.save(inventory);
 
         var loaded = repository.findByMedicationId(medicationId).orElseThrow();
-        loaded.registerBatch(5, NOW.plusSeconds(60));
+        loaded.registerBatch(5, NOW.plusSeconds(60), " LOTE-2026-09 ");
         repository.save(loaded);
 
         var reloaded = repository.findByMedicationId(medicationId).orElseThrow();
@@ -46,6 +46,7 @@ class InventoryRepositoryImplTest {
         assertEquals(2, reloaded.batches().size());
         assertEquals(10, reloaded.batches().get(0).quantity());
         assertEquals(5, reloaded.batches().get(1).quantity());
+        assertEquals("LOTE-2026-09", reloaded.batches().get(1).lot());
         assertTrue(repository.existsByMedicationId(medicationId));
     }
 
