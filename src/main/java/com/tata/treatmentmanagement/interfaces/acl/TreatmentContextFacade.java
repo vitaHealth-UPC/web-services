@@ -16,4 +16,5 @@ public interface TreatmentContextFacade {
      * example). It does no care-link check because there is no caregiver involved.
      */
     Optional<MedicationResult> findMedication(String medicationId);
+    Optional<TreatmentResult> findTreatment(String treatmentId);
 }
