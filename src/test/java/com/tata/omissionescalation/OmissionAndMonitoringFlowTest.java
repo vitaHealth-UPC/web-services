@@ -1,0 +1,166 @@
+package com.tata.omissionescalation;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.tata.familymonitoring.application.internal.commandservices.CloseAlertCommandHandler;
+import com.tata.familymonitoring.application.internal.commandservices.CreateCaregiverNoteCommandHandler;
+import com.tata.familymonitoring.application.internal.commandservices.MarkAlertAttendedCommandHandler;
+import com.tata.familymonitoring.application.internal.queryservices.GetCaregiverNotesQueryHandler;
+import com.tata.familymonitoring.application.internal.queryservices.GetOlderAdultStatusQueryHandler;
+import com.tata.familymonitoring.application.queryservices.OlderAdultStatusView;
+import com.tata.familymonitoring.domain.model.aggregates.FamilyMonitor;
+import com.tata.familymonitoring.domain.model.commands.CloseAlertCommand;
+import com.tata.familymonitoring.domain.model.commands.CreateCaregiverNoteCommand;
+import com.tata.familymonitoring.domain.model.commands.MarkAlertAttendedCommand;
+import com.tata.familymonitoring.domain.model.entities.AlertSummary;
+import com.tata.familymonitoring.domain.model.queries.GetCaregiverNotesQuery;
+import com.tata.familymonitoring.domain.model.queries.GetOlderAdultStatusQuery;
+import com.tata.familymonitoring.domain.repositories.IFamilyMonitorRepository;
+import com.tata.intakeexecution.domain.model.events.IntakeConfirmed;
+import com.tata.intakeexecution.domain.model.events.IntakeUnconfirmed;
+import com.tata.omissionescalation.application.internal.commandservices.EvaluateGracePeriodCommandHandler;
+import com.tata.omissionescalation.domain.model.aggregates.OmissionCase;
+import com.tata.omissionescalation.domain.model.commands.EvaluateGracePeriodCommand;
+import com.tata.omissionescalation.domain.model.valueobjects.OmissionCaseStatus;
+import com.tata.omissionescalation.domain.repositories.IOmissionCaseRepository;
+import java.time.Duration;
+import java.time.Instant;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Runs the real flow against H2: intake events in, omission cases, alerts and escalation, and the
+ * caregiver-facing side. The test profile uses a zero-length grace period.
+ */
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class OmissionAndMonitoringFlowTest {
+
+  @Autowired ApplicationEventPublisher events;
+  @Autowired IOmissionCaseRepository omissionCases;
+  @Autowired IFamilyMonitorRepository monitors;
+  @Autowired EvaluateGracePeriodCommandHandler evaluateHandler;
+  @Autowired GetOlderAdultStatusQueryHandler statusHandler;
+  @Autowired MarkAlertAttendedCommandHandler markAttendedHandler;
+  @Autowired CloseAlertCommandHandler closeAlertHandler;
+  @Autowired CreateCaregiverNoteCommandHandler createNoteHandler;
+  @Autowired GetCaregiverNotesQueryHandler notesHandler;
+
+  private static long sequence = 1000;
+
+  private String nextId() {
+    return new java.util.UUID(0, ++sequence).toString();
+  }
+
+  private void givenMonitorFor(String olderAdultId) {
+    if (monitors.findByOlderAdultId(olderAdultId).isEmpty()) {
+      monitors.save(new FamilyMonitor(olderAdultId, olderAdultId, "account-5"));
+    }
+  }
+
+  private void unconfirmed(String intakeId, String olderAdultId) {
+    events.publishEvent(
+        new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", Instant.now()));
+  }
+
+  @Test
+  void unconfirmedIntake_opensAPendingCaseOnlyOnce() {
+    String intakeId = nextId();
+
+    unconfirmed(intakeId, "adult-1");
+    unconfirmed(intakeId, "adult-1");
+
+    OmissionCase omissionCase = omissionCases.findByIntakeId(intakeId).orElseThrow();
+    assertThat(omissionCase.getStatus()).isEqualTo(OmissionCaseStatus.PENDING);
+    assertThat(omissionCase.getReinforcedReminderSentAt()).isNotNull();
+  }
+
+  @Test
+  void expiredCase_becomesOneOmissionWithOneAlert_evenIfEvaluatedTwice() {
+    String olderAdultId = nextId();
+    String intakeId = nextId();
+    unconfirmed(intakeId, olderAdultId);
+    Instant now = Instant.now().plusSeconds(5);
+
+    evaluateHandler.handle(new EvaluateGracePeriodCommand(now));
+    evaluateHandler.handle(new EvaluateGracePeriodCommand(now.plusSeconds(60)));
+
+    OmissionCase omissionCase = omissionCases.findByIntakeId(intakeId).orElseThrow();
+    assertThat(omissionCase.getStatus()).isEqualTo(OmissionCaseStatus.OMITTED);
+    assertThat(omissionCase.getAlerts()).hasSize(1);
+    assertThat(omissionCase.getAlerts().getFirst().getStatus())
+        .isEqualTo(com.tata.omissionescalation.domain.model.valueobjects.AlertStatus.SENT);
+    assertThat(omissionCase.getEscalations()).isEmpty();
+  }
+
+  @Test
+  void omittedCase_escalatesThroughTheLevelsAndEndsClosed() {
+    String olderAdultId = nextId();
+    String intakeId = nextId();
+    unconfirmed(intakeId, olderAdultId);
+    Instant now = Instant.now().plusSeconds(5);
+    evaluateHandler.handle(new EvaluateGracePeriodCommand(now));
+
+    for (int step = 1; step <= 3; step++) {
+      evaluateHandler.handle(new EvaluateGracePeriodCommand(now.plus(Duration.ofMinutes(31L * step))));
+    }
+
+    OmissionCase omissionCase = omissionCases.findByIntakeId(intakeId).orElseThrow();
+    assertThat(omissionCase.getEscalations()).hasSize(3);
+    assertThat(omissionCase.getStatus()).isEqualTo(OmissionCaseStatus.CLOSED);
+  }
+
+  @Test
+  void confirmationOutsideTheGracePeriod_doesNotResolveTheCase() {
+    String intakeId = nextId();
+    unconfirmed(intakeId, nextId());
+
+    events.publishEvent(new IntakeConfirmed(intakeId, "medication-1", "adult-1", Instant.now()));
+
+    assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getStatus())
+        .isEqualTo(OmissionCaseStatus.PENDING);
+  }
+
+  @Test
+  void omission_reachesTheCaregiver_whoCanAttendAndCloseTheAlert() {
+    String olderAdultId = nextId();
+    givenMonitorFor(olderAdultId);
+    unconfirmed(nextId(), olderAdultId);
+    evaluateHandler.handle(new EvaluateGracePeriodCommand(Instant.now().plusSeconds(5)));
+
+    OlderAdultStatusView view = statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId));
+    assertThat(view.status().hasOpenAlert()).isTrue();
+    assertThat(view.status().nextIntakeAt()).isNull();
+    assertThat(view.status().lastIntakeStatus()).isNull();
+    AlertSummary alert = view.openAlerts().getFirst();
+
+    AlertSummary attended =
+        markAttendedHandler.handle(new MarkAlertAttendedCommand(olderAdultId, alert.getId()));
+    assertThat(attended.getStatus()).isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.AlertStatus.ATTENDED);
+
+    AlertSummary closed =
+        closeAlertHandler.handle(new CloseAlertCommand(olderAdultId, alert.getId()));
+    assertThat(closed.getStatus()).isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.AlertStatus.CLOSED);
+    assertThat(statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId))
+        .status().hasOpenAlert()).isFalse();
+  }
+
+  @Test
+  void note_isStoredWithAuthorAndTime_andStaysAvailable() {
+    String olderAdultId = nextId();
+    givenMonitorFor(olderAdultId);
+
+    createNoteHandler.handle(new CreateCaregiverNoteCommand(olderAdultId, "account-5", "Called her"));
+
+    var notes = notesHandler.handle(new GetCaregiverNotesQuery(olderAdultId));
+    assertThat(notes).hasSize(1);
+    assertThat(notes.getFirst().getId()).isNotNull();
+    assertThat(notes.getFirst().getFamiliarId()).isEqualTo("account-5");
+    assertThat(notes.getFirst().getRecordedAt()).isNotNull();
+  }
+}

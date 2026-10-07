@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.target
+**/target
+docs
+*.md
+.mvn
+.vscode
+**/.DS_Store
