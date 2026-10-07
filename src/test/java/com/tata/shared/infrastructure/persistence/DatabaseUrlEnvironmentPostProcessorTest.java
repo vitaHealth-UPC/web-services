@@ -22,6 +22,10 @@ class DatabaseUrlEnvironmentPostProcessorTest {
                 "jdbc:postgresql://db.example:5432/tata_prod?sslmode=require",
                 environment.getProperty("spring.datasource.url")
         );
+        assertEquals(
+                "jdbc:postgresql://db.example:5432/tata_prod?sslmode=require",
+                environment.getProperty("SPRING_DATASOURCE_URL")
+        );
         assertEquals("tata", environment.getProperty("spring.datasource.username"));
         assertEquals("p@ss", environment.getProperty("spring.datasource.password"));
         assertEquals("db.example", environment.getProperty("DATABASE_HOST"));
@@ -37,5 +41,21 @@ class DatabaseUrlEnvironmentPostProcessorTest {
         new DatabaseUrlEnvironmentPostProcessor().postProcessEnvironment(environment, new SpringApplication());
 
         assertNull(environment.getProperty("spring.datasource.url"));
+    }
+
+    @Test
+    void dropsChannelBindingFromNeonUrl() {
+        var environment = new MockEnvironment();
+        environment.setProperty(
+                "DATABASE_URL",
+                "postgresql://tata_owner:secret@ep-demo-pooler.neon.tech/tata?sslmode=require&channel_binding=require"
+        );
+
+        new DatabaseUrlEnvironmentPostProcessor().postProcessEnvironment(environment, new SpringApplication());
+
+        assertEquals(
+                "jdbc:postgresql://ep-demo-pooler.neon.tech:5432/tata?sslmode=require",
+                environment.getProperty("spring.datasource.url")
+        );
     }
 }
