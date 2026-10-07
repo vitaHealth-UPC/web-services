@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class GetAlertDetailQueryHandler {
+public class GetAlertDetailQueryHandler implements com.tata.familymonitoring.application.queryservices.GetAlertDetailQueryService {
 
   private final IFamilyMonitorRepository repository;
 

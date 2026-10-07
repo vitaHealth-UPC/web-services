@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateTextSizeCommandHandler {
+public class UpdateTextSizeCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateTextSizeCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 

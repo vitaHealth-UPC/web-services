@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ListAvailablePlansQueryHandler {
+public class ListAvailablePlansQueryHandler implements com.tata.identitysubscription.application.queryservices.ListAvailablePlansQueryService {
     public List<PlanResult> handle() {
         return PlanCatalog.availablePlans().stream()
                 .map(SubscriptionMapper::toResult)

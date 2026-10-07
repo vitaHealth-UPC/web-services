@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
-import com.tata.intakeexecution.application.commands.ReportUnconfirmedIntakesCommand;
+import com.tata.intakeexecution.domain.model.commands.ReportUnconfirmedIntakesCommand;
 import com.tata.intakeexecution.domain.model.events.IntakeUnconfirmed;
 import com.tata.intakeexecution.domain.repositories.IntakeRepository;
 import java.util.List;

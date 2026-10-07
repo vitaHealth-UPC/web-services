@@ -1,16 +1,13 @@
 package com.tata.omissionescalation.domain.model.valueobjects;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
 /** Extra interval during which an intake can still be confirmed before it counts as omitted. */
-@Embeddable
 public record GracePeriod(
-    @Column(name = "grace_started_at", nullable = false) Instant startsAt,
-    @Column(name = "grace_ends_at", nullable = false) Instant endsAt) {
+    Instant startsAt,
+    Instant endsAt) {
 
   public GracePeriod {
     Objects.requireNonNull(startsAt, "startsAt must not be null");

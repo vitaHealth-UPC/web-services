@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateVoiceConfirmationCommandHandler {
+public class UpdateVoiceConfirmationCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateVoiceConfirmationCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 
