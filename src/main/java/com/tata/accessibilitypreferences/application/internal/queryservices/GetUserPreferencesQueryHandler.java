@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class GetUserPreferencesQueryHandler {
+public class GetUserPreferencesQueryHandler implements com.tata.accessibilitypreferences.application.queryservices.GetUserPreferencesQueryService {
     private final InitializeDefaultPreferencesCommandHandler initializer;
 
     public GetUserPreferencesQueryHandler(InitializeDefaultPreferencesCommandHandler initializer) {

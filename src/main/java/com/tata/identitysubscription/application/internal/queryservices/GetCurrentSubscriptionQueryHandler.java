@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class GetCurrentSubscriptionQueryHandler {
+public class GetCurrentSubscriptionQueryHandler implements com.tata.identitysubscription.application.queryservices.GetCurrentSubscriptionQueryService {
     private final AccountRepository accountRepository;
 
     public GetCurrentSubscriptionQueryHandler(AccountRepository accountRepository) {

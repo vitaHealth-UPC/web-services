@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateContrastCommandHandler {
+public class UpdateContrastCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateContrastCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 

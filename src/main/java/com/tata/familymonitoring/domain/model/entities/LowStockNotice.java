@@ -1,33 +1,22 @@
 package com.tata.familymonitoring.domain.model.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import java.time.Instant;
 
 /** A medication of the older adult whose stock fell under its replenishment threshold. */
-@Entity
+
 public class LowStockNotice {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private Long id;
 
-  @Column(nullable = false, length = 36)
   private String medicationId;
 
-  @Column(nullable = false)
   private String medicationName;
 
-  @Column(nullable = false)
   private int remainingStock;
 
-  @Column(nullable = false)
   private int replenishmentThreshold;
 
-  @Column(nullable = false)
   private Instant detectedAt;
 
   protected LowStockNotice() {
@@ -71,5 +60,17 @@ public class LowStockNotice {
 
   public Instant getDetectedAt() {
     return detectedAt;
+  }
+
+  /** Restores persisted state without replaying business actions. */
+  public static LowStockNotice rehydrate(Long id, String medicationId, String medicationName, int remainingStock, int replenishmentThreshold, Instant detectedAt) {
+    var restored = new LowStockNotice();
+    restored.id = id;
+    restored.medicationId = medicationId;
+    restored.medicationName = medicationName;
+    restored.remainingStock = remainingStock;
+    restored.replenishmentThreshold = replenishmentThreshold;
+    restored.detectedAt = detectedAt;
+    return restored;
   }
 }

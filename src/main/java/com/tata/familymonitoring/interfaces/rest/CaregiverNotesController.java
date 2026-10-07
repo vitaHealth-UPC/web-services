@@ -1,7 +1,7 @@
 package com.tata.familymonitoring.interfaces.rest;
 
-import com.tata.familymonitoring.application.internal.commandservices.CreateCaregiverNoteCommandHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetCaregiverNotesQueryHandler;
+import com.tata.familymonitoring.application.commandservices.CreateCaregiverNoteCommandService;
+import com.tata.familymonitoring.application.queryservices.GetCaregiverNotesQueryService;
 import com.tata.familymonitoring.domain.model.queries.GetCaregiverNotesQuery;
 import com.tata.familymonitoring.interfaces.rest.resources.CaregiverNoteResource;
 import com.tata.familymonitoring.interfaces.rest.resources.CreateCaregiverNoteResource;
@@ -29,14 +29,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Caregiver Notes", description = "Notes a caregiver keeps about interventions")
 public class CaregiverNotesController {
 
-  private final CreateCaregiverNoteCommandHandler createNoteHandler;
-  private final GetCaregiverNotesQueryHandler notesHandler;
-  private final com.tata.familymonitoring.application.internal.RequireCareRelationship access;
+  private final CreateCaregiverNoteCommandService createNoteHandler;
+  private final GetCaregiverNotesQueryService notesHandler;
+  private final com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access;
 
   public CaregiverNotesController(
-      CreateCaregiverNoteCommandHandler createNoteHandler,
-      GetCaregiverNotesQueryHandler notesHandler,
-      com.tata.familymonitoring.application.internal.RequireCareRelationship access) {
+      CreateCaregiverNoteCommandService createNoteHandler,
+      GetCaregiverNotesQueryService notesHandler,
+      com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access) {
     this.createNoteHandler = createNoteHandler;
     this.notesHandler = notesHandler;
     this.access = access;

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateReducedMotionCommandHandler {
+public class UpdateReducedMotionCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateReducedMotionCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateNotificationChannelsCommandHandler {
+public class UpdateNotificationChannelsCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateNotificationChannelsCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 
