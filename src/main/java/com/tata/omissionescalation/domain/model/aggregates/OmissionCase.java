@@ -5,52 +5,32 @@ import com.tata.omissionescalation.domain.model.entities.EscalationRecord;
 import com.tata.omissionescalation.domain.model.valueobjects.EscalationLevel;
 import com.tata.omissionescalation.domain.model.valueobjects.GracePeriod;
 import com.tata.omissionescalation.domain.model.valueobjects.OmissionCaseStatus;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  * Life cycle of an unconfirmed intake: grace period, omission, caregiver alert and escalation.
  * The intake and the older adult are referenced by logical id only.
  */
-@Entity
+
 public class OmissionCase {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private Long id;
 
-  @Column(nullable = false, unique = true, length = 36)
   private String intakeId;
 
-  @Column(nullable = false, length = 36)
   private String olderAdultId;
 
-  @Column(nullable = false)
   private String medicationName;
 
-  @Column(nullable = false)
   private Instant scheduledAt;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+
   private OmissionCaseStatus status;
 
-  @Embedded
   private GracePeriod gracePeriod;
 
   private Instant reinforcedReminderSentAt;
@@ -59,19 +39,15 @@ public class OmissionCase {
 
   private Instant closedAt;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "omission_case_id")
+
   private List<CareAlert> alerts = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "omission_case_id")
+
   private List<EscalationRecord> escalations = new ArrayList<>();
 
-  @CreationTimestamp
-  @Column(updatable = false)
+
   private Instant createdAt;
 
-  @UpdateTimestamp
   private Instant updatedAt;
 
   protected OmissionCase() {
@@ -218,4 +194,26 @@ public class OmissionCase {
   public List<EscalationRecord> getEscalations() {
     return Collections.unmodifiableList(escalations);
   }
+
+  /** Restores persisted state without replaying business actions. */
+  public static OmissionCase rehydrate(Long id, String intakeId, String olderAdultId, String medicationName, Instant scheduledAt, OmissionCaseStatus status, GracePeriod gracePeriod, Instant reinforcedReminderSentAt, Instant omittedAt, Instant closedAt, List<CareAlert> alerts, List<EscalationRecord> escalations, Instant createdAt, Instant updatedAt) {
+    var restored = new OmissionCase();
+    restored.id = id;
+    restored.intakeId = intakeId;
+    restored.olderAdultId = olderAdultId;
+    restored.medicationName = medicationName;
+    restored.scheduledAt = scheduledAt;
+    restored.status = status;
+    restored.gracePeriod = gracePeriod;
+    restored.reinforcedReminderSentAt = reinforcedReminderSentAt;
+    restored.omittedAt = omittedAt;
+    restored.closedAt = closedAt;
+    restored.alerts = new ArrayList<>(alerts);
+    restored.escalations = new ArrayList<>(escalations);
+    restored.createdAt = createdAt;
+    restored.updatedAt = updatedAt;
+    return restored;
+  }
+  public Instant getCreatedAt() { return createdAt; }
+  public Instant getUpdatedAt() { return updatedAt; }
 }

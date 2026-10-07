@@ -3,10 +3,10 @@ package com.tata.familymonitoring;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.tata.adherenceanalytics.application.ConsolidateWeeklyPeriodCommandHandler;
+import com.tata.adherenceanalytics.application.internal.commandservices.ConsolidateWeeklyPeriodCommandHandler;
 import com.tata.adherenceanalytics.domain.model.events.AdherencePatternDetected;
-import com.tata.adherenceanalytics.infrastructure.AdherenceSnapshotJpaRepository;
-import com.tata.adherenceanalytics.infrastructure.WeeklyConsolidationScheduler;
+import com.tata.adherenceanalytics.infrastructure.persistence.jpa.repositories.AdherenceSnapshotJpaRepository;
+import com.tata.adherenceanalytics.infrastructure.scheduling.WeeklyConsolidationScheduler;
 import com.tata.familymonitoring.application.internal.queryservices.GetOlderAdultStatusQueryHandler;
 import com.tata.familymonitoring.domain.model.aggregates.FamilyMonitor;
 import com.tata.familymonitoring.domain.model.queries.GetOlderAdultStatusQuery;

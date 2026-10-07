@@ -1,8 +1,8 @@
 package com.tata.adherenceanalytics;
 
-import com.tata.adherenceanalytics.application.ConsolidateWeeklyPeriodCommandHandler;
-import com.tata.adherenceanalytics.application.ports.IntakeOutcomePort;
-import com.tata.adherenceanalytics.infrastructure.WeeklyConsolidationScheduler;
+import com.tata.adherenceanalytics.application.internal.commandservices.ConsolidateWeeklyPeriodCommandHandler;
+import com.tata.adherenceanalytics.application.internal.outboundservices.IntakeOutcomePort;
+import com.tata.adherenceanalytics.infrastructure.scheduling.WeeklyConsolidationScheduler;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;

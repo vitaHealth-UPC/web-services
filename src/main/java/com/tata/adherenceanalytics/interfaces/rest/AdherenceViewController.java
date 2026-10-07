@@ -1,8 +1,9 @@
 package com.tata.adherenceanalytics.interfaces.rest;
 
-import com.tata.adherenceanalytics.application.AdherenceViewQueryService;
-import com.tata.adherenceanalytics.interfaces.rest.AdherenceViewResources.InsightsResource;
-import com.tata.adherenceanalytics.interfaces.rest.AdherenceViewResources.SummaryResource;
+import com.tata.adherenceanalytics.interfaces.rest.transform.AdherenceViewResourceAssembler;
+import com.tata.adherenceanalytics.application.queryservices.AdherenceViewQueryService;
+import com.tata.adherenceanalytics.interfaces.rest.resources.AdherenceViewResources.InsightsResource;
+import com.tata.adherenceanalytics.interfaces.rest.resources.AdherenceViewResources.SummaryResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,7 +41,7 @@ public class AdherenceViewController {
             @Parameter(description = "IANA calendar zone used to bucket the days")
             @RequestParam(defaultValue = "America/Lima") String zone) {
         return views.summary(olderAdultId, days, zoneOf(zone), Instant.now())
-                .map(SummaryResource::from)
+                .map(AdherenceViewResourceAssembler::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -58,7 +59,7 @@ public class AdherenceViewController {
             @Parameter(description = "IANA calendar zone used to bucket the days")
             @RequestParam(defaultValue = "America/Lima") String zone) {
         return views.insights(olderAdultId, days, zoneOf(zone), Instant.now())
-                .map(InsightsResource::from)
+                .map(AdherenceViewResourceAssembler::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }

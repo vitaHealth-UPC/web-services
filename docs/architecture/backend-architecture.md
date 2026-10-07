@@ -102,6 +102,8 @@ Domain code must not become a home for REST Resources, controller concerns, SQL/
 
 ### Application
 
+Public command/query service interfaces define the inbound application contracts. REST controllers depend on these interfaces; their implementations and transaction boundaries belong in `application/internal`. Public context facades live in `interfaces/acl`, with delegation in `application/acl`. Cross-context coordination consumes these facades from `application/internal/outboundservices/acl`.
+
 Coordinates use cases. It loads aggregates, invokes domain behavior, persists through contracts, calls outbound ports, and routes domain outcomes. It should not duplicate domain rules.
 
 ### Interfaces
@@ -109,6 +111,8 @@ Coordinates use cases. It loads aggregates, invokes domain behavior, persists th
 Owns inbound adapters: REST Controllers, request/response Resources, assemblers/transformers, event Consumers and public ACL/facade entry points.
 
 ### Infrastructure
+
+Persistence entities contain JPA mappings; assemblers reconstruct domain objects while repository adapters keep the persistence session open for loading aggregate collections. Domain aggregates contain no JPA or Spring dependencies.
 
 Owns JPA implementations, schedulers, external-service adapters, token/email/push/speech providers, Spring event listeners/publishers and framework configuration.
 

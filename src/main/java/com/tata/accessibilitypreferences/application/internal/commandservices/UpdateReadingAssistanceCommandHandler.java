@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateReadingAssistanceCommandHandler {
+public class UpdateReadingAssistanceCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateReadingAssistanceCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 

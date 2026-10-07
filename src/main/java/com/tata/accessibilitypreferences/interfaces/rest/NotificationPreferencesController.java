@@ -1,7 +1,5 @@
 package com.tata.accessibilitypreferences.interfaces.rest;
 
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateNotificationChannelsCommandHandler;
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateQuietHoursCommandHandler;
 import com.tata.accessibilitypreferences.interfaces.rest.resources.UpdateQuietHoursResource;
 import com.tata.accessibilitypreferences.interfaces.rest.resources.UserPreferencesResource;
 import com.tata.accessibilitypreferences.interfaces.rest.transform.UpdateQuietHoursCommandFromResourceAssembler;
@@ -23,14 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/users/{userId}/notification-preferences")
 @Tag(name = "Notification Preferences", description = "Quiet hours and notification channels of a caregiver")
 public class NotificationPreferencesController {
-    private final UpdateQuietHoursCommandHandler updateQuietHours;
-    private final UpdateNotificationChannelsCommandHandler updateChannels;
-
-    public NotificationPreferencesController(
-            UpdateQuietHoursCommandHandler updateQuietHours,
-            UpdateNotificationChannelsCommandHandler updateChannels) {
-        this.updateQuietHours = updateQuietHours;
-        this.updateChannels = updateChannels;
+    private final com.tata.accessibilitypreferences.application.commandservices.NotificationPreferencesCommandService commands;
+    public NotificationPreferencesController(com.tata.accessibilitypreferences.application.commandservices.NotificationPreferencesCommandService commands) {
+        this.commands = commands;
     }
 
     @Operation(
@@ -41,14 +34,12 @@ public class NotificationPreferencesController {
     @ApiResponse(responseCode = "400", description = "Invalid interval or repeated channel",
             content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     @PutMapping
-    @org.springframework.transaction.annotation.Transactional
     public UserPreferencesResource update(
             @PathVariable String userId, @Valid @RequestBody UpdateQuietHoursResource resource) {
         // both commands are built first so an invalid interval is rejected before any change is saved
         var quietHoursCommand = UpdateQuietHoursCommandFromResourceAssembler.toQuietHoursCommand(userId, resource);
         var channelsCommand = UpdateQuietHoursCommandFromResourceAssembler.toChannelsCommand(userId, resource);
-        updateChannels.handle(channelsCommand);
         return UserPreferencesResourceFromEntityAssembler.toResourceFromEntity(
-                updateQuietHours.handle(quietHoursCommand));
+                commands.update(channelsCommand, quietHoursCommand));
     }
 }

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class GetOlderAdultStatusQueryHandler {
+public class GetOlderAdultStatusQueryHandler implements com.tata.familymonitoring.application.queryservices.GetOlderAdultStatusQueryService {
 
   private static final int STATUS_WINDOW_DAYS = 7;
   private static final int RECENT_INSIGHTS = 5;
