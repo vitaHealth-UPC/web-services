@@ -2,17 +2,23 @@ package com.tata.familymonitoring.infrastructure.modules;
 
 import com.tata.familymonitoring.domain.model.valueobjects.AdherenceSnapshot;
 import com.tata.familymonitoring.domain.ports.IAdherenceSummaryPort;
+import com.tata.adherenceanalytics.application.AdherenceQueryService;
+import java.time.Duration;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 /**
- * Reads adherence indicators from Adherence Analytics. That module does not expose its public
- * contract yet, so the adapter reports an empty week.
+ * Reads the rolling seven-day adherence indicators through the Analytics application contract.
  */
 @Component
 public class AdherenceSummaryAdapter implements IAdherenceSummaryPort {
+  private final AdherenceQueryService queries;
+  public AdherenceSummaryAdapter(AdherenceQueryService queries) { this.queries = queries; }
 
   @Override
   public AdherenceSnapshot getWeeklySummary(String olderAdultId) {
-    return new AdherenceSnapshot(0, 0);
+    var to = Instant.now();
+    var metrics = queries.weekly(olderAdultId, to.minus(Duration.ofDays(7)), to);
+    return new AdherenceSnapshot(metrics.confirmedIntakes(), metrics.totalIntakes());
   }
 }

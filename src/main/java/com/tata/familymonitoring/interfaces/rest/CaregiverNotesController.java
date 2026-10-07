@@ -31,12 +31,15 @@ public class CaregiverNotesController {
 
   private final CreateCaregiverNoteCommandHandler createNoteHandler;
   private final GetCaregiverNotesQueryHandler notesHandler;
+  private final com.tata.familymonitoring.application.internal.RequireCareRelationship access;
 
   public CaregiverNotesController(
       CreateCaregiverNoteCommandHandler createNoteHandler,
-      GetCaregiverNotesQueryHandler notesHandler) {
+      GetCaregiverNotesQueryHandler notesHandler,
+      com.tata.familymonitoring.application.internal.RequireCareRelationship access) {
     this.createNoteHandler = createNoteHandler;
     this.notesHandler = notesHandler;
+    this.access = access;
   }
 
   @Operation(
@@ -51,6 +54,7 @@ public class CaregiverNotesController {
   @ResponseStatus(HttpStatus.CREATED)
   public CaregiverNoteResource createNote(
       @PathVariable String olderAdultId, @Valid @RequestBody CreateCaregiverNoteResource resource) {
+    access.check(resource.familiarId(), olderAdultId);
     return CaregiverNoteResourceFromEntityAssembler.toResourceFromEntity(
         createNoteHandler.handle(
             CreateCaregiverNoteCommandFromResourceAssembler.toCommandFromResource(
@@ -64,7 +68,9 @@ public class CaregiverNotesController {
   @ApiResponse(responseCode = "404", description = "The older adult has no active follow-up",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping
-  public List<CaregiverNoteResource> getNotes(@PathVariable String olderAdultId) {
+  public List<CaregiverNoteResource> getNotes(@PathVariable String olderAdultId,
+      @org.springframework.web.bind.annotation.RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
     return notesHandler.handle(new GetCaregiverNotesQuery(olderAdultId)).stream()
         .map(CaregiverNoteResourceFromEntityAssembler::toResourceFromEntity)
         .toList();

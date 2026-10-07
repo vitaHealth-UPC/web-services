@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /** Turns Family Monitoring failures into stable error codes. */
 @RestControllerAdvice(basePackages = "com.tata.familymonitoring")
 public class FamilyMonitoringExceptionHandler {
+  @ExceptionHandler(com.tata.familymonitoring.application.internal.RequireCareRelationship.AccessDenied.class)
+  public ResponseEntity<ErrorResource> handleDenied(RuntimeException exception) {
+    return error(HttpStatus.FORBIDDEN, "CARE_RELATIONSHIP_REQUIRED", exception.getMessage());
+  }
 
   @ExceptionHandler({
       FamilyMonitorNotFoundException.class,
