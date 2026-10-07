@@ -26,6 +26,11 @@ public class IntakeRepositoryImpl implements IntakeRepository {
     }
 
     @Override
+    public List<String> findOlderAdultIdsWithIntakes(Instant from, Instant to) {
+        return repository.findOlderAdultIdsWithIntakes(from, to);
+    }
+
+    @Override
     public List<Intake> saveAll(List<Intake> intakes) {
         return repository.saveAll(intakes.stream().map(this::toEntity).toList()).stream()
                 .map(this::toDomain)

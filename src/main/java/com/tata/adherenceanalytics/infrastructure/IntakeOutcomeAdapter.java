@@ -16,5 +16,8 @@ public class IntakeOutcomeAdapter implements IntakeOutcomePort {
                         Status.valueOf(intake.status().name())))
                 .toList();
     }
+    @Override public List<String> olderAdultIdsWithOutcomes(Instant from, Instant to) {
+        return repository.findOlderAdultIdsWithIntakes(from, to);
+    }
 }
 
