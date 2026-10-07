@@ -2,7 +2,6 @@ package com.tata.adherenceanalytics.infrastructure;
 
 import com.tata.adherenceanalytics.application.ConsolidateWeeklyPeriodCommandHandler;
 import com.tata.adherenceanalytics.application.ports.IntakeOutcomePort;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ public class WeeklyConsolidationScheduler {
     public void consolidateWeekEnding(Instant now) {
         var calendarZone = ZoneId.of(zone);
         var to = now.atZone(calendarZone).toLocalDate().atStartOfDay(calendarZone).toInstant();
-        var from = to.minus(Duration.ofDays(7));
+        var from = now.atZone(calendarZone).toLocalDate().minusDays(7).atStartOfDay(calendarZone).toInstant();
         for (var olderAdultId : outcomes.olderAdultIdsWithOutcomes(from, to)) {
             try {
                 consolidations.handle(olderAdultId, from, to, zone);

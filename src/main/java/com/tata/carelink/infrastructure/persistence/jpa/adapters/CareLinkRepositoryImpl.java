@@ -25,6 +25,12 @@ public class CareLinkRepositoryImpl implements CareLinkRepository {
     }
 
     @Override
+    public java.util.List<CareLink> findConfirmedByCaregiver(String caregiverId) {
+        return repository.findByCaregiverIdAndStatusOrderByConfirmedAtDescIdAsc(caregiverId, CareLinkStatus.CONFIRMED)
+                .stream().map(this::toDomain).filter(CareLink::isActive).toList();
+    }
+
+    @Override
     public Optional<CareLink> findById(String id) {
         return repository.findById(id).map(this::toDomain);
     }
