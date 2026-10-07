@@ -7,6 +7,7 @@ import com.tata.treatmentmanagement.infrastructure.persistence.jpa.entities.Trea
 import com.tata.treatmentmanagement.infrastructure.persistence.jpa.repositories.TreatmentJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,6 +26,16 @@ public class TreatmentRepositoryImpl implements TreatmentRepository {
     @Override
     public Optional<Treatment> findById(String id) {
         return repository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public List<Treatment> findByOlderAdultId(String olderAdultId) {
+        return repository.findByOlderAdultIdOrderByCreatedAtAsc(olderAdultId).stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<Treatment> findByMedicationId(String medicationId) {
+        return repository.findByMedicationId(medicationId).stream().map(this::toDomain).toList();
     }
 
     private Treatment toDomain(TreatmentPersistenceEntity entity) {
