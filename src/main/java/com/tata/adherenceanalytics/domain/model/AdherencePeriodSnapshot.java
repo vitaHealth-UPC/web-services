@@ -1,27 +1,21 @@
 package com.tata.adherenceanalytics.domain.model;
 
 import com.tata.adherenceanalytics.domain.services.AdherencePatternDetectionService.Pattern;
-import jakarta.persistence.*;
 import java.time.*;
 import java.util.*;
 
 /** Immutable evidence captured for one owner, period and calendar zone. */
-@Entity
-@Table(name = "adherence_period_snapshots")
 public class AdherencePeriodSnapshot {
-    @Id private String id;
-    @Column(nullable = false) private String olderAdultId;
-    @Column(nullable = false) private Instant periodFrom;
-    @Column(nullable = false) private Instant periodTo;
-    @Column(nullable = false) private String calendarZone;
-    @Column(nullable = false) private Instant consolidatedAt;
+    private String id;
+    private String olderAdultId;
+    private Instant periodFrom;
+    private Instant periodTo;
+    private String calendarZone;
+    private Instant consolidatedAt;
     private int onTimeIntakes;
     private int lateIntakes;
     private int omittedIntakes;
     private int minimumOmissionDays;
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "adherence_snapshot_patterns", joinColumns = @JoinColumn(name = "snapshot_id"))
-    @OrderColumn(name = "pattern_position")
     private List<PatternEvidence> patterns = new ArrayList<>();
     protected AdherencePeriodSnapshot() {}
     public AdherencePeriodSnapshot(String id, String owner, Instant from, Instant to, String zone,
@@ -46,7 +40,6 @@ public class AdherencePeriodSnapshot {
     public int totalIntakes() { return confirmedIntakes() + omittedIntakes; }
     public double percentage() { return totalIntakes() == 0 ? 0d : confirmedIntakes() * 100d / totalIntakes(); }
     public List<Pattern> patterns() { return patterns.stream().map(PatternEvidence::toPattern).toList(); }
-    @Embeddable
     public static class PatternEvidence {
         private String medicationId;
         private int omissionDays;

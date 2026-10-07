@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
-public class GetIntakeAgendaQueryHandler {
+public class GetIntakeAgendaQueryHandler implements com.tata.intakeexecution.application.queryservices.GetIntakeAgendaQueryService {
     private final IntakeRepository repository;
     public GetIntakeAgendaQueryHandler(IntakeRepository repository) { this.repository = repository; }
 

@@ -4,7 +4,7 @@ import com.tata.familymonitoring.domain.ports.ICareRelationshipPort;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RequireCareRelationship {
+public class RequireCareRelationship implements com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService {
     public static final class AccessDenied extends RuntimeException {
         public AccessDenied() { super("an active confirmed care relationship is required"); }
     }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CloseAlertCommandHandler {
+public class CloseAlertCommandHandler implements com.tata.familymonitoring.application.commandservices.CloseAlertCommandService {
 
   private final IFamilyMonitorRepository repository;
 

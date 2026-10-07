@@ -3,11 +3,11 @@ package com.tata.adherenceanalytics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.tata.adherenceanalytics.application.AdherenceViewQueryService;
-import com.tata.adherenceanalytics.application.AdherenceViewQueryService.TimeBand;
-import com.tata.adherenceanalytics.application.ports.IntakeRecordPort;
-import com.tata.adherenceanalytics.application.ports.IntakeRecordPort.IntakeRecord;
-import com.tata.adherenceanalytics.application.ports.IntakeRecordPort.Status;
+import com.tata.adherenceanalytics.application.queryservices.AdherenceViewQueryService;
+import com.tata.adherenceanalytics.application.queryservices.AdherenceViewQueryService.TimeBand;
+import com.tata.adherenceanalytics.application.internal.outboundservices.IntakeRecordPort;
+import com.tata.adherenceanalytics.application.internal.outboundservices.IntakeRecordPort.IntakeRecord;
+import com.tata.adherenceanalytics.application.internal.outboundservices.IntakeRecordPort.Status;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -23,7 +23,7 @@ class AdherenceViewQueryServiceTest {
     final List<IntakeRecord> stored = new ArrayList<>();
     final IntakeRecordPort port = (owner, from, to) -> stored.stream()
             .filter(record -> !record.scheduledAt().isBefore(from) && record.scheduledAt().isBefore(to)).toList();
-    final AdherenceViewQueryService service = new AdherenceViewQueryService(port);
+    final AdherenceViewQueryService service = new com.tata.adherenceanalytics.application.internal.queryservices.AdherenceViewQueryServiceImpl(port);
 
     private void add(Instant scheduledAt, Status status) {
         Instant confirmedAt = status == Status.CONFIRMED ? scheduledAt
