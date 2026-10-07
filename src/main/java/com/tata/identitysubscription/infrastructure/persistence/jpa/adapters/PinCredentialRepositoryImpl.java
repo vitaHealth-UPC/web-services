@@ -22,6 +22,11 @@ public class PinCredentialRepositoryImpl implements PinCredentialRepository {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
+    public Optional<PinCredential> findForAuthentication(String olderAdultId) {
+        return repository.findForAuthentication(olderAdultId).map(this::toDomain);
+    }
+    @Override
     public PinCredential save(PinCredential credential) {
         return toDomain(repository.save(toEntity(credential)));
     }
