@@ -4,7 +4,9 @@ import com.tata.adherenceanalytics.application.AdherenceViewQueryService;
 import com.tata.adherenceanalytics.interfaces.rest.AdherenceViewResources.InsightsResource;
 import com.tata.adherenceanalytics.interfaces.rest.AdherenceViewResources.SummaryResource;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Adherence Analytics", description = "Adherence summary and follow-up recommendations of an older adult")
 @RestController
 @RequestMapping("/api/v1/older-adults/{olderAdultId}/adherence")
 public class AdherenceViewController {
@@ -31,8 +34,10 @@ public class AdherenceViewController {
     @ApiResponse(responseCode = "204", description = "No definitive intakes in the period")
     @ApiResponse(responseCode = "400", description = "Invalid period or calendar zone")
     @GetMapping("/summary")
-    public ResponseEntity<SummaryResource> summary(@PathVariable String olderAdultId,
-            @RequestParam(defaultValue = "30") int days,
+    public ResponseEntity<SummaryResource> summary(
+            @Parameter(description = "Older adult identifier") @PathVariable String olderAdultId,
+            @Parameter(description = "Period length in days (1 to 31)") @RequestParam(defaultValue = "30") int days,
+            @Parameter(description = "IANA calendar zone used to bucket the days")
             @RequestParam(defaultValue = "America/Lima") String zone) {
         return views.summary(olderAdultId, days, zoneOf(zone), Instant.now())
                 .map(SummaryResource::from)
@@ -47,8 +52,10 @@ public class AdherenceViewController {
     @ApiResponse(responseCode = "204", description = "Insufficient evidence for a conclusive recommendation")
     @ApiResponse(responseCode = "400", description = "Invalid period or calendar zone")
     @GetMapping("/insights")
-    public ResponseEntity<InsightsResource> insights(@PathVariable String olderAdultId,
-            @RequestParam(defaultValue = "30") int days,
+    public ResponseEntity<InsightsResource> insights(
+            @Parameter(description = "Older adult identifier") @PathVariable String olderAdultId,
+            @Parameter(description = "Period length in days (1 to 31)") @RequestParam(defaultValue = "30") int days,
+            @Parameter(description = "IANA calendar zone used to bucket the days")
             @RequestParam(defaultValue = "America/Lima") String zone) {
         return views.insights(olderAdultId, days, zoneOf(zone), Instant.now())
                 .map(InsightsResource::from)
