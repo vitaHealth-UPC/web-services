@@ -19,4 +19,13 @@ public class TreatmentContextFacadeImpl implements TreatmentContextFacade {
     @Override public List<TreatmentResult> listTreatments(String caregiverId, String olderAdultId) { return queries.listTreatments(caregiverId, olderAdultId); }
     @Override public Optional<TreatmentResult> findTreatment(String id) { return treatments.findById(id).map(com.tata.treatmentmanagement.application.internal.TreatmentMapper::toResult); }
     @Override public Optional<MedicationResult> findMedication(String medicationId) { return queries.findMedication(medicationId); }
+    @Override public Optional<Integer> scheduledDailyUnits(String medicationId) {
+        return queries.findMedication(medicationId).filter(m -> m.active()).flatMap(m -> {
+            int dailyUnits=treatments.findByOlderAdultId(m.olderAdultId()).stream()
+                    .filter(t -> t.status()==com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus.ACTIVE)
+                    .filter(t -> t.regimen()!=null && medicationId.equals(t.regimen().medicationId()))
+                    .mapToInt(t -> t.regimen().scheduledTimes().size()).sum();
+            return dailyUnits>0 ? Optional.of(dailyUnits) : Optional.empty();
+        });
+    }
 }
