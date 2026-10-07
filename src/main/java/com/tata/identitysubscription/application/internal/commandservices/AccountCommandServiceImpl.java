@@ -13,9 +13,11 @@ import com.tata.identitysubscription.domain.model.commands.AuthenticateFamilyCom
 import com.tata.identitysubscription.domain.model.commands.RegisterFamilyAccountCommand;
 import com.tata.identitysubscription.domain.model.commands.RequestNewVerificationCommand;
 import com.tata.identitysubscription.domain.model.commands.VerifyEmailCommand;
+import com.tata.identitysubscription.domain.model.events.AccountEnabled;
 import com.tata.identitysubscription.domain.model.valueobjects.EmailAddress;
 import com.tata.identitysubscription.domain.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class AccountCommandServiceImpl implements AccountCommandService {
     private final VerificationCodeGenerator verificationCodeGenerator;
     private final VerificationDeliveryPort verificationDeliveryPort;
     private final SessionTokenService sessionTokenService;
+    private final ApplicationEventPublisher events;
     private final Clock clock;
 
     @Autowired
@@ -40,10 +43,11 @@ public class AccountCommandServiceImpl implements AccountCommandService {
             PasswordHasher passwordHasher,
             VerificationCodeGenerator verificationCodeGenerator,
             VerificationDeliveryPort verificationDeliveryPort,
-            SessionTokenService sessionTokenService
+            SessionTokenService sessionTokenService,
+            ApplicationEventPublisher events
     ) {
         this(accountRepository, passwordHasher, verificationCodeGenerator, verificationDeliveryPort,
-                sessionTokenService, Clock.systemUTC());
+                sessionTokenService, events, Clock.systemUTC());
     }
 
     AccountCommandServiceImpl(
@@ -52,6 +56,7 @@ public class AccountCommandServiceImpl implements AccountCommandService {
             VerificationCodeGenerator verificationCodeGenerator,
             VerificationDeliveryPort verificationDeliveryPort,
             SessionTokenService sessionTokenService,
+            ApplicationEventPublisher events,
             Clock clock
     ) {
         this.accountRepository = accountRepository;
@@ -59,6 +64,7 @@ public class AccountCommandServiceImpl implements AccountCommandService {
         this.verificationCodeGenerator = verificationCodeGenerator;
         this.verificationDeliveryPort = verificationDeliveryPort;
         this.sessionTokenService = sessionTokenService;
+        this.events = events;
         this.clock = clock;
     }
 
@@ -101,7 +107,9 @@ public class AccountCommandServiceImpl implements AccountCommandService {
         }
 
         account.completeVerification();
-        return toResult(accountRepository.save(account));
+        var saved = accountRepository.save(account);
+        events.publishEvent(new AccountEnabled(saved.id(), clock.instant()));
+        return toResult(saved);
     }
 
     @Override
