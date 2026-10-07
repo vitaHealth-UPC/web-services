@@ -3,4 +3,7 @@ package com.tata.identitysubscription.infrastructure.persistence.jpa.repositorie
 import com.tata.identitysubscription.infrastructure.persistence.jpa.entities.AccountSessionPersistenceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AccountSessionJpaRepository extends JpaRepository<AccountSessionPersistenceEntity, String> {}
+public interface AccountSessionJpaRepository extends JpaRepository<AccountSessionPersistenceEntity, String> {
+ java.util.Optional<AccountSessionPersistenceEntity> findByTokenHash(String hash);
+ void deleteByTokenHash(String hash);
+}

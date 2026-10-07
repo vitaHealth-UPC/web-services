@@ -113,6 +113,11 @@ public class AccountCommandServiceImpl implements AccountCommandService {
     }
 
     @Override
+    public com.tata.identitysubscription.application.models.VerifiedAccountResult verifyAndAuthenticate(VerifyEmailCommand command) {
+        var account = verify(command);
+        return new com.tata.identitysubscription.application.models.VerifiedAccountResult(account, sessionTokenService.issue(account.id()));
+    }
+    @Override
     public AccountResult requestNewVerification(RequestNewVerificationCommand command) {
         var email = new EmailAddress(command.email());
         var account = accountRepository.findByEmail(email.value())
