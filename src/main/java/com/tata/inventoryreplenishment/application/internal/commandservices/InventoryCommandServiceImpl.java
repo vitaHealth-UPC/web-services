@@ -4,6 +4,7 @@ import com.tata.inventoryreplenishment.application.commandservices.InventoryComm
 import com.tata.inventoryreplenishment.application.internal.InventoryApplicationException;
 import com.tata.inventoryreplenishment.application.internal.InventoryMapper;
 import com.tata.inventoryreplenishment.application.internal.outboundservices.InventoryEventPublisher;
+import com.tata.inventoryreplenishment.application.internal.outboundservices.MedicationCatalog;
 import com.tata.inventoryreplenishment.application.models.InventoryResult;
 import com.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
 import com.tata.inventoryreplenishment.domain.model.commands.ConsumeUnitCommand;
@@ -22,20 +23,31 @@ public class InventoryCommandServiceImpl implements InventoryCommandService {
     private final InventoryRepository repository;
     private final InventoryEventPublisher eventPublisher;
     private final Clock clock;
+    private final MedicationCatalog medications;
 
     @Autowired
-    public InventoryCommandServiceImpl(InventoryRepository repository, InventoryEventPublisher eventPublisher) {
-        this(repository, eventPublisher, Clock.systemUTC());
+    public InventoryCommandServiceImpl(InventoryRepository repository, InventoryEventPublisher eventPublisher,
+            MedicationCatalog medications) {
+        this(repository, eventPublisher, medications, Clock.systemUTC());
     }
 
-    InventoryCommandServiceImpl(InventoryRepository repository, InventoryEventPublisher eventPublisher, Clock clock) {
+    InventoryCommandServiceImpl(InventoryRepository repository, InventoryEventPublisher eventPublisher,
+            MedicationCatalog medications, Clock clock) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
         this.clock = clock;
+        this.medications = medications;
     }
 
     @Override
     public InventoryResult registerInitialInventory(RegisterInitialInventoryCommand command) {
+        var availability = medications.availability(command.medicationId());
+        if (availability == MedicationCatalog.Availability.MISSING) {
+            throw error(InventoryApplicationException.Code.MEDICATION_NOT_FOUND, "medication not found");
+        }
+        if (availability == MedicationCatalog.Availability.INACTIVE) {
+            throw error(InventoryApplicationException.Code.MEDICATION_INACTIVE, "medication is inactive");
+        }
         if (repository.existsByMedicationId(command.medicationId())) {
             throw error(InventoryApplicationException.Code.INVENTORY_ALREADY_EXISTS, "inventory already exists for this medication");
         }
