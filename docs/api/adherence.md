@@ -86,7 +86,7 @@ Otherwise HTTP 200:
 
 ## Recommendations
 
-`GET /api/v1/older-adults/{olderAdultId}/adherence/insights?days=30&zone=America/Lima`
+`GET /api/v1/older-adults/{olderAdultId}/adherence/insight?days=30&zone=America/Lima`
 
 Returns HTTP 204 when the evidence is insufficient for a conclusive recommendation. Otherwise HTTP 200:
 

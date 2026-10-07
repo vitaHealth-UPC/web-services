@@ -51,7 +51,7 @@ public class AdherenceViewController {
     @ApiResponse(responseCode = "200", description = "Pattern with enough evidence")
     @ApiResponse(responseCode = "204", description = "Insufficient evidence for a conclusive recommendation")
     @ApiResponse(responseCode = "400", description = "Invalid period or calendar zone")
-    @GetMapping("/insights")
+    @GetMapping("/insight")
     public ResponseEntity<InsightsResource> insights(
             @Parameter(description = "Older adult identifier") @PathVariable String olderAdultId,
             @Parameter(description = "Period length in days (1 to 31)") @RequestParam(defaultValue = "30") int days,
