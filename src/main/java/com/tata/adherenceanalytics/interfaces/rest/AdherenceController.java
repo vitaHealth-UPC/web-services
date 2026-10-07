@@ -12,7 +12,21 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/older-adults/{olderAdultId}/adherence")
 public class AdherenceController {
     private final AdherenceQueryService queries;
-    public AdherenceController(AdherenceQueryService queries) { this.queries = queries; }
+    private final com.tata.adherenceanalytics.application.ConsolidateWeeklyPeriodCommandHandler consolidations;
+    public AdherenceController(AdherenceQueryService queries,
+            com.tata.adherenceanalytics.application.ConsolidateWeeklyPeriodCommandHandler consolidations) {
+        this.queries = queries; this.consolidations = consolidations;
+    }
+    @PostMapping("/consolidations")
+    public AdherenceSnapshotResource consolidate(@PathVariable String olderAdultId, @RequestParam Instant from,
+            @RequestParam Instant to, @RequestParam(defaultValue = "UTC") String zone) {
+        return AdherenceSnapshotResource.from(consolidations.handle(olderAdultId, from, to, zone));
+    }
+    @GetMapping("/consolidations/{snapshotId}")
+    public AdherenceSnapshotResource snapshot(@PathVariable String olderAdultId, @PathVariable String snapshotId) {
+        return consolidations.find(olderAdultId, snapshotId).map(AdherenceSnapshotResource::from)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));
+    }
     @GetMapping("/weekly")
     public WeeklyAdherenceResource weekly(@PathVariable String olderAdultId, @RequestParam Instant from, @RequestParam Instant to) {
         var metrics = queries.weekly(olderAdultId, from, to);

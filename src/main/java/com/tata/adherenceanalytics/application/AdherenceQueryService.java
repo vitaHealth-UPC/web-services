@@ -27,6 +27,9 @@ public class AdherenceQueryService {
     }
     public Metrics weekly(String owner, Instant from, Instant to) {
         var evidence = history(owner, from, to);
+        return metrics(owner, from, to, evidence);
+    }
+    private Metrics metrics(String owner, Instant from, Instant to, List<IntakeOutcomePort.Outcome> evidence) {
         int confirmed = (int) evidence.stream().filter(i -> i.status() == Status.CONFIRMED || i.status() == Status.LATE).count();
         return new Metrics(owner.trim(), from, to, confirmed, evidence.size(),
                 evidence.isEmpty() ? 0d : confirmed * 100d / evidence.size(),
@@ -39,12 +42,20 @@ public class AdherenceQueryService {
         return outcomes.find(owner.trim(), from, to).stream().filter(i -> i.status() != Status.PENDING).toList();
     }
     public List<AdherencePatternDetectionService.Pattern> patterns(String owner, Instant from, Instant to, String zone) {
+        return detect(history(owner, from, to), zone);
+    }
+    private List<AdherencePatternDetectionService.Pattern> detect(List<IntakeOutcomePort.Outcome> evidence, String zone) {
         ZoneId calendarZone;
         try { calendarZone = ZoneId.of(zone); }
         catch (DateTimeException exception) { throw new IllegalArgumentException("invalid calendar zone", exception); }
-        return detector.detect(history(owner, from, to).stream().map(i ->
+        return detector.detect(evidence.stream().map(i ->
                 new AdherencePatternDetectionService.Outcome(i.medicationId(), i.scheduledAt(), i.status() == Status.OMITTED))
                 .toList(), calendarZone, minimumOmissionDays);
+    }
+    public record Analysis(Metrics metrics, List<AdherencePatternDetectionService.Pattern> patterns, int minimumOmissionDays) {}
+    public Analysis capture(String owner, Instant from, Instant to, String zone) {
+        var evidence = history(owner, from, to);
+        return new Analysis(metrics(owner, from, to, evidence), detect(evidence, zone), minimumOmissionDays);
     }
     public List<AdherenceInsightGenerationService.Insight> recommendations(String owner, Instant from, Instant to, String zone) {
         return new AdherenceInsightGenerationService().generate(patterns(owner, from, to, zone));

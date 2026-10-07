@@ -27,3 +27,16 @@ returns `REVIEW_REMINDER_AND_CAREGIVER_FOLLOW_UP` for each medication with recur
 omissions, together with the medication ID and evidence-day count. Insufficient
 evidence returns an empty list. This action code invites reminder review and
 caregiver follow-up; it never suggests changing a dose or medical indication.
+
+## Persisted period evidence
+
+`POST /api/v1/older-adults/{olderAdultId}/adherence/consolidations?from=...&to=...&zone=UTC`
+captures metrics and recurrence evidence from a single outcome read. The snapshot
+contains the configured recurrence threshold and consolidation time. The same
+owner, bounds and normalized zone return the original persisted snapshot with
+HTTP 200; retries and concurrent requests neither overwrite nor duplicate it.
+Later intake changes remain visible in live queries without changing saved evidence.
+
+`GET /api/v1/older-adults/{olderAdultId}/adherence/consolidations/{snapshotId}`
+reads the saved evidence. Unknown snapshots or snapshots belonging to another
+older adult return HTTP 404. Invalid bounds/zones return HTTP 400.
