@@ -129,7 +129,7 @@ Synchronous collaboration uses a public facade/ACL/port. Event-driven collaborat
 
 Tata's own architecture defines PostgreSQL as the central backend database. The database instance is physically shared, while data ownership remains logically separated by Bounded Context.
 
-Development currently uses Hibernate schema update for convenience. Production is configured with schema validation; production releases should move schema evolution to explicit migrations before deployment.
+Development currently uses Hibernate schema update for convenience. Production defaults to `ddl-auto=update` for the first Railway/managed deploy (override with `DDL_AUTO=validate` once Flyway migrations exist). Hardened releases should move schema evolution to explicit migrations before locking validation.
 
 ## 7. API and i18n
 
