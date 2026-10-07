@@ -10,6 +10,6 @@ The existing Family Monitoring recent-history path `/older-adults/{olderAdultId}
 
 Schedule generation covers a seven-day horizon when a treatment is activated or updated. A daily Treatment Management scheduler republishes active schedules so Intake Execution can extend that rolling window without rewriting resolved history.
 
-Production profile (`tata.security.require-authentication=true`) requires a Bearer session token and authorizes older-adult scoped routes for the adult (PIN session) or a caregiver with an active Care Link. Dev/test keep open access for local integration.
+Protected routes require a Bearer session token in every profile. Older-adult resources are authorized for the adult after consent or for a caregiver with a confirmed Care Link. See `sessions.md` for credential establishment and resource ownership.
 
 Validation: H2 + MockMvc integration covers chronology, owner filtering, resolved history/metadata, inclusive start/exclusive end, empty state and invalid ranges.
