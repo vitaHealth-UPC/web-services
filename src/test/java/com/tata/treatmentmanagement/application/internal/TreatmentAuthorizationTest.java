@@ -10,14 +10,11 @@ import com.tata.treatmentmanagement.domain.model.commands.DeactivateMedicationCo
 import com.tata.treatmentmanagement.domain.model.commands.RegisterMedicationCommand;
 import com.tata.treatmentmanagement.domain.model.commands.UpdateMedicationCommand;
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
-import com.tata.treatmentmanagement.domain.repositories.MedicationRepository;
-import com.tata.treatmentmanagement.domain.repositories.TreatmentRepository;
+import com.tata.treatmentmanagement.application.internal.fakes.InMemoryMedicationRepository;
+import com.tata.treatmentmanagement.application.internal.fakes.InMemoryTreatmentRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -150,33 +147,4 @@ class TreatmentAuthorizationTest {
         assertEquals(TreatmentApplicationException.Code.CARE_LINK_NOT_AUTHORIZED, exception.code());
     }
 
-    private static final class InMemoryMedicationRepository implements MedicationRepository {
-        private final Map<String, Medication> values = new HashMap<>();
-
-        @Override
-        public Medication save(Medication medication) {
-            values.put(medication.id(), medication);
-            return medication;
-        }
-
-        @Override
-        public Optional<Medication> findById(String id) {
-            return Optional.ofNullable(values.get(id));
-        }
-    }
-
-    private static final class InMemoryTreatmentRepository implements TreatmentRepository {
-        private final Map<String, Treatment> values = new HashMap<>();
-
-        @Override
-        public Treatment save(Treatment treatment) {
-            values.put(treatment.id(), treatment);
-            return treatment;
-        }
-
-        @Override
-        public Optional<Treatment> findById(String id) {
-            return Optional.ofNullable(values.get(id));
-        }
-    }
 }

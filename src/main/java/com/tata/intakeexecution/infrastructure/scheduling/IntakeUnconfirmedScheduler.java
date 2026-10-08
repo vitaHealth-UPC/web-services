@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.infrastructure.scheduling;
 
-import com.tata.intakeexecution.application.commands.ReportUnconfirmedIntakesCommand;
+import com.tata.intakeexecution.domain.model.commands.ReportUnconfirmedIntakesCommand;
 import com.tata.intakeexecution.application.internal.commandservices.ReportUnconfirmedIntakesCommandHandler;
 import java.time.Clock;
 import java.time.Duration;

@@ -20,6 +20,8 @@ public interface IntakeJpaRepository extends JpaRepository<IntakePersistenceEnti
     List<IntakePersistenceEntity> findTop200ByStatusAndUnconfirmedReportedAtIsNullAndScheduledAtLessThanEqualOrderByScheduledAtAscIdAsc(IntakeStatus status, Instant now);
     @Query("select i from IntakePersistenceEntity i where i.olderAdultId = :olderAdultId and i.scheduledAt >= :from and i.scheduledAt < :to order by i.scheduledAt, i.id")
     List<IntakePersistenceEntity> findAgenda(@Param("olderAdultId") String olderAdultId, @Param("from") Instant from, @Param("to") Instant to);
+    @Query("select distinct i.olderAdultId from IntakePersistenceEntity i where i.scheduledAt >= :from and i.scheduledAt < :to")
+    List<String> findOlderAdultIdsWithIntakes(@Param("from") Instant from, @Param("to") Instant to);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from IntakePersistenceEntity i where i.id = :id")
     Optional<IntakePersistenceEntity> findByIdForConfirmation(@Param("id") String id);

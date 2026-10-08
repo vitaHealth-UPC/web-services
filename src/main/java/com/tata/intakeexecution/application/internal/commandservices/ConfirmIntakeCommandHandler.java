@@ -4,8 +4,8 @@ import com.tata.intakeexecution.domain.model.events.IntakeConfirmed;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Clock;
 import org.springframework.context.ApplicationEventPublisher;
-import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
-import com.tata.intakeexecution.application.internal.IntakeApplicationException;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
+import com.tata.intakeexecution.application.IntakeApplicationException;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
 import com.tata.intakeexecution.application.models.IntakeResult;
 import com.tata.intakeexecution.domain.repositories.IntakeRepository;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ConfirmIntakeCommandHandler {
+public class ConfirmIntakeCommandHandler implements com.tata.intakeexecution.application.commandservices.ConfirmIntakeCommandService {
     private final IntakeRepository repository;
     private final ApplicationEventPublisher events;
     private final Clock clock;

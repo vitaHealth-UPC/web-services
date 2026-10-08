@@ -14,5 +14,11 @@ public record CareLinkResource(
         Instant codeUsedAt,
         boolean consentGranted,
         Instant consentRecordedAt,
-        Instant confirmedAt
-) {}
+        Instant confirmedAt,
+        String accessToken,
+        Instant expiresAt
+) {
+ public CareLinkResource(String id,String caregiverId,String olderAdultId,CareLinkStatus status,String linkingCode,Instant codeExpiresAt,Instant codeUsedAt,boolean consentGranted,Instant consentRecordedAt,Instant confirmedAt) {
+  this(id,caregiverId,olderAdultId,status,linkingCode,codeExpiresAt,codeUsedAt,consentGranted,consentRecordedAt,confirmedAt,null,null);
+ }
+}

@@ -1,5 +1,7 @@
 package com.tata.carelink.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.carelink.domain.model.valueobjects.EmergencyContact;
 import com.tata.carelink.domain.model.valueobjects.OlderAdultBasicData;
 
@@ -69,12 +71,6 @@ public final class OlderAdultProfile {
         this.updatedAt = Objects.requireNonNull(now);
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String registeredByCaregiverId() { return registeredByCaregiverId; }

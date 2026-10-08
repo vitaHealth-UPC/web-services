@@ -1,6 +1,6 @@
 package com.tata.intakeexecution;
 
-import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
 import com.tata.intakeexecution.application.internal.commandservices.ConfirmIntakeCommandHandler;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.events.IntakeConfirmed;

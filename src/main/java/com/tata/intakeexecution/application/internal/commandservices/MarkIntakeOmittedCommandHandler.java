@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
-import com.tata.intakeexecution.application.commands.MarkIntakeOmittedCommand;
+import com.tata.intakeexecution.domain.model.commands.MarkIntakeOmittedCommand;
 import com.tata.intakeexecution.domain.repositories.IntakeRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;

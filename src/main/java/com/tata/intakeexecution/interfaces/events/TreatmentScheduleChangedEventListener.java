@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.interfaces.events;
 
-import com.tata.intakeexecution.application.commands.GenerateIntakesCommand;
+import com.tata.intakeexecution.domain.model.commands.GenerateIntakesCommand;
 import com.tata.intakeexecution.application.internal.commandservices.GenerateIntakesCommandHandler;
 import com.tata.treatmentmanagement.application.events.TreatmentScheduleChangedEvent;
 import org.springframework.context.event.EventListener;

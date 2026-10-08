@@ -10,7 +10,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetRecentIntakeHistoryQueryHandler {
+public class GetRecentIntakeHistoryQueryHandler implements com.tata.familymonitoring.application.queryservices.GetRecentIntakeHistoryQueryService {
 
   public static final int MAX_DAYS = 30;
 

@@ -6,4 +6,7 @@ import java.util.Optional;
 
 public interface PinCredentialJpaRepository extends JpaRepository<PinCredentialPersistenceEntity, String> {
     Optional<PinCredentialPersistenceEntity> findByOlderAdultId(String olderAdultId);
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select p from PinCredentialPersistenceEntity p where p.olderAdultId = :olderAdultId")
+    Optional<PinCredentialPersistenceEntity> findForAuthentication(@org.springframework.data.repository.query.Param("olderAdultId") String olderAdultId);
 }

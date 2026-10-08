@@ -25,11 +25,13 @@ class InventoryReplenishmentTransactionTest {
 
     @Autowired InventoryCommandService commandService;
     @Autowired InventoryRepository repository;
+    @Autowired com.tata.treatmentmanagement.domain.repositories.MedicationRepository medications;
     @MockitoBean InventoryEventPublisher eventPublisher;
 
     @Test
     void replenishmentIsRolledBackWhenItsEventFails() {
-        var medicationId = UUID.randomUUID().toString();
+        var medicationId = medications.save(com.tata.treatmentmanagement.domain.model.aggregates.Medication.register(
+                UUID.randomUUID().toString(), "Losartan", "Tablet", java.time.Instant.now())).id();
         commandService.registerInitialInventory(new RegisterInitialInventoryCommand(medicationId, 10, 3));
         doThrow(new IllegalStateException("listener failed"))
                 .when(eventPublisher).publish(any(ReplenishmentRegistered.class));
