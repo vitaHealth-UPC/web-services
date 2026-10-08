@@ -1,6 +1,6 @@
 package com.tata.carelink.application.internal.queryservices;
 
-import com.tata.carelink.application.internal.CareLinkApplicationException;
+import com.tata.carelink.application.CareLinkApplicationException;
 import com.tata.carelink.application.internal.CareLinkMapper;
 import com.tata.carelink.application.models.CareLinkResult;
 import com.tata.carelink.application.models.OlderAdultProfileResult;
