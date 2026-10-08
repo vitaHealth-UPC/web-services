@@ -13,10 +13,11 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class GetNextIntakeQueryHandler implements com.tata.intakeexecution.application.queryservices.GetNextIntakeQueryService {
     private final IntakeRepository repository;
-    private final Clock clock = Clock.systemUTC();
+    private final Clock clock;
 
-    public GetNextIntakeQueryHandler(IntakeRepository repository) {
+    public GetNextIntakeQueryHandler(IntakeRepository repository, Clock clock) {
         this.repository = repository;
+        this.clock = java.util.Objects.requireNonNull(clock);
     }
 
     public Optional<IntakeResult> handle(String olderAdultId) {
