@@ -1,5 +1,7 @@
 package com.tata.treatmentmanagement.domain.model.valueobjects;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
@@ -32,8 +34,4 @@ public record TreatmentRegimen(
         }
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
-        return value.trim();
-    }
 }

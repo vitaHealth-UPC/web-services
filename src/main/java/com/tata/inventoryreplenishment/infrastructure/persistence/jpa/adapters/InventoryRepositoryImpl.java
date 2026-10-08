@@ -1,9 +1,8 @@
 package com.tata.inventoryreplenishment.infrastructure.persistence.jpa.adapters;
+import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.assemblers.InventoryPersistenceAssembler;
 
 import com.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
-import com.tata.inventoryreplenishment.domain.model.entities.Batch;
 import com.tata.inventoryreplenishment.domain.repositories.InventoryRepository;
-import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.BatchPersistenceEntity;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.InventoryConsumptionPersistenceEntity;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.InventoryPersistenceEntity;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.repositories.InventoryConsumptionJpaRepository;
@@ -11,10 +10,10 @@ import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.repositori
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
+@org.springframework.transaction.annotation.Transactional
 public class InventoryRepositoryImpl implements InventoryRepository {
     private final InventoryJpaRepository repository;
     private final InventoryConsumptionJpaRepository consumptionRepository;
@@ -33,7 +32,7 @@ public class InventoryRepositoryImpl implements InventoryRepository {
      */
     @Override
     public Inventory save(Inventory inventory) {
-        var batches = toEntities(inventory.batches());
+        var batches = InventoryPersistenceAssembler.toEntities(inventory.batches());
         var entity = repository.findById(inventory.id())
                 .map(existing -> {
                     existing.updateStock(inventory.remainingStock(), batches, inventory.updatedAt());
@@ -51,17 +50,17 @@ public class InventoryRepositoryImpl implements InventoryRepository {
                     created.updateStock(inventory.remainingStock(), batches, inventory.updatedAt());
                     return created;
                 });
-        return toDomain(repository.save(entity));
+        return InventoryPersistenceAssembler.toDomain(repository.save(entity));
     }
 
     @Override
     public Optional<Inventory> findByMedicationId(String medicationId) {
-        return repository.findByMedicationId(medicationId).map(this::toDomain);
+        return repository.findByMedicationId(medicationId).map(InventoryPersistenceAssembler::toDomain);
     }
 
     @Override
     public Optional<Inventory> findByMedicationIdForUpdate(String medicationId) {
-        return repository.findByMedicationIdForUpdate(medicationId).map(this::toDomain);
+        return repository.findByMedicationIdForUpdate(medicationId).map(InventoryPersistenceAssembler::toDomain);
     }
 
     @Override
@@ -79,23 +78,4 @@ public class InventoryRepositoryImpl implements InventoryRepository {
         consumptionRepository.save(new InventoryConsumptionPersistenceEntity(intakeId, inventoryId, consumedAt));
     }
 
-    private Inventory toDomain(InventoryPersistenceEntity entity) {
-        return Inventory.rehydrate(
-                entity.getId(),
-                entity.getMedicationId(),
-                entity.getRemainingStock(),
-                entity.getReplenishmentThreshold(),
-                entity.getBatches().stream()
-                        .map(batch -> Batch.rehydrate(batch.getId(), batch.getQuantity(), batch.getRegisteredAt()))
-                        .toList(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt()
-        );
-    }
-
-    private static List<BatchPersistenceEntity> toEntities(List<Batch> batches) {
-        return batches.stream()
-                .map(batch -> new BatchPersistenceEntity(batch.id(), batch.quantity(), batch.registeredAt()))
-                .toList();
-    }
 }

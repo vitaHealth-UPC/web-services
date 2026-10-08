@@ -1,5 +1,7 @@
 package com.tata.identitysubscription.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.identitysubscription.domain.model.valueobjects.PinPolicy;
 
 import java.time.Instant;
@@ -58,10 +60,6 @@ public final class PinCredential {
         lockedUntil = null;
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String olderAdultId() { return olderAdultId; }
