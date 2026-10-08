@@ -6,9 +6,15 @@ import com.tata.accessibilitypreferences.domain.model.valueobjects.QuietHoursRan
 import com.tata.accessibilitypreferences.infrastructure.persistence.jpa.entities.UserPreferencesPersistenceEntity;
 import com.tata.accessibilitypreferences.infrastructure.persistence.jpa.entities.UserPreferencesPersistenceEntity.ChannelEmbeddable;
 
+/** Converts UserPreferences state between domain and JPA representations without database access. */
 public final class UserPreferencesPersistenceAssembler {
     private UserPreferencesPersistenceAssembler() {}
 
+    /**
+     * Restores the stored identity and state without executing a business transition.
+     * @param entity stored JPA representation
+     * @return reconstructed domain object
+     */
     public static UserPreferences toDomain(UserPreferencesPersistenceEntity entity) {
         QuietHoursRange quietHours = entity.getQuietHoursStart() == null || entity.getQuietHoursEnd() == null
                 ? null
@@ -21,6 +27,10 @@ public final class UserPreferencesPersistenceAssembler {
                 entity.getCreatedAt());
     }
 
+    /**
+     * Builds the persistence representation while preserving the domain identity.
+     * @return JPA state ready for the repository adapter
+     */
     public static UserPreferencesPersistenceEntity toEntity(UserPreferences preferences) {
         var quietHours = preferences.quietHours();
         return new UserPreferencesPersistenceEntity(

@@ -5,9 +5,15 @@ import com.tata.carelink.domain.model.valueobjects.EmergencyContact;
 import com.tata.carelink.domain.model.valueobjects.OlderAdultBasicData;
 import com.tata.carelink.infrastructure.persistence.jpa.entities.OlderAdultProfilePersistenceEntity;
 
+/** Converts OlderAdultProfile state between domain and JPA representations without database access. */
 public final class OlderAdultProfilePersistenceAssembler {
     private OlderAdultProfilePersistenceAssembler() {}
 
+    /**
+     * Restores the stored identity and state without executing a business transition.
+     * @param entity stored JPA representation
+     * @return reconstructed domain object
+     */
     public static OlderAdultProfile toDomain(OlderAdultProfilePersistenceEntity entity) {
         EmergencyContact contact = null;
         if (entity.getEmergencyContactName() != null) {
@@ -27,6 +33,10 @@ public final class OlderAdultProfilePersistenceAssembler {
         );
     }
 
+    /**
+     * Builds the persistence representation while preserving the domain identity.
+     * @return JPA state ready for the repository adapter
+     */
     public static OlderAdultProfilePersistenceEntity toEntity(OlderAdultProfile profile) {
         var contact = profile.emergencyContact();
         return new OlderAdultProfilePersistenceEntity(
