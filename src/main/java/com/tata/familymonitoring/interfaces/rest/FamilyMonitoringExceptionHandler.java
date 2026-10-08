@@ -1,6 +1,7 @@
 package com.tata.familymonitoring.interfaces.rest;
 
 import com.tata.familymonitoring.domain.exceptions.AlertNotFoundException;
+import com.tata.familymonitoring.application.CareRelationshipRequiredException;
 import com.tata.familymonitoring.domain.exceptions.ContactChannelNotAvailableException;
 import com.tata.familymonitoring.domain.exceptions.FamilyMonitorNotFoundException;
 import com.tata.familymonitoring.interfaces.rest.resources.ErrorResource;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /** Turns Family Monitoring failures into stable error codes. */
 @RestControllerAdvice(basePackages = "com.tata.familymonitoring")
 public class FamilyMonitoringExceptionHandler {
-  @ExceptionHandler(com.tata.familymonitoring.application.internal.RequireCareRelationship.AccessDenied.class)
+  @ExceptionHandler(CareRelationshipRequiredException.class)
   public ResponseEntity<ErrorResource> handleDenied(RuntimeException exception) {
     return error(HttpStatus.FORBIDDEN, "CARE_RELATIONSHIP_REQUIRED", exception.getMessage());
   }
