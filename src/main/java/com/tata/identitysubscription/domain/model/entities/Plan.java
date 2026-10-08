@@ -1,5 +1,7 @@
 package com.tata.identitysubscription.domain.model.entities;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.identitysubscription.domain.model.valueobjects.PlanCapability;
 
 import java.math.BigDecimal;
@@ -14,13 +16,13 @@ public record Plan(
         Set<PlanCapability> capabilities
 ) {
     public Plan {
-        code = requireText(code, "code").toUpperCase();
+        code = requireText(code, "code").toUpperCase(java.util.Locale.ROOT);
         name = requireText(name, "name");
         monthlyPrice = Objects.requireNonNull(monthlyPrice, "monthlyPrice is required");
         if (monthlyPrice.signum() < 0) {
             throw new IllegalArgumentException("monthlyPrice cannot be negative");
         }
-        currency = requireText(currency, "currency").toUpperCase();
+        currency = requireText(currency, "currency").toUpperCase(java.util.Locale.ROOT);
         capabilities = Set.copyOf(Objects.requireNonNull(capabilities, "capabilities are required"));
     }
 
@@ -28,10 +30,4 @@ public record Plan(
         return capabilities.contains(Objects.requireNonNull(capability));
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 }

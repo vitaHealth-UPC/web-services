@@ -1,5 +1,7 @@
 package com.tata.inventoryreplenishment.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.inventoryreplenishment.domain.model.entities.Batch;
 import com.tata.inventoryreplenishment.domain.model.events.LowStockDetected;
 import com.tata.inventoryreplenishment.domain.model.events.ReplenishmentRegistered;
@@ -125,12 +127,6 @@ public final class Inventory {
         updatedAt = Objects.requireNonNull(now);
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String medicationId() { return medicationId; }

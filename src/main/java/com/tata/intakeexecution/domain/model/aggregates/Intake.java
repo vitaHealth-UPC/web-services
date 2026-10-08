@@ -1,5 +1,7 @@
 package com.tata.intakeexecution.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 import com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot;
@@ -193,12 +195,6 @@ public final class Intake {
         return true;
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String treatmentId() { return treatmentId; }

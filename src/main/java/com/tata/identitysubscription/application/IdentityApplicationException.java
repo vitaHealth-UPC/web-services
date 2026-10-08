@@ -1,5 +1,6 @@
-package com.tata.identitysubscription.application.internal;
+package com.tata.identitysubscription.application;
 
+/** Public application failure contract; adapters translate its codes to transport responses. */
 public final class IdentityApplicationException extends RuntimeException {
     public enum Code {
         DUPLICATE_EMAIL,

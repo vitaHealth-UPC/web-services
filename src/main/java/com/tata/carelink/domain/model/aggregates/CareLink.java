@@ -1,5 +1,7 @@
 package com.tata.carelink.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.carelink.domain.model.valueobjects.CareLinkStatus;
 import com.tata.carelink.domain.model.valueobjects.Consent;
 import com.tata.carelink.domain.model.valueobjects.LinkingCode;
@@ -114,12 +116,6 @@ public final class CareLink {
         return status == CareLinkStatus.CONFIRMED && consent.isGranted();
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String caregiverId() { return caregiverId; }

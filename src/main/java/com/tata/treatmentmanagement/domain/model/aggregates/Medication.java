@@ -1,5 +1,7 @@
 package com.tata.treatmentmanagement.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -40,18 +42,16 @@ public final class Medication {
 
     public void update(String name, String presentation) {
         if (!active) throw new IllegalStateException("inactive medication cannot be edited");
-        this.name = requireText(name, "name");
-        this.presentation = requireText(presentation, "presentation");
+        var validatedName = requireText(name, "name");
+        var validatedPresentation = requireText(presentation, "presentation");
+        this.name = validatedName;
+        this.presentation = validatedPresentation;
     }
 
     public void deactivate() {
         active = false;
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String olderAdultId() { return olderAdultId; }

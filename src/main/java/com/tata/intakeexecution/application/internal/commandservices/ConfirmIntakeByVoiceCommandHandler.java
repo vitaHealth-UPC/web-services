@@ -2,7 +2,7 @@ package com.tata.intakeexecution.application.internal.commandservices;
 
 import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeByVoiceCommand;
 import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
-import com.tata.intakeexecution.application.internal.IntakeApplicationException;
+import com.tata.intakeexecution.application.IntakeApplicationException;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
 import com.tata.intakeexecution.application.internal.outboundservices.IVoicePreferencePort;
 import com.tata.intakeexecution.application.internal.outboundservices.IVoiceRecognitionPort;

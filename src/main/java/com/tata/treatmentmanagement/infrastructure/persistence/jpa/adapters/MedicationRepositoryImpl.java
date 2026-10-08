@@ -2,7 +2,7 @@ package com.tata.treatmentmanagement.infrastructure.persistence.jpa.adapters;
 
 import com.tata.treatmentmanagement.domain.model.aggregates.Medication;
 import com.tata.treatmentmanagement.domain.repositories.MedicationRepository;
-import com.tata.treatmentmanagement.infrastructure.persistence.jpa.entities.MedicationPersistenceEntity;
+import com.tata.treatmentmanagement.infrastructure.persistence.jpa.assemblers.MedicationPersistenceAssembler;
 import com.tata.treatmentmanagement.infrastructure.persistence.jpa.repositories.MedicationJpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,30 +19,17 @@ public class MedicationRepositoryImpl implements MedicationRepository {
 
     @Override
     public Medication save(Medication medication) {
-        return toDomain(repository.save(toEntity(medication)));
+        return MedicationPersistenceAssembler.toDomain(repository.save(MedicationPersistenceAssembler.toEntity(medication)));
     }
 
     @Override
     public Optional<Medication> findById(String id) {
-        return repository.findById(id).map(this::toDomain);
+        return repository.findById(id).map(MedicationPersistenceAssembler::toDomain);
     }
 
     @Override
     public List<Medication> findByOlderAdultId(String olderAdultId) {
-        return repository.findByOlderAdultIdOrderByNameAsc(olderAdultId).stream().map(this::toDomain).toList();
+        return repository.findByOlderAdultIdOrderByNameAsc(olderAdultId).stream().map(MedicationPersistenceAssembler::toDomain).toList();
     }
 
-    private Medication toDomain(MedicationPersistenceEntity entity) {
-        return Medication.rehydrate(
-                entity.getId(), entity.getOlderAdultId(), entity.getName(), entity.getPresentation(),
-                entity.isActive(), entity.getCreatedAt()
-        );
-    }
-
-    private MedicationPersistenceEntity toEntity(Medication medication) {
-        return new MedicationPersistenceEntity(
-                medication.id(), medication.olderAdultId(), medication.name(), medication.presentation(),
-                medication.active(), medication.createdAt()
-        );
-    }
 }

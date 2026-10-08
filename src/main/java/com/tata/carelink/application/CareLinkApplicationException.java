@@ -1,5 +1,6 @@
-package com.tata.carelink.application.internal;
+package com.tata.carelink.application;
 
+/** Public application failure contract; adapters translate its codes to transport responses. */
 public final class CareLinkApplicationException extends RuntimeException {
     public enum Code {
         ACCOUNT_NOT_ENABLED,
