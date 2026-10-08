@@ -74,7 +74,10 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
         } catch (IllegalStateException exception) {
             throw error(TreatmentApplicationException.Code.MEDICATION_INACTIVE, exception.getMessage());
         }
-        return TreatmentMapper.toResult(medicationRepository.save(medication));
+        var saved = medicationRepository.save(medication);
+        // the schedule event carries the medication name, so treatments using it must be republished
+        treatmentRepository.findByMedicationId(saved.id()).forEach(this::publishSchedule);
+        return TreatmentMapper.toResult(saved);
     }
 
     @Override
@@ -82,7 +85,15 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
         var medication = medication(command.medicationId());
         requireAuthorizedCareLink(command.caregiverId(), medication.olderAdultId());
         medication.deactivate();
-        return TreatmentMapper.toResult(medicationRepository.save(medication));
+        var saved = medicationRepository.save(medication);
+        // an active treatment cannot keep running with a medication that is no longer active
+        for (var treatment : treatmentRepository.findByMedicationId(saved.id())) {
+            if (treatment.status() == TreatmentStatus.ACTIVE) {
+                treatment.pause();
+                publishSchedule(treatmentRepository.save(treatment));
+            }
+        }
+        return TreatmentMapper.toResult(saved);
     }
 
     @Override
@@ -121,6 +132,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     public TreatmentResult activate(ChangeTreatmentStatusCommand command) {
         var treatment = treatment(command.treatmentId());
         requireAuthorizedCareLink(command.caregiverId(), treatment.olderAdultId());
+        requireActiveMedication(treatment);
         try {
             treatment.activate();
         } catch (IllegalStateException exception) {
@@ -149,6 +161,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     public TreatmentResult resume(ChangeTreatmentStatusCommand command) {
         var treatment = treatment(command.treatmentId());
         requireAuthorizedCareLink(command.caregiverId(), treatment.olderAdultId());
+        requireActiveMedication(treatment);
         try {
             treatment.resume();
         } catch (IllegalStateException exception) {
@@ -177,6 +190,12 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
                 regimen.reminderLeadMinutes(),
                 treatment.status() == TreatmentStatus.ACTIVE
         ));
+    }
+
+    private void requireActiveMedication(Treatment treatment) {
+        if (treatment.regimen() != null && !medication(treatment.regimen().medicationId()).active()) {
+            throw error(TreatmentApplicationException.Code.MEDICATION_INACTIVE, "medication is inactive");
+        }
     }
 
     private Medication medication(String id) {

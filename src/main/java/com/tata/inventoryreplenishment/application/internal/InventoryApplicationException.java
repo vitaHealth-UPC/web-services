@@ -2,6 +2,8 @@ package com.tata.inventoryreplenishment.application.internal;
 
 public final class InventoryApplicationException extends RuntimeException {
     public enum Code {
+        MEDICATION_NOT_FOUND,
+        MEDICATION_INACTIVE,
         INVENTORY_NOT_FOUND,
         INVENTORY_ALREADY_EXISTS,
         INVALID_QUANTITY,

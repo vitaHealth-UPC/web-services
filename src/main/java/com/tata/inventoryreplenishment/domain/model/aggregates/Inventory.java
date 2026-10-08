@@ -1,5 +1,7 @@
 package com.tata.inventoryreplenishment.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.inventoryreplenishment.domain.model.entities.Batch;
 import com.tata.inventoryreplenishment.domain.model.events.LowStockDetected;
 import com.tata.inventoryreplenishment.domain.model.events.ReplenishmentRegistered;
@@ -78,8 +80,10 @@ public final class Inventory {
     }
 
     /** US-43: a replenishment adds a batch and increases the remaining stock. */
-    public Batch registerBatch(int quantity, Instant now) {
-        var batch = Batch.register(quantity, now);
+    public Batch registerBatch(int quantity, Instant now) { return registerBatch(quantity, now, null); }
+
+    public Batch registerBatch(int quantity, Instant now, String lot) {
+        var batch = Batch.register(quantity, now, lot);
         addBatch(batch, now);
         domainEvents.add(new ReplenishmentRegistered(id, medicationId, batch.id(), batch.quantity(), remainingStock, now));
         return batch;
@@ -123,12 +127,6 @@ public final class Inventory {
         updatedAt = Objects.requireNonNull(now);
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String medicationId() { return medicationId; }

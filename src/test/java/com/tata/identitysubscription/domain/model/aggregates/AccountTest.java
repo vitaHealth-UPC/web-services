@@ -67,4 +67,29 @@ class AccountTest {
         );
         assertFalse(account.canCompleteVerification(now.plus(Duration.ofMinutes(15))));
     }
+
+    @Test
+    void activeAccountCanChangePlanWithoutExtendingRenewalOnRetry() {
+        var now = Instant.parse("2026-10-06T12:00:00Z");
+        var account = Account.rehydrate(
+                "account-1",
+                "Diego Mendoza",
+                new EmailAddress("diego@example.com"),
+                "password-hash",
+                AccountStatus.ACTIVE,
+                null,
+                null,
+                com.tata.identitysubscription.domain.services.PlanCatalog.ESSENTIAL,
+                com.tata.identitysubscription.domain.model.valueobjects.SubscriptionStatus.ACTIVE,
+                now.plus(Duration.ofDays(10))
+        );
+        var family = com.tata.identitysubscription.domain.services.PlanCatalog.findByCode("FAMILY").orElseThrow();
+
+        assertTrue(account.changeSubscription(family, now));
+        var renewsAt = account.subscriptionRenewsAt();
+        assertEquals("FAMILY", account.currentPlanCode());
+
+        assertFalse(account.changeSubscription(family, now.plusSeconds(30)));
+        assertEquals(renewsAt, account.subscriptionRenewsAt());
+    }
 }
