@@ -3,7 +3,8 @@ package com.tata.intakeexecution.application.internal;
 public final class IntakeApplicationException extends RuntimeException {
     public enum Code {
         INTAKE_NOT_FOUND,
-        INTAKE_NOT_CONFIRMABLE
+        INTAKE_NOT_CONFIRMABLE,
+        VOICE_CONFIRMATION_DISABLED
     }
 
     private final Code code;

@@ -1,8 +1,8 @@
 package com.tata.familymonitoring.interfaces.rest;
 
-import com.tata.familymonitoring.application.internal.queryservices.GetContactChannelQueryHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetOlderAdultStatusQueryHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetRecentIntakeHistoryQueryHandler;
+import com.tata.familymonitoring.application.queryservices.GetContactChannelQueryService;
+import com.tata.familymonitoring.application.queryservices.GetOlderAdultStatusQueryService;
+import com.tata.familymonitoring.application.queryservices.GetRecentIntakeHistoryQueryService;
 import com.tata.familymonitoring.domain.model.queries.GetContactChannelQuery;
 import com.tata.familymonitoring.domain.model.queries.GetOlderAdultStatusQuery;
 import com.tata.familymonitoring.domain.model.queries.GetRecentIntakeHistoryQuery;
@@ -31,16 +31,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Family Monitoring", description = "What a caregiver sees about an older adult")
 public class FamilyMonitoringController {
 
-  private final GetOlderAdultStatusQueryHandler statusHandler;
-  private final GetRecentIntakeHistoryQueryHandler historyHandler;
-  private final GetContactChannelQueryHandler contactChannelHandler;
-  private final com.tata.familymonitoring.application.internal.RequireCareRelationship access;
+  private final GetOlderAdultStatusQueryService statusHandler;
+  private final GetRecentIntakeHistoryQueryService historyHandler;
+  private final GetContactChannelQueryService contactChannelHandler;
+  private final com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access;
 
   public FamilyMonitoringController(
-      GetOlderAdultStatusQueryHandler statusHandler,
-      GetRecentIntakeHistoryQueryHandler historyHandler,
-      GetContactChannelQueryHandler contactChannelHandler,
-      com.tata.familymonitoring.application.internal.RequireCareRelationship access) {
+      GetOlderAdultStatusQueryService statusHandler,
+      GetRecentIntakeHistoryQueryService historyHandler,
+      GetContactChannelQueryService contactChannelHandler,
+      com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access) {
     this.statusHandler = statusHandler;
     this.historyHandler = historyHandler;
     this.contactChannelHandler = contactChannelHandler;

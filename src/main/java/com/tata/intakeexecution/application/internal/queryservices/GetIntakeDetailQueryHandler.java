@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
-public class GetIntakeDetailQueryHandler {
+public class GetIntakeDetailQueryHandler implements com.tata.intakeexecution.application.queryservices.GetIntakeDetailQueryService {
     private final IntakeRepository repository;
 
     public GetIntakeDetailQueryHandler(IntakeRepository repository) {

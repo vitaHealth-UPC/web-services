@@ -12,13 +12,15 @@ import com.tata.familymonitoring.domain.ports.IAdherenceSummaryPort;
 import com.tata.familymonitoring.domain.repositories.IFamilyMonitorRepository;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class GetOlderAdultStatusQueryHandler {
+public class GetOlderAdultStatusQueryHandler implements com.tata.familymonitoring.application.queryservices.GetOlderAdultStatusQueryService {
 
   private static final int STATUS_WINDOW_DAYS = 7;
+  private static final int RECENT_INSIGHTS = 5;
 
   private final IFamilyMonitorRepository repository;
   private final IIntakeHistoryPort intakeHistoryPort;
@@ -43,6 +45,11 @@ public class GetOlderAdultStatusQueryHandler {
     Instant nextIntakeAt = intakeHistoryPort.findNextIntakeAt(query.olderAdultId()).orElse(null);
     OlderAdultStatus status =
         new OlderAdultStatus(nextIntakeAt, lastIntakeStatus, monitor.hasOpenAlert());
-    return new OlderAdultStatusView(status, monitor.openAlerts(), adherenceSummaryPort.getWeeklySummary(query.olderAdultId()));
+    return new OlderAdultStatusView(
+        status,
+        monitor.openAlerts(),
+        adherenceSummaryPort.getWeeklySummary(query.olderAdultId()),
+        List.copyOf(monitor.getLowStockNotices()),
+        monitor.recentInsights(RECENT_INSIGHTS));
   }
 }

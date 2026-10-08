@@ -11,5 +11,8 @@ public record OlderAdultStatusResource(
     @Schema(example = "2026-10-05T21:00:00Z", nullable = true) Instant nextIntakeAt,
     @Schema(example = "CONFIRMED", nullable = true) IntakeStatus lastIntakeStatus,
     @Schema(example = "true") boolean hasOpenAlert,
-    List<AlertSummaryResource> openAlerts, AdherenceSnapshot weeklyAdherence) {
+    List<AlertSummaryResource> openAlerts,
+    AdherenceSnapshot weeklyAdherence,
+    @Schema(description = "Medications running out; empty when the stock is fine") List<LowStockResource> lowStock,
+    @Schema(description = "Latest adherence patterns, most recent first") List<AdherenceInsightResource> adherenceInsights) {
 }

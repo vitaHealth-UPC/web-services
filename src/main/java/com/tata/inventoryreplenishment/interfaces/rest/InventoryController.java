@@ -34,9 +34,11 @@ public class InventoryController {
             description = "Creates the stock of a medication with its first batch and replenishment threshold (US-40). "
                     + "Only one inventory can exist per medication.")
     @ApiResponse(responseCode = "201", description = "Inventory registered")
+    @ApiResponse(responseCode = "404", description = "Medication does not exist",
+            content = @Content(schema = @Schema(implementation = ErrorResource.class)))
     @ApiResponse(responseCode = "400", description = "Missing fields or invalid quantity",
             content = @Content(schema = @Schema(implementation = ErrorResource.class)))
-    @ApiResponse(responseCode = "409", description = "An inventory already exists for this medication",
+    @ApiResponse(responseCode = "409", description = "Medication is inactive or an inventory already exists for this medication",
             content = @Content(schema = @Schema(implementation = ErrorResource.class)))
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

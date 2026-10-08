@@ -1,14 +1,13 @@
 package com.tata.intakeexecution.interfaces.rest;
+import com.tata.intakeexecution.interfaces.rest.transform.IntakeResourceAssembler;
 
-import com.tata.intakeexecution.application.commands.ConfirmIntakeByVoiceCommand;
-import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
-import com.tata.intakeexecution.application.internal.commandservices.ConfirmIntakeByVoiceCommandHandler;
-import com.tata.intakeexecution.application.internal.commandservices.ConfirmIntakeCommandHandler;
-import com.tata.intakeexecution.application.internal.queryservices.GetIntakeAgendaQueryHandler;
-import com.tata.intakeexecution.application.internal.queryservices.GetIntakeDetailQueryHandler;
-import com.tata.intakeexecution.application.internal.queryservices.GetNextIntakeQueryHandler;
-import com.tata.intakeexecution.application.models.IntakeResult;
-import com.tata.intakeexecution.application.models.VoiceConfirmationResult;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeByVoiceCommand;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
+import com.tata.intakeexecution.application.commandservices.ConfirmIntakeByVoiceCommandService;
+import com.tata.intakeexecution.application.commandservices.ConfirmIntakeCommandService;
+import com.tata.intakeexecution.application.queryservices.GetIntakeAgendaQueryService;
+import com.tata.intakeexecution.application.queryservices.GetIntakeDetailQueryService;
+import com.tata.intakeexecution.application.queryservices.GetNextIntakeQueryService;
 import com.tata.intakeexecution.interfaces.rest.resources.ConfirmIntakeResource;
 import com.tata.intakeexecution.interfaces.rest.resources.IntakeResource;
 import com.tata.intakeexecution.interfaces.rest.resources.VoiceConfirmationResource;
@@ -28,18 +27,18 @@ public class IntakesController {
 
     private static final long MAX_VOICE_AUDIO_BYTES = 5L * 1024L * 1024L;
 
-    private final GetNextIntakeQueryHandler getNextIntake;
-    private final GetIntakeDetailQueryHandler getIntakeDetail;
-    private final ConfirmIntakeCommandHandler confirmIntake;
-    private final ConfirmIntakeByVoiceCommandHandler confirmIntakeByVoice;
-    private final GetIntakeAgendaQueryHandler getAgenda;
+    private final GetNextIntakeQueryService getNextIntake;
+    private final GetIntakeDetailQueryService getIntakeDetail;
+    private final ConfirmIntakeCommandService confirmIntake;
+    private final ConfirmIntakeByVoiceCommandService confirmIntakeByVoice;
+    private final GetIntakeAgendaQueryService getAgenda;
 
     public IntakesController(
-            GetNextIntakeQueryHandler getNextIntake,
-            GetIntakeDetailQueryHandler getIntakeDetail,
-            ConfirmIntakeCommandHandler confirmIntake,
-            ConfirmIntakeByVoiceCommandHandler confirmIntakeByVoice,
-            GetIntakeAgendaQueryHandler getAgenda
+            GetNextIntakeQueryService getNextIntake,
+            GetIntakeDetailQueryService getIntakeDetail,
+            ConfirmIntakeCommandService confirmIntake,
+            ConfirmIntakeByVoiceCommandService confirmIntakeByVoice,
+            GetIntakeAgendaQueryService getAgenda
     ) {
         this.getNextIntake = getNextIntake;
         this.getIntakeDetail = getIntakeDetail;
@@ -54,13 +53,13 @@ public class IntakesController {
             @RequestParam Instant from,
             @RequestParam Instant to
     ) {
-        return getAgenda.handle(olderAdultId, from, to).stream().map(this::toResource).toList();
+        return getAgenda.handle(olderAdultId, from, to).stream().map(IntakeResourceAssembler::toResource).toList();
     }
 
     @GetMapping("/older-adults/{olderAdultId}/intakes/next")
     public ResponseEntity<IntakeResource> next(@PathVariable String olderAdultId) {
         return getNextIntake.handle(olderAdultId)
-                .map(this::toResource)
+                .map(IntakeResourceAssembler::toResource)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -68,7 +67,7 @@ public class IntakesController {
     @GetMapping("/intakes/{intakeId}")
     public ResponseEntity<IntakeResource> detail(@PathVariable String intakeId) {
         return getIntakeDetail.handle(intakeId)
-                .map(this::toResource)
+                .map(IntakeResourceAssembler::toResource)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -78,7 +77,7 @@ public class IntakesController {
             @PathVariable String intakeId,
             @Valid @RequestBody ConfirmIntakeResource resource
     ) {
-        return toResource(confirmIntake.handle(
+        return IntakeResourceAssembler.toResource(confirmIntake.handle(
                 new ConfirmIntakeCommand(intakeId, resource.channel())
         ));
     }
@@ -115,7 +114,7 @@ public class IntakesController {
             throw new IllegalArgumentException("audio could not be read", exception);
         }
 
-        return toResource(confirmIntakeByVoice.handle(
+        return IntakeResourceAssembler.toResource(confirmIntakeByVoice.handle(
                 new ConfirmIntakeByVoiceCommand(
                         intakeId,
                         audioBytes,
@@ -125,28 +124,4 @@ public class IntakesController {
         ));
     }
 
-    private VoiceConfirmationResource toResource(VoiceConfirmationResult result) {
-        return new VoiceConfirmationResource(
-                result.status(),
-                result.transcript(),
-                result.confidence(),
-                result.intake() == null ? null : toResource(result.intake())
-        );
-    }
-
-    private IntakeResource toResource(IntakeResult result) {
-        return new IntakeResource(
-                result.id(),
-                result.treatmentId(),
-                result.medicationId(),
-                result.olderAdultId(),
-                result.medicationName(),
-                result.dose(),
-                result.instructions(),
-                result.scheduledAt(),
-                result.status(),
-                result.confirmedAt(),
-                result.confirmationChannel()
-        );
-    }
 }

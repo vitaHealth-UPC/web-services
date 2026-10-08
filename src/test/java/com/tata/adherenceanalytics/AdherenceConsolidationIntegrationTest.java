@@ -1,7 +1,7 @@
 package com.tata.adherenceanalytics;
 
-import com.tata.adherenceanalytics.application.ConsolidateWeeklyPeriodCommandHandler;
-import com.tata.adherenceanalytics.infrastructure.AdherenceSnapshotJpaRepository;
+import com.tata.adherenceanalytics.application.internal.commandservices.ConsolidateWeeklyPeriodCommandHandler;
+import com.tata.adherenceanalytics.infrastructure.persistence.jpa.repositories.AdherenceSnapshotJpaRepository;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.valueobjects.*;
 import com.tata.intakeexecution.domain.repositories.IntakeRepository;
@@ -65,7 +65,7 @@ class AdherenceConsolidationIntegrationTest {
             var b = second.get(30, TimeUnit.SECONDS);
             assertEquals(a.id(), b.id());
             assertEquals(a.consolidatedAt(), b.consolidatedAt());
-            assertEquals(3, snapshots.findById(a.id()).orElseThrow().totalIntakes());
+            assertEquals(3, com.tata.adherenceanalytics.infrastructure.persistence.jpa.assemblers.AdherenceSnapshotPersistenceAssembler.toDomain(snapshots.findById(a.id()).orElseThrow()).totalIntakes());
         }
     }
     @Test void endpointReturnsSavedSnapshotAndRejectsOtherOwnerAndInvalidZone() throws Exception {

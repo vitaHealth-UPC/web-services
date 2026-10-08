@@ -1,8 +1,8 @@
 package com.tata.identitysubscription.interfaces.rest;
 
-import com.tata.identitysubscription.application.internal.commandservices.ChangeSubscriptionCommandHandler;
-import com.tata.identitysubscription.application.internal.queryservices.GetCurrentSubscriptionQueryHandler;
-import com.tata.identitysubscription.application.internal.queryservices.ListAvailablePlansQueryHandler;
+import com.tata.identitysubscription.application.commandservices.ChangeSubscriptionCommandService;
+import com.tata.identitysubscription.application.queryservices.GetCurrentSubscriptionQueryService;
+import com.tata.identitysubscription.application.queryservices.ListAvailablePlansQueryService;
 import com.tata.identitysubscription.interfaces.rest.resources.ChangeSubscriptionResource;
 import com.tata.identitysubscription.interfaces.rest.resources.PlanResource;
 import com.tata.identitysubscription.interfaces.rest.resources.SubscriptionResource;
@@ -18,14 +18,14 @@ import java.util.List;
 @RequestMapping("/api/v1")
 @Tag(name = "Plans and subscriptions")
 public class SubscriptionsController {
-    private final ListAvailablePlansQueryHandler listPlans;
-    private final GetCurrentSubscriptionQueryHandler getSubscription;
-    private final ChangeSubscriptionCommandHandler changeSubscription;
+    private final ListAvailablePlansQueryService listPlans;
+    private final GetCurrentSubscriptionQueryService getSubscription;
+    private final ChangeSubscriptionCommandService changeSubscription;
 
     public SubscriptionsController(
-            ListAvailablePlansQueryHandler listPlans,
-            GetCurrentSubscriptionQueryHandler getSubscription,
-            ChangeSubscriptionCommandHandler changeSubscription
+            ListAvailablePlansQueryService listPlans,
+            GetCurrentSubscriptionQueryService getSubscription,
+            ChangeSubscriptionCommandService changeSubscription
     ) {
         this.listPlans = listPlans;
         this.getSubscription = getSubscription;

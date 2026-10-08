@@ -14,7 +14,7 @@ import java.time.Clock;
 
 @Service
 @Transactional
-public class ChangeSubscriptionCommandHandler {
+public class ChangeSubscriptionCommandHandler implements com.tata.identitysubscription.application.commandservices.ChangeSubscriptionCommandService {
     private final AccountRepository accountRepository;
     private final Clock clock;
 

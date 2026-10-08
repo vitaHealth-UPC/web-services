@@ -20,7 +20,7 @@ public final class InventoryResourceAssembler {
     }
 
     public static RegisterReplenishmentCommand toCommand(String medicationId, RegisterReplenishmentResource resource) {
-        return new RegisterReplenishmentCommand(medicationId, resource.quantity());
+        return new RegisterReplenishmentCommand(medicationId, resource.quantity(), resource.lot());
     }
 
     public static InventoryResource toResource(InventoryResult result) {
@@ -31,10 +31,12 @@ public final class InventoryResourceAssembler {
                 result.replenishmentThreshold(),
                 result.lowStock(),
                 result.batches().stream()
-                        .map(batch -> new BatchResource(batch.id(), batch.quantity(), batch.registeredAt()))
+                        .map(batch -> new BatchResource(batch.id(), batch.quantity(), batch.registeredAt(), batch.lot()))
                         .toList(),
                 result.createdAt(),
-                result.updatedAt()
+                result.updatedAt(),
+                result.daysRemaining(),
+                result.dailyConsumptionUnits()
         );
     }
 }
