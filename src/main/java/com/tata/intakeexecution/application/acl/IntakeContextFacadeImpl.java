@@ -26,4 +26,9 @@ public class IntakeContextFacadeImpl implements IntakeContextFacade {
  @Override public List<IntakeResult> history(String owner,Instant from,Instant to) { return history.handle(owner,from,to); }
  @Override public Optional<IntakeResult> next(String owner) { return next.handle(owner); }
  @Override public Optional<IntakeResult> findIntake(String id) { return repository.findById(id).map(IntakeMapper::toResult); }
+ @Override
+ @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY, readOnly = false)
+ public boolean lockPendingIntake(String id) {
+  return repository.findByIdForConfirmation(id).filter(intake -> intake.isPending()).isPresent();
+ }
 }
