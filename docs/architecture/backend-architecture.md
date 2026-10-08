@@ -18,7 +18,7 @@ Canonical names:
 | Accessibility & Preferences | accessibilitypreferences |
 | Inventory & Replenishment | inventoryreplenishment |
 
-Package names are lowercase by Java convention. The former mixed-case placeholders and the misspellings "accesibility" / "excalation" are not canonical.
+Package names are lowercase by Java convention and match the canonical context names.
 
 ## 2. Internal structure
 
@@ -102,6 +102,8 @@ Domain code must not become a home for REST Resources, controller concerns, SQL/
 
 ### Application
 
+Public command/query service interfaces and application exceptions define the inbound application contracts. REST adapters use these public contracts; application exceptions expose stable failure codes without importing an internal implementation. REST controllers depend on these interfaces; their implementations and transaction boundaries belong in `application/internal`. Public context facades live in `interfaces/acl`, with delegation in `application/acl`. Cross-context coordination consumes these facades from `application/internal/outboundservices/acl`.
+
 Coordinates use cases. It loads aggregates, invokes domain behavior, persists through contracts, calls outbound ports, and routes domain outcomes. It should not duplicate domain rules.
 
 ### Interfaces
@@ -109,6 +111,8 @@ Coordinates use cases. It loads aggregates, invokes domain behavior, persists th
 Owns inbound adapters: REST Controllers, request/response Resources, assemblers/transformers, event Consumers and public ACL/facade entry points.
 
 ### Infrastructure
+
+Persistence entities contain JPA mappings; assemblers reconstruct domain objects while repository adapters keep the persistence session open for loading aggregate collections. Domain aggregates contain no JPA or Spring dependencies.
 
 Owns JPA implementations, schedulers, external-service adapters, token/email/push/speech providers, Spring event listeners/publishers and framework configuration.
 
@@ -129,7 +133,7 @@ Synchronous collaboration uses a public facade/ACL/port. Event-driven collaborat
 
 Tata's own architecture defines PostgreSQL as the central backend database. The database instance is physically shared, while data ownership remains logically separated by Bounded Context.
 
-Development currently uses Hibernate schema update for convenience. Production is configured with schema validation; production releases should move schema evolution to explicit migrations before deployment.
+Development currently uses Hibernate schema update for convenience. Production defaults to `ddl-auto=update` for the first Railway/managed deploy (override with `DDL_AUTO=validate` once Flyway migrations exist). Hardened releases should move schema evolution to explicit migrations before locking validation.
 
 ## 7. API and i18n
 
@@ -156,3 +160,23 @@ src/test/resources/features/
 ~~~
 
 A story is not complete because it compiles: tests must cover the layer and acceptance behavior it changes.
+
+## Cross-context IDs and intake confirmation
+
+Account, OlderAdult, CareLink, Medication, Treatment and Intake identities are UUID strings. References retain the owning context type (`String`, PostgreSQL `varchar(36)`). Internal Omission, Monitoring and Inventory IDs may remain `Long`/`BIGINT`. No physical foreign keys cross contexts.
+
+The first confirmation persists server UTC `confirmedAt` and `confirmationChannel`, and publishes `IntakeConfirmed(String intakeId, String medicationId, String olderAdultId, Instant confirmedAt)` in the same transaction. Retries preserve that metadata and do not republish. A pessimistic row lock serializes concurrent confirmations. Omission resolution uses the event confirmation time. Status vocabulary remains `PENDING / CONFIRMED / LATE / OMITTED`; late-window classification is a separate pending policy.
+
+Existing databases require explicit schema/data migration for numeric Omission/Monitoring references before production deployment. Demo numeric IDs cannot be mapped automatically to real UUID accounts. Hibernate schema update is not a production migration.
+
+## Shared responsibilities
+
+`shared/domain/validation/DomainText` normalizes required domain text without framework dependencies. Business invariants remain inside their context.
+
+`shared/interfaces/rest/transform/ProblemDetailAssembler` builds the common HTTP problem envelope. Each context chooses its own error code and status.
+
+`shared/infrastructure/time/ClockConfiguration` supplies a UTC `Clock` to application services. Fixed clocks allow deterministic tests of temporal rules.
+
+Shared infrastructure also owns database URL parsing, physical table naming, OpenAPI, CORS and internationalization configuration. It does not depend on business contexts.
+
+The architecture checks verify package paths, independent domain code, public REST application contracts and private cross-context boundaries.
