@@ -1,6 +1,8 @@
 package com.tata.treatmentmanagement.interfaces.rest.transform;
 
 import com.tata.treatmentmanagement.application.models.MedicationResult;
+import com.tata.treatmentmanagement.application.models.MedicationCatalogItem;
+import com.tata.treatmentmanagement.interfaces.rest.resources.MedicationCatalogResource;
 import com.tata.treatmentmanagement.application.models.TreatmentResult;
 import com.tata.treatmentmanagement.interfaces.rest.resources.MedicationResources.MedicationResponse;
 import com.tata.treatmentmanagement.interfaces.rest.resources.TreatmentResources.TreatmentResponse;
@@ -20,5 +22,9 @@ public final class TreatmentResourceAssembler {
                 result.medicationId(), result.dose(), result.frequency(), result.scheduledTimes(),
                 result.instructions(), result.reminderLeadMinutes()
         );
+    }
+    public static MedicationCatalogResource toResource(MedicationCatalogItem result) {
+        return new MedicationCatalogResource(toResource(result.medication()),
+                result.treatments().stream().map(TreatmentResourceAssembler::toResource).toList());
     }
 }

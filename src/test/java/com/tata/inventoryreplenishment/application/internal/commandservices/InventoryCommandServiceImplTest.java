@@ -1,6 +1,6 @@
 package com.tata.inventoryreplenishment.application.internal.commandservices;
 
-import com.tata.inventoryreplenishment.application.internal.InventoryApplicationException;
+import com.tata.inventoryreplenishment.application.InventoryApplicationException;
 import com.tata.inventoryreplenishment.application.internal.fakes.InMemoryInventoryRepository;
 import com.tata.inventoryreplenishment.application.internal.fakes.RecordingInventoryEventPublisher;
 import com.tata.inventoryreplenishment.domain.model.commands.ConsumeUnitCommand;
@@ -24,11 +24,21 @@ class InventoryCommandServiceImplTest {
     private RecordingInventoryEventPublisher publisher;
     private InventoryCommandServiceImpl service;
 
+    @Test
+    void rejectsUnknownMedicationWithoutPersistingStockOrPublishingEvents() {
+        var guarded = new InventoryCommandServiceImpl(repository, publisher, id -> com.tata.inventoryreplenishment.application.internal.outboundservices.MedicationCatalog.Availability.MISSING,
+                Clock.fixed(NOW, ZoneOffset.UTC));
+        var error = assertThrows(InventoryApplicationException.class, () -> guarded.registerInitialInventory(
+                new RegisterInitialInventoryCommand("missing", 10, 2)));
+        assertEquals(InventoryApplicationException.Code.MEDICATION_NOT_FOUND, error.code());
+        assertTrue(repository.findByMedicationId("missing").isEmpty());
+    }
+
     @BeforeEach
     void setUp() {
         repository = new InMemoryInventoryRepository();
         publisher = new RecordingInventoryEventPublisher();
-        service = new InventoryCommandServiceImpl(repository, publisher, Clock.fixed(NOW, ZoneOffset.UTC));
+        service = new InventoryCommandServiceImpl(repository, publisher, id -> com.tata.inventoryreplenishment.application.internal.outboundservices.MedicationCatalog.Availability.ACTIVE, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     @Test

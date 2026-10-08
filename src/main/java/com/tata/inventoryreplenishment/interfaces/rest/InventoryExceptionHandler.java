@@ -1,6 +1,6 @@
 package com.tata.inventoryreplenishment.interfaces.rest;
 
-import com.tata.inventoryreplenishment.application.internal.InventoryApplicationException;
+import com.tata.inventoryreplenishment.application.InventoryApplicationException;
 import com.tata.inventoryreplenishment.interfaces.rest.resources.ErrorResource;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -26,8 +26,8 @@ public class InventoryExceptionHandler {
     @ExceptionHandler(InventoryApplicationException.class)
     public ResponseEntity<ErrorResource> handleInventory(InventoryApplicationException exception, Locale locale) {
         var status = switch (exception.code()) {
-            case INVENTORY_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case INVENTORY_ALREADY_EXISTS, INSUFFICIENT_STOCK -> HttpStatus.CONFLICT;
+            case MEDICATION_NOT_FOUND, INVENTORY_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case MEDICATION_INACTIVE, INVENTORY_ALREADY_EXISTS, INSUFFICIENT_STOCK -> HttpStatus.CONFLICT;
             case INVALID_QUANTITY -> HttpStatus.BAD_REQUEST;
         };
         return error(status, exception.code().name(), locale);

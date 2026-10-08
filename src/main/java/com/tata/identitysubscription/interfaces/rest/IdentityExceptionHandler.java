@@ -1,8 +1,9 @@
 package com.tata.identitysubscription.interfaces.rest;
 
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import com.tata.shared.interfaces.rest.transform.ProblemDetailAssembler;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,15 +26,11 @@ public class IdentityExceptionHandler {
             case VERIFICATION_EXPIRED -> HttpStatus.GONE;
             case ACCOUNT_NOT_ACTIVE, PIN_LOCKED -> HttpStatus.FORBIDDEN;
         };
-        var detail = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
-        detail.setTitle(exception.code().name());
-        return detail;
+        return ProblemDetailAssembler.from(status, exception.code().name(), exception.getMessage());
     }
 
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class})
     public ProblemDetail handleValidation(Exception exception) {
-        var detail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "request validation failed");
-        detail.setTitle("VALIDATION_ERROR");
-        return detail;
+        return ProblemDetailAssembler.from(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "request validation failed");
     }
 }

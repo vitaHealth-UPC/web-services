@@ -1,6 +1,6 @@
 package com.tata.identitysubscription.application.internal.queryservices;
 
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import com.tata.identitysubscription.application.internal.SubscriptionMapper;
 import com.tata.identitysubscription.application.models.SubscriptionResult;
 import com.tata.identitysubscription.domain.repositories.AccountRepository;
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class GetCurrentSubscriptionQueryHandler {
+public class GetCurrentSubscriptionQueryHandler implements com.tata.identitysubscription.application.queryservices.GetCurrentSubscriptionQueryService {
     private final AccountRepository accountRepository;
 
     public GetCurrentSubscriptionQueryHandler(AccountRepository accountRepository) {

@@ -1,6 +1,6 @@
 package com.tata.intakeexecution;
 
-import com.tata.intakeexecution.application.commands.ReportUnconfirmedIntakesCommand;
+import com.tata.intakeexecution.domain.model.commands.ReportUnconfirmedIntakesCommand;
 import com.tata.intakeexecution.application.internal.commandservices.ReportUnconfirmedIntakesCommandHandler;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;

@@ -9,7 +9,7 @@ import com.tata.familymonitoring.domain.repositories.IFamilyMonitorRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetContactChannelQueryHandler {
+public class GetContactChannelQueryHandler implements com.tata.familymonitoring.application.queryservices.GetContactChannelQueryService {
 
   private final IFamilyMonitorRepository repository;
   private final IContactChannelPort contactChannelPort;

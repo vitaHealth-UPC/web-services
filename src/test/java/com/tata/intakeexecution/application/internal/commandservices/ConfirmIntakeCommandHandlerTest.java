@@ -1,7 +1,7 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
-import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
-import com.tata.intakeexecution.application.internal.IntakeApplicationException;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
+import com.tata.intakeexecution.application.IntakeApplicationException;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;

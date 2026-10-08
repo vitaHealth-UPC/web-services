@@ -1,5 +1,7 @@
 package com.tata.identitysubscription.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.identitysubscription.domain.model.entities.Plan;
 import com.tata.identitysubscription.domain.model.valueobjects.AccountStatus;
 import com.tata.identitysubscription.domain.model.valueobjects.EmailAddress;
@@ -180,12 +182,6 @@ public final class Account {
         return true;
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String name() { return name; }

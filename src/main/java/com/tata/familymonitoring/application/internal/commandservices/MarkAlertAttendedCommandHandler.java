@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class MarkAlertAttendedCommandHandler {
+public class MarkAlertAttendedCommandHandler implements com.tata.familymonitoring.application.commandservices.MarkAlertAttendedCommandService {
 
   private final IFamilyMonitorRepository repository;
 
