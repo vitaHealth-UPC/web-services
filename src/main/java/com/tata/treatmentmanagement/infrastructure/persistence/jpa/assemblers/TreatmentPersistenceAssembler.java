@@ -2,7 +2,6 @@ package com.tata.treatmentmanagement.infrastructure.persistence.jpa.assemblers;
 
 import com.tata.treatmentmanagement.domain.model.aggregates.Treatment;
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentRegimen;
-import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
 import com.tata.treatmentmanagement.infrastructure.persistence.jpa.entities.TreatmentPersistenceEntity;
 
 public final class TreatmentPersistenceAssembler {

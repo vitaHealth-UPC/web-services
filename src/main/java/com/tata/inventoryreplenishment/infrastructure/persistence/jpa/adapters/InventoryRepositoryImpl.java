@@ -2,9 +2,7 @@ package com.tata.inventoryreplenishment.infrastructure.persistence.jpa.adapters;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.assemblers.InventoryPersistenceAssembler;
 
 import com.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
-import com.tata.inventoryreplenishment.domain.model.entities.Batch;
 import com.tata.inventoryreplenishment.domain.repositories.InventoryRepository;
-import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.BatchPersistenceEntity;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.InventoryConsumptionPersistenceEntity;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.InventoryPersistenceEntity;
 import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.repositories.InventoryConsumptionJpaRepository;
@@ -12,7 +10,6 @@ import com.tata.inventoryreplenishment.infrastructure.persistence.jpa.repositori
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
