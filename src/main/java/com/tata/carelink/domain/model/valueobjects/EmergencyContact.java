@@ -1,5 +1,7 @@
 package com.tata.carelink.domain.model.valueobjects;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 public record EmergencyContact(String name, String relationship, String phone) {
     public EmergencyContact {
         name = requireText(name, "emergency contact name");
@@ -7,10 +9,4 @@ public record EmergencyContact(String name, String relationship, String phone) {
         phone = requireText(phone, "emergency contact phone");
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 }
