@@ -4,6 +4,7 @@ import com.tata.identitysubscription.domain.model.aggregates.Account;
 import java.util.Optional;
 
 public interface AccountRepository {
+    Optional<Account> findById(String id);
     Optional<Account> findByEmail(String email);
     Account save(Account account);
 }
