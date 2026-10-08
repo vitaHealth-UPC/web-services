@@ -3,7 +3,7 @@ package com.tata.intakeexecution.application.internal.commandservices;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.tata.intakeexecution.application.commands.ConfirmIntakeByVoiceCommand;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeByVoiceCommand;
 import com.tata.intakeexecution.application.internal.outboundservices.IVoiceRecognitionPort;
 import com.tata.intakeexecution.application.models.VoiceConfirmationResult.VoiceConfirmationStatus;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
@@ -96,7 +96,7 @@ class ConfirmIntakeByVoiceCommandHandlerTest {
     void retryAfterExistingConfirmationDoesNotCallSpeechProviderOrPersistAgain() {
         var repository = new SingleIntakeRepository(pendingIntake());
         var confirm = new ConfirmIntakeCommandHandler(repository, event -> {}, CLOCK);
-        confirm.handle(new com.tata.intakeexecution.application.commands.ConfirmIntakeCommand(
+        confirm.handle(new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand(
                 "intake-1",
                 ConfirmationChannel.TOUCH
         ));

@@ -1,8 +1,8 @@
 package com.tata.familymonitoring.interfaces.rest;
 
-import com.tata.familymonitoring.application.internal.commandservices.CloseAlertCommandHandler;
-import com.tata.familymonitoring.application.internal.commandservices.MarkAlertAttendedCommandHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetAlertDetailQueryHandler;
+import com.tata.familymonitoring.application.commandservices.CloseAlertCommandService;
+import com.tata.familymonitoring.application.commandservices.MarkAlertAttendedCommandService;
+import com.tata.familymonitoring.application.queryservices.GetAlertDetailQueryService;
 import com.tata.familymonitoring.domain.model.commands.CloseAlertCommand;
 import com.tata.familymonitoring.domain.model.commands.MarkAlertAttendedCommand;
 import com.tata.familymonitoring.domain.model.entities.AlertSummary;
@@ -29,16 +29,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Alerts", description = "Follow-up of the alerts raised by omitted intakes")
 public class AlertsController {
 
-  private final GetAlertDetailQueryHandler alertDetailHandler;
-  private final MarkAlertAttendedCommandHandler markAttendedHandler;
-  private final CloseAlertCommandHandler closeAlertHandler;
-  private final com.tata.familymonitoring.application.internal.RequireCareRelationship access;
+  private final GetAlertDetailQueryService alertDetailHandler;
+  private final MarkAlertAttendedCommandService markAttendedHandler;
+  private final CloseAlertCommandService closeAlertHandler;
+  private final com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access;
 
   public AlertsController(
-      GetAlertDetailQueryHandler alertDetailHandler,
-      MarkAlertAttendedCommandHandler markAttendedHandler,
-      CloseAlertCommandHandler closeAlertHandler,
-      com.tata.familymonitoring.application.internal.RequireCareRelationship access) {
+      GetAlertDetailQueryService alertDetailHandler,
+      MarkAlertAttendedCommandService markAttendedHandler,
+      CloseAlertCommandService closeAlertHandler,
+      com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access) {
     this.alertDetailHandler = alertDetailHandler;
     this.markAttendedHandler = markAttendedHandler;
     this.closeAlertHandler = closeAlertHandler;

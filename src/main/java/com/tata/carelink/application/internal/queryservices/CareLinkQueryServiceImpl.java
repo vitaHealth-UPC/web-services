@@ -1,6 +1,6 @@
 package com.tata.carelink.application.internal.queryservices;
 
-import com.tata.carelink.application.internal.CareLinkApplicationException;
+import com.tata.carelink.application.CareLinkApplicationException;
 import com.tata.carelink.application.internal.CareLinkMapper;
 import com.tata.carelink.application.models.CareLinkResult;
 import com.tata.carelink.application.models.OlderAdultProfileResult;
@@ -32,6 +32,13 @@ public class CareLinkQueryServiceImpl implements CareLinkQueryService {
                         CareLinkApplicationException.Code.CARE_LINK_NOT_FOUND,
                         "care link not found"
                 ));
+    }
+
+    @Override
+    public java.util.List<CareLinkResult> getConfirmedByCaregiver(String caregiverId) {
+        if (caregiverId == null || caregiverId.isBlank()) throw new IllegalArgumentException("caregiverId is required");
+        return careLinkRepository.findConfirmedByCaregiver(caregiverId.trim()).stream()
+                .map(CareLinkMapper::toResult).toList();
     }
 
     @Override

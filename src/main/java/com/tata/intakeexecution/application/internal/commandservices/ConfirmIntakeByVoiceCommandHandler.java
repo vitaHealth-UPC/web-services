@@ -1,8 +1,8 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
-import com.tata.intakeexecution.application.commands.ConfirmIntakeByVoiceCommand;
-import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
-import com.tata.intakeexecution.application.internal.IntakeApplicationException;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeByVoiceCommand;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
+import com.tata.intakeexecution.application.IntakeApplicationException;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
 import com.tata.intakeexecution.application.internal.outboundservices.IVoicePreferencePort;
 import com.tata.intakeexecution.application.internal.outboundservices.IVoiceRecognitionPort;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ConfirmIntakeByVoiceCommandHandler {
+public class ConfirmIntakeByVoiceCommandHandler implements com.tata.intakeexecution.application.commandservices.ConfirmIntakeByVoiceCommandService {
 
     private final IVoiceRecognitionPort voiceRecognition;
     private final IntakeRepository repository;

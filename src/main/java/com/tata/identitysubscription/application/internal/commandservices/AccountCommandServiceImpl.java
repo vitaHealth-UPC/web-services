@@ -1,7 +1,7 @@
 package com.tata.identitysubscription.application.internal.commandservices;
 
 import com.tata.identitysubscription.application.commandservices.AccountCommandService;
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import com.tata.identitysubscription.application.internal.outboundservices.PasswordHasher;
 import com.tata.identitysubscription.application.internal.outboundservices.SessionTokenService;
 import com.tata.identitysubscription.application.internal.outboundservices.VerificationCodeGenerator;
@@ -112,6 +112,11 @@ public class AccountCommandServiceImpl implements AccountCommandService {
         return toResult(saved);
     }
 
+    @Override
+    public com.tata.identitysubscription.application.models.VerifiedAccountResult verifyAndAuthenticate(VerifyEmailCommand command) {
+        var account = verify(command);
+        return new com.tata.identitysubscription.application.models.VerifiedAccountResult(account, sessionTokenService.issue(account.id()));
+    }
     @Override
     public AccountResult requestNewVerification(RequestNewVerificationCommand command) {
         var email = new EmailAddress(command.email());

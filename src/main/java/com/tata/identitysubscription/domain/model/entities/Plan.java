@@ -1,5 +1,7 @@
 package com.tata.identitysubscription.domain.model.entities;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.identitysubscription.domain.model.valueobjects.PlanCapability;
 
 import java.math.BigDecimal;
@@ -28,10 +30,4 @@ public record Plan(
         return capabilities.contains(Objects.requireNonNull(capability));
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " is required");
-        }
-        return value.trim();
-    }
 }
