@@ -69,4 +69,31 @@ class ArchitectureBoundariesTest {
         }
         assertTrue(violations.isEmpty(), "REST controllers bypass application contracts: " + violations);
     }
+    @Test
+    void sharedDoesNotDependOnBusinessContexts() throws Exception {
+        var violations = new ArrayList<String>();
+        var imports = Pattern.compile("import (?:static )?com\\.tata\\.(\\w+)\\.");
+        try (var files = Files.walk(sources.resolve("shared"))) {
+            for (var path : files.filter(p -> p.toString().endsWith(".java")).toList()) {
+                var matcher = imports.matcher(Files.readString(path));
+                while (matcher.find()) {
+                    if (!matcher.group(1).equals("shared")) violations.add(path + " -> " + matcher.group());
+                }
+            }
+        }
+        assertTrue(violations.isEmpty(), "Shared depends on business contexts: " + violations);
+    }
+
+    @Test
+    void domainDoesNotDependOnUpperLayers() throws Exception {
+        var violations = new ArrayList<String>();
+        var imports = Pattern.compile("import (?:static )?com\\.tata\\.\\w+\\.(application|interfaces|infrastructure)\\.");
+        try (var files = Files.walk(sources)) {
+            for (var path : files.filter(p -> p.toString().endsWith(".java")).toList()) {
+                if (!sources.relativize(path).toString().replace('\\', '/').contains("/domain/")) continue;
+                if (imports.matcher(Files.readString(path)).find()) violations.add(path.toString());
+            }
+        }
+        assertTrue(violations.isEmpty(), "Domain depends on upper layers: " + violations);
+    }
 }
