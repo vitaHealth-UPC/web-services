@@ -40,8 +40,10 @@ public final class Medication {
 
     public void update(String name, String presentation) {
         if (!active) throw new IllegalStateException("inactive medication cannot be edited");
-        this.name = requireText(name, "name");
-        this.presentation = requireText(presentation, "presentation");
+        var validatedName = requireText(name, "name");
+        var validatedPresentation = requireText(presentation, "presentation");
+        this.name = validatedName;
+        this.presentation = validatedPresentation;
     }
 
     public void deactivate() {
