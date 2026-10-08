@@ -1,6 +1,6 @@
 package com.tata.inventoryreplenishment;
 
-import com.tata.intakeexecution.application.commands.ConfirmIntakeCommand;
+import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
 import com.tata.intakeexecution.application.internal.commandservices.ConfirmIntakeCommandHandler;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.events.IntakeConfirmed;
@@ -27,14 +27,25 @@ import static org.junit.jupiter.api.Assertions.*;
 class IntakeInventoryIntegrationTest {
     @Autowired ConfirmIntakeCommandHandler confirmations;
     @Autowired IntakeRepository intakes;
+    @Autowired com.tata.treatmentmanagement.domain.repositories.MedicationRepository medications;
     @Autowired InventoryCommandService commands;
     @Autowired InventoryRepository inventories;
     @Autowired ApplicationEventPublisher events;
     @Autowired PlatformTransactionManager transactionManager;
 
     private Intake intake() {
-        var intake = Intake.createScheduled(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(),
-            new MedicationSnapshot("Losartan", "1 tablet", "With water"), Instant.now(), Instant.now());
+        var now = Instant.now();
+        var adultId = UUID.randomUUID().toString();
+        var medication = medications.save(com.tata.treatmentmanagement.domain.model.aggregates.Medication.register(
+                adultId, "Losartan", "Tablet", now));
+        var intake = Intake.createScheduled(
+            UUID.randomUUID().toString(),
+            medication.id(),
+            adultId,
+            new MedicationSnapshot("Losartan", "1 tablet", "With water"),
+            now.plusSeconds(60),
+            now
+        );
         return intakes.saveAll(List.of(intake)).getFirst();
     }
     private void publish(IntakeConfirmed event) {

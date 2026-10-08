@@ -18,7 +18,7 @@ public class CloseOmissionCaseCommandHandler {
   /** Closes the case keeping its alerts and escalation history. */
   @Transactional
   public void handle(CloseOmissionCaseCommand command) {
-    repository.findByIdForUpdate(command.omissionCaseId())
+    repository.findById(command.omissionCaseId())
         .filter(c -> c.getStatus() == OmissionCaseStatus.OMITTED
             || c.getStatus() == OmissionCaseStatus.ESCALATED)
         .ifPresent(c -> {

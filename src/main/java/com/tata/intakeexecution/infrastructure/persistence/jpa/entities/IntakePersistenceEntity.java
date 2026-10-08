@@ -47,11 +47,9 @@ public class IntakePersistenceEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "confirmation_channel", length = 16)
     private ConfirmationChannel confirmationChannel;
+
     @Column(name = "unconfirmed_reported_at")
     private Instant unconfirmedReportedAt;
-
-    public Instant getUnconfirmedReportedAt() { return unconfirmedReportedAt; }
-    public void setUnconfirmedReportedAt(Instant at) { unconfirmedReportedAt = at; }
 
     public void setConfirmation(Instant at, ConfirmationChannel channel) {
         this.confirmedAt = at;
@@ -59,6 +57,8 @@ public class IntakePersistenceEntity {
     }
     public Instant getConfirmedAt() { return confirmedAt; }
     public ConfirmationChannel getConfirmationChannel() { return confirmationChannel; }
+    public Instant getUnconfirmedReportedAt() { return unconfirmedReportedAt; }
+    public void setUnconfirmedReportedAt(Instant at) { this.unconfirmedReportedAt = at; }
 
     protected IntakePersistenceEntity() {}
 

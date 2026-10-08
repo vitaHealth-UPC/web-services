@@ -42,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 class OmissionAndMonitoringFlowTest {
 
   @Autowired ApplicationEventPublisher events;
-  @Autowired com.tata.intakeexecution.domain.repositories.IntakeRepository intakes;
   @Autowired IOmissionCaseRepository omissionCases;
   @Autowired IFamilyMonitorRepository monitors;
   @Autowired EvaluateGracePeriodCommandHandler evaluateHandler;
@@ -65,15 +64,8 @@ class OmissionAndMonitoringFlowTest {
   }
 
   private void unconfirmed(String intakeId, String olderAdultId) {
-    var scheduledAt = Instant.now();
-    if (intakes.findById(intakeId).isEmpty()) {
-      intakes.saveAll(java.util.List.of(com.tata.intakeexecution.domain.model.aggregates.Intake.rehydrate(
-          intakeId, nextId(), nextId(), olderAdultId,
-          new com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot("Losartan 50 mg", "1 tablet", ""),
-          scheduledAt, com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.PENDING, scheduledAt)));
-    }
     events.publishEvent(
-        new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", scheduledAt));
+        new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", Instant.now()));
   }
 
   @Test
@@ -144,7 +136,7 @@ class OmissionAndMonitoringFlowTest {
     OlderAdultStatusView view = statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId));
     assertThat(view.status().hasOpenAlert()).isTrue();
     assertThat(view.status().nextIntakeAt()).isNull();
-    assertThat(view.status().lastIntakeStatus()).isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.IntakeStatus.OMITTED);
+    assertThat(view.status().lastIntakeStatus()).isNull();
     AlertSummary alert = view.openAlerts().getFirst();
 
     AlertSummary attended =

@@ -52,7 +52,6 @@ class GetIntakeDetailQueryHandlerTest {
     }
 
     private static final class SingleIntakeRepository implements IntakeRepository {
-        public java.util.List<String> findUnreportedDueIds(java.time.Instant now) { throw new UnsupportedOperationException(); }
         public java.util.List<Intake> findAgenda(String olderAdultId, java.time.Instant from, java.time.Instant to) { throw new UnsupportedOperationException(); }
         private final Intake intake;
 

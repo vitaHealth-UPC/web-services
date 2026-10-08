@@ -20,7 +20,7 @@ public class ResolveOmissionCaseCommandHandler {
   @Transactional
   public void handle(ResolveOmissionCaseCommand command) {
     Instant now = command.confirmedAt();
-    repository.findByIntakeIdForUpdate(command.intakeId())
+    repository.findByIntakeId(command.intakeId())
         .filter(c -> c.getStatus() == OmissionCaseStatus.PENDING)
         .filter(c -> c.getGracePeriod().isActive(now))
         .ifPresent(c -> {

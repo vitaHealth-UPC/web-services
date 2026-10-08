@@ -10,10 +10,8 @@ public interface IOmissionCaseRepository {
   OmissionCase save(OmissionCase omissionCase);
 
   Optional<OmissionCase> findById(Long id);
-  default Optional<OmissionCase> findByIdForUpdate(Long id) { return findById(id); }
 
   Optional<OmissionCase> findByIntakeId(String intakeId);
-  default Optional<OmissionCase> findByIntakeIdForUpdate(String id) { return findByIntakeId(id); }
 
   /** Pending cases whose grace period ended at or before {@code now}. */
   List<OmissionCase> findExpiredPending(Instant now);

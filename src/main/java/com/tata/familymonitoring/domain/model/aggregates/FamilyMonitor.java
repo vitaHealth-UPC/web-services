@@ -1,56 +1,48 @@
 package com.tata.familymonitoring.domain.model.aggregates;
 
 import com.tata.familymonitoring.domain.exceptions.AlertNotFoundException;
+import com.tata.familymonitoring.domain.model.entities.AdherenceInsight;
 import com.tata.familymonitoring.domain.model.entities.AlertSummary;
 import com.tata.familymonitoring.domain.model.entities.CaregiverNote;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import com.tata.familymonitoring.domain.model.entities.LowStockNotice;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 /**
  * Active follow-up of a caregiver over an older adult. The care link, the older adult and the
  * caregiver are referenced by logical id only.
  */
-@Entity
+
 public class FamilyMonitor {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private Long id;
 
-  @Column(nullable = false, length = 36)
   private String careLinkId;
 
-  @Column(nullable = false, length = 36)
   private String olderAdultId;
 
-  @Column(nullable = false, length = 36)
   private String familiarId;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "family_monitor_id")
+
   private List<AlertSummary> alerts = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "family_monitor_id")
+
   private List<CaregiverNote> notes = new ArrayList<>();
 
-  @CreationTimestamp
-  @Column(updatable = false)
+
+  private List<LowStockNotice> lowStockNotices = new ArrayList<>();
+
+
+  private List<AdherenceInsight> adherenceInsights = new ArrayList<>();
+
+
   private Instant createdAt;
 
-  @UpdateTimestamp
   private Instant updatedAt;
 
   protected FamilyMonitor() {
@@ -108,6 +100,54 @@ public class FamilyMonitor {
     return alerts.stream().anyMatch(AlertSummary::isOpen);
   }
 
+  /** Marks the medication as low on stock. A second notice for the same medication only refreshes it. */
+  public LowStockNotice registerLowStock(
+      String medicationId, String medicationName, int remainingStock, int replenishmentThreshold, Instant now) {
+    var existing = lowStockNotices.stream()
+        .filter(notice -> notice.getMedicationId().equals(medicationId))
+        .findFirst();
+    if (existing.isPresent()) {
+      existing.get().refresh(medicationName, remainingStock, replenishmentThreshold, now);
+      return existing.get();
+    }
+    var notice = new LowStockNotice(medicationId, medicationName, remainingStock, replenishmentThreshold, now);
+    lowStockNotices.add(notice);
+    return notice;
+  }
+
+  /** Clears the low-stock notice once a replenishment leaves the stock above its threshold. */
+  public void resolveLowStock(String medicationId, int remainingStock) {
+    lowStockNotices.removeIf(
+        notice -> notice.getMedicationId().equals(medicationId)
+            && remainingStock > notice.getReplenishmentThreshold());
+  }
+
+  /** Keeps the insight once; the same pattern reported again changes nothing. */
+  public AdherenceInsight registerInsight(
+      String medicationId, String medicationName, int omissionDays, LocalDate firstDay, LocalDate lastDay,
+      Instant now) {
+    return adherenceInsights.stream()
+        .filter(insight -> insight.isSamePattern(medicationId, firstDay, lastDay))
+        .findFirst()
+        .orElseGet(() -> {
+          var insight = new AdherenceInsight(medicationId, medicationName, omissionDays, firstDay, lastDay, now);
+          adherenceInsights.add(insight);
+          return insight;
+        });
+  }
+
+  public boolean hasLowStock() {
+    return !lowStockNotices.isEmpty();
+  }
+
+  /** Most recent first. */
+  public List<AdherenceInsight> recentInsights(int limit) {
+    return adherenceInsights.stream()
+        .sorted(Comparator.comparing(AdherenceInsight::getDetectedAt).reversed())
+        .limit(limit)
+        .toList();
+  }
+
   public CaregiverNote latestNote() {
     return notes.getLast();
   }
@@ -135,4 +175,27 @@ public class FamilyMonitor {
   public List<CaregiverNote> getNotes() {
     return Collections.unmodifiableList(notes);
   }
+
+  public List<LowStockNotice> getLowStockNotices() {
+    return Collections.unmodifiableList(lowStockNotices);
+  }
+
+  /** Restores persisted state without replaying business actions. */
+  public static FamilyMonitor rehydrate(Long id, String careLinkId, String olderAdultId, String familiarId, List<AlertSummary> alerts, List<CaregiverNote> notes, List<LowStockNotice> lowStockNotices, List<AdherenceInsight> adherenceInsights, Instant createdAt, Instant updatedAt) {
+    var restored = new FamilyMonitor();
+    restored.id = id;
+    restored.careLinkId = careLinkId;
+    restored.olderAdultId = olderAdultId;
+    restored.familiarId = familiarId;
+    restored.alerts = new ArrayList<>(alerts);
+    restored.notes = new ArrayList<>(notes);
+    restored.lowStockNotices = new ArrayList<>(lowStockNotices);
+    restored.adherenceInsights = new ArrayList<>(adherenceInsights);
+    restored.createdAt = createdAt;
+    restored.updatedAt = updatedAt;
+    return restored;
+  }
+  public List<AdherenceInsight> getAdherenceInsights() { return Collections.unmodifiableList(adherenceInsights); }
+  public Instant getCreatedAt() { return createdAt; }
+  public Instant getUpdatedAt() { return updatedAt; }
 }

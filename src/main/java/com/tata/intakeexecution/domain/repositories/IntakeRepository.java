@@ -8,10 +8,12 @@ import java.util.Optional;
 
 public interface IntakeRepository {
     List<Intake> findAgenda(String olderAdultId, Instant from, Instant to);
-    List<String> findUnreportedDueIds(Instant now);
     List<Intake> saveAll(List<Intake> intakes);
     Optional<Intake> findById(String id);
     default Optional<Intake> findByIdForConfirmation(String id) { return findById(id); }
+    default List<Intake> findUnreportedPendingDue(Instant cutoff) { return List.of(); }
+    /** Ids of the older adults that have intakes scheduled in the period. */
+    default List<String> findOlderAdultIdsWithIntakes(Instant from, Instant to) { return List.of(); }
     List<Intake> findFutureByTreatmentId(String treatmentId, Instant from);
     void deleteAll(List<Intake> intakes);
     Optional<Intake> findNextPendingByOlderAdultId(String olderAdultId, Instant from);

@@ -58,9 +58,10 @@ public class PinCommandServiceImpl implements PinCommandService {
     }
 
     @Override
+    @Transactional(noRollbackFor = IdentityApplicationException.class)
     public SessionResult authenticate(AuthenticateWithPinCommand command) {
         validatePin(command.pin());
-        var credential = repository.findByOlderAdultId(command.olderAdultId())
+        var credential = repository.findForAuthentication(command.olderAdultId())
                 .orElseThrow(() -> error(IdentityApplicationException.Code.PIN_NOT_FOUND, "PIN credential not found"));
 
         var now = clock.instant();
@@ -79,7 +80,7 @@ public class PinCommandServiceImpl implements PinCommandService {
 
         credential.registerSuccess();
         repository.save(credential);
-        return sessionTokenService.issue(command.olderAdultId());
+        return sessionTokenService.issueOlderAdult(command.olderAdultId());
     }
 
     private static void validatePin(String pin) {

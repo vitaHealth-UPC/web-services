@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
-public class GetNextIntakeQueryHandler {
+public class GetNextIntakeQueryHandler implements com.tata.intakeexecution.application.queryservices.GetNextIntakeQueryService {
     private final IntakeRepository repository;
     private final Clock clock = Clock.systemUTC();
 
