@@ -1,7 +1,7 @@
 package com.tata.inventoryreplenishment.application.internal.commandservices;
 
 import com.tata.inventoryreplenishment.application.commandservices.InventoryCommandService;
-import com.tata.inventoryreplenishment.application.internal.InventoryApplicationException;
+import com.tata.inventoryreplenishment.application.InventoryApplicationException;
 import com.tata.inventoryreplenishment.application.internal.InventoryMapper;
 import com.tata.inventoryreplenishment.application.internal.outboundservices.InventoryEventPublisher;
 import com.tata.inventoryreplenishment.application.internal.outboundservices.MedicationCatalog;

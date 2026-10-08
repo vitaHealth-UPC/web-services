@@ -1,6 +1,6 @@
 package com.tata.carelink.interfaces.rest;
 
-import com.tata.carelink.application.internal.CareLinkApplicationException;
+import com.tata.carelink.application.CareLinkApplicationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import com.tata.shared.interfaces.rest.transform.ProblemDetailAssembler;
