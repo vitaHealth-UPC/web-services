@@ -2,7 +2,7 @@ package com.tata.identitysubscription;
 import com.tata.identitysubscription.application.internal.outboundservices.PasswordHasher;
 import com.tata.identitysubscription.application.internal.outboundservices.SessionTokenService;
 import com.tata.identitysubscription.application.commandservices.PinCommandService;
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import com.tata.identitysubscription.domain.model.aggregates.Account;
 import com.tata.identitysubscription.domain.model.commands.RegisterPinCommand;
 import com.tata.identitysubscription.domain.model.commands.AuthenticateWithPinCommand;
