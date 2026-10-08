@@ -1,23 +1,25 @@
 package com.tata.accessibilitypreferences.application.internal.queryservices;
 
-import com.tata.accessibilitypreferences.application.internal.commandservices.InitializeDefaultPreferencesCommandHandler;
+import com.tata.accessibilitypreferences.domain.factories.UserPreferencesFactory;
+import com.tata.accessibilitypreferences.domain.repositories.IUserPreferencesRepository;
+import java.time.Instant;
 import com.tata.accessibilitypreferences.domain.model.aggregates.UserPreferences;
-import com.tata.accessibilitypreferences.domain.model.commands.InitializeDefaultPreferencesCommand;
 import com.tata.accessibilitypreferences.domain.model.queries.GetUserPreferencesQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
-public class GetUserPreferencesQueryHandler {
-    private final InitializeDefaultPreferencesCommandHandler initializer;
+@Transactional(readOnly = true)
+public class GetUserPreferencesQueryHandler implements com.tata.accessibilitypreferences.application.queryservices.GetUserPreferencesQueryService {
+    private final IUserPreferencesRepository repository;
 
-    public GetUserPreferencesQueryHandler(InitializeDefaultPreferencesCommandHandler initializer) {
-        this.initializer = initializer;
+    public GetUserPreferencesQueryHandler(IUserPreferencesRepository repository) {
+        this.repository = repository;
     }
 
-    /** A user who never saved anything gets the defaults, which are stored on the first read. */
+    /** Reads stored preferences or returns defaults without creating persistence state. */
     public UserPreferences handle(GetUserPreferencesQuery query) {
-        return initializer.handle(new InitializeDefaultPreferencesCommand(query.userId()));
+        return repository.findByUserId(query.userId())
+                .orElseGet(() -> UserPreferencesFactory.createDefaults(query.userId(), Instant.now()));
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CreateCaregiverNoteCommandHandler {
+public class CreateCaregiverNoteCommandHandler implements com.tata.familymonitoring.application.commandservices.CreateCaregiverNoteCommandService {
 
   private final IFamilyMonitorRepository repository;
 

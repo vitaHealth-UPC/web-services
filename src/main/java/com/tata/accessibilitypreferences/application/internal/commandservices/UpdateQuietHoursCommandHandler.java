@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UpdateQuietHoursCommandHandler {
+public class UpdateQuietHoursCommandHandler implements com.tata.accessibilitypreferences.application.commandservices.UpdateQuietHoursCommandService {
     private final IUserPreferencesRepository repository;
     private final InitializeDefaultPreferencesCommandHandler initializer;
 

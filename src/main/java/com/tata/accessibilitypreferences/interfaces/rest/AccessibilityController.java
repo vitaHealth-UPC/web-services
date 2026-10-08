@@ -1,11 +1,11 @@
 package com.tata.accessibilitypreferences.interfaces.rest;
 
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateContrastCommandHandler;
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateReadingAssistanceCommandHandler;
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateReducedMotionCommandHandler;
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateTextSizeCommandHandler;
-import com.tata.accessibilitypreferences.application.internal.commandservices.UpdateVoiceConfirmationCommandHandler;
-import com.tata.accessibilitypreferences.application.internal.queryservices.GetUserPreferencesQueryHandler;
+import com.tata.accessibilitypreferences.application.commandservices.UpdateContrastCommandService;
+import com.tata.accessibilitypreferences.application.commandservices.UpdateReadingAssistanceCommandService;
+import com.tata.accessibilitypreferences.application.commandservices.UpdateReducedMotionCommandService;
+import com.tata.accessibilitypreferences.application.commandservices.UpdateTextSizeCommandService;
+import com.tata.accessibilitypreferences.application.commandservices.UpdateVoiceConfirmationCommandService;
+import com.tata.accessibilitypreferences.application.queryservices.GetUserPreferencesQueryService;
 import com.tata.accessibilitypreferences.domain.model.commands.UpdateContrastCommand;
 import com.tata.accessibilitypreferences.domain.model.commands.UpdateReadingAssistanceCommand;
 import com.tata.accessibilitypreferences.domain.model.commands.UpdateReducedMotionCommand;
@@ -37,20 +37,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/users/{userId}/preferences")
 @Tag(name = "Accessibility", description = "Text size, contrast, motion, reading help and voice confirmation")
 public class AccessibilityController {
-    private final GetUserPreferencesQueryHandler getPreferences;
-    private final UpdateTextSizeCommandHandler updateTextSize;
-    private final UpdateContrastCommandHandler updateContrast;
-    private final UpdateReducedMotionCommandHandler updateReducedMotion;
-    private final UpdateReadingAssistanceCommandHandler updateReadingAssistance;
-    private final UpdateVoiceConfirmationCommandHandler updateVoiceConfirmation;
+    private final GetUserPreferencesQueryService getPreferences;
+    private final UpdateTextSizeCommandService updateTextSize;
+    private final UpdateContrastCommandService updateContrast;
+    private final UpdateReducedMotionCommandService updateReducedMotion;
+    private final UpdateReadingAssistanceCommandService updateReadingAssistance;
+    private final UpdateVoiceConfirmationCommandService updateVoiceConfirmation;
 
     public AccessibilityController(
-            GetUserPreferencesQueryHandler getPreferences,
-            UpdateTextSizeCommandHandler updateTextSize,
-            UpdateContrastCommandHandler updateContrast,
-            UpdateReducedMotionCommandHandler updateReducedMotion,
-            UpdateReadingAssistanceCommandHandler updateReadingAssistance,
-            UpdateVoiceConfirmationCommandHandler updateVoiceConfirmation) {
+            GetUserPreferencesQueryService getPreferences,
+            UpdateTextSizeCommandService updateTextSize,
+            UpdateContrastCommandService updateContrast,
+            UpdateReducedMotionCommandService updateReducedMotion,
+            UpdateReadingAssistanceCommandService updateReadingAssistance,
+            UpdateVoiceConfirmationCommandService updateVoiceConfirmation) {
         this.getPreferences = getPreferences;
         this.updateTextSize = updateTextSize;
         this.updateContrast = updateContrast;

@@ -82,7 +82,7 @@ Otherwise HTTP 200:
 - `recentIntakes` are the three newest. `status` is `CONFIRMED` (on time), `LATE` or `OMITTED`;
   `minutesLate` only applies to `LATE`. The medication name is the one registered when the intake was scheduled.
 - `pattern` is `null` unless at least three late or omitted intakes exist and half or more of them fall in
-  one time band. `timeBand` is `MORNING` (05–12), `AFTERNOON` (12–18), `EVENING` (18–22) or `NIGHT`, in the requested zone.
+  one time band, with evidence on at least three distinct calendar days in that band. `timeBand` is `MORNING` (05–12), `AFTERNOON` (12–18), `EVENING` (18–22) or `NIGHT`, in the requested zone.
 
 ## Recommendations
 
@@ -105,3 +105,5 @@ Returns HTTP 204 when the evidence is insufficient for a conclusive recommendati
 - `fromHour` is inclusive and `toHour` exclusive, in local time.
 - Recommendation codes only concern reminders, schedules and caregiver follow-up. They never change a
   dose or a medical indication.
+
+The singular /insight path is canonical; /insights is a compatible alias. Both accept the same period and calendar zone. Mobile clients pass their device IANA zone explicitly.

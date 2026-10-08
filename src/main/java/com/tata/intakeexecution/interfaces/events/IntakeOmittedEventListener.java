@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.interfaces.events;
 
-import com.tata.intakeexecution.application.commands.MarkIntakeOmittedCommand;
+import com.tata.intakeexecution.domain.model.commands.MarkIntakeOmittedCommand;
 import com.tata.intakeexecution.application.internal.commandservices.MarkIntakeOmittedCommandHandler;
 import com.tata.omissionescalation.domain.model.events.IntakeOmitted;
 import org.springframework.context.event.EventListener;

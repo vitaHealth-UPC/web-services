@@ -73,6 +73,7 @@ class AccessibilityApiIntegrationTest {
                 .andExpect(jsonPath("$.voiceConfirmationEnabled").value(true))
                 .andExpect(jsonPath("$.quietHours").doesNotExist())
                 .andExpect(jsonPath("$.notificationChannels.length()").value(3));
+        assertTrue(repository.findByUserId(userId).isEmpty(), "Reading defaults must not insert preferences");
     }
 
     @Test
