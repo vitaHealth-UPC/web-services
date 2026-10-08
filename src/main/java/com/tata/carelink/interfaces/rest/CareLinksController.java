@@ -13,13 +13,16 @@ import org.springframework.web.bind.annotation.*;
 public class CareLinksController {
     private final CareLinkCommandService commandService;
     private final CareLinkQueryService queryService;
+    private final com.tata.carelink.application.commandservices.LinkAuthenticationCommandService authentication;
 
     public CareLinksController(
             CareLinkCommandService commandService,
-            CareLinkQueryService queryService
+            CareLinkQueryService queryService,
+            com.tata.carelink.application.commandservices.LinkAuthenticationCommandService authentication
     ) {
         this.commandService = commandService;
         this.queryService = queryService;
+        this.authentication = authentication;
     }
 
     @PostMapping("/linking-codes")
@@ -33,7 +36,7 @@ public class CareLinksController {
     @PostMapping("/acceptances")
     public CareLinkResource accept(@Valid @RequestBody AcceptCareLinkResource resource) {
         return CareLinkResourceAssembler.toResource(
-                commandService.accept(CareLinkResourceAssembler.toCommand(resource))
+                authentication.accept(CareLinkResourceAssembler.toCommand(resource))
         );
     }
 
@@ -43,7 +46,7 @@ public class CareLinksController {
             @RequestBody RegisterConsentResource resource
     ) {
         return CareLinkResourceAssembler.toResource(
-                commandService.registerConsent(CareLinkResourceAssembler.toCommand(careLinkId, resource))
+                authentication.registerConsent(CareLinkResourceAssembler.toCommand(careLinkId, resource))
         );
     }
 
