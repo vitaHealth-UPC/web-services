@@ -8,6 +8,8 @@ import com.tata.familymonitoring.domain.model.aggregates.FamilyMonitor;
 import com.tata.familymonitoring.domain.model.entities.AlertSummary;
 import com.tata.familymonitoring.domain.model.valueobjects.AlertStatus;
 import java.time.Instant;
+import java.util.List;
+import com.tata.familymonitoring.domain.model.entities.CaregiverNote;
 import org.junit.jupiter.api.Test;
 
 class FamilyMonitorTest {
@@ -92,5 +94,32 @@ class FamilyMonitorTest {
   void addNote_blankText_isRejected() {
     assertThatThrownBy(() -> monitor().addNote("   ", "account-5", NOW))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+  @Test
+  void latestNoteDoesNotDependOnPersistenceCollectionOrder() {
+    var newest = CaregiverNote.rehydrate(2L, "Newest", NOW, "account-5");
+    var older = CaregiverNote.rehydrate(1L, "Older", NOW.minusSeconds(60), "account-5");
+    var restored = FamilyMonitor.rehydrate(1L, "link-1", "adult-10", "account-5",
+        List.of(), List.of(newest, older), List.of(), List.of(), NOW, NOW);
+    assertThat(restored.latestNote()).isSameAs(newest);
+  }
+
+  @Test
+  void latestNoteBreaksEqualTimeTiesByPersistedIdentity() {
+    var second = CaregiverNote.rehydrate(2L, "Second", NOW, "account-5");
+    var first = CaregiverNote.rehydrate(1L, "First", NOW, "account-5");
+    var restored = FamilyMonitor.rehydrate(1L, "link-1", "adult-10", "account-5",
+        List.of(), List.of(second, first), List.of(), List.of(), NOW, NOW);
+    assertThat(restored.latestNote()).isSameAs(second);
+  }
+
+  @Test
+  void rejectsMissingRelationshipIdentityAndNoteTimeBeforeMutation() {
+    assertThatThrownBy(() -> new FamilyMonitor(" ", "adult-10", "account-5"))
+        .isInstanceOf(IllegalArgumentException.class);
+    var monitor = monitor();
+    assertThatThrownBy(() -> monitor.addNote("Note", "account-5", null))
+        .isInstanceOf(NullPointerException.class);
+    assertThat(monitor.getNotes()).isEmpty();
   }
 }
