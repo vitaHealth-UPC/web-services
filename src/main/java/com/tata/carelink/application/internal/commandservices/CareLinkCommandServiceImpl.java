@@ -1,7 +1,7 @@
 package com.tata.carelink.application.internal.commandservices;
 
 import com.tata.carelink.application.commandservices.CareLinkCommandService;
-import com.tata.carelink.application.internal.CareLinkApplicationException;
+import com.tata.carelink.application.CareLinkApplicationException;
 import com.tata.carelink.application.internal.CareLinkMapper;
 import com.tata.carelink.application.internal.outboundservices.AccountStatusPort;
 import com.tata.carelink.application.internal.outboundservices.LinkingCodeGenerator;
