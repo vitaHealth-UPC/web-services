@@ -16,13 +16,13 @@ public record Plan(
         Set<PlanCapability> capabilities
 ) {
     public Plan {
-        code = requireText(code, "code").toUpperCase();
+        code = requireText(code, "code").toUpperCase(java.util.Locale.ROOT);
         name = requireText(name, "name");
         monthlyPrice = Objects.requireNonNull(monthlyPrice, "monthlyPrice is required");
         if (monthlyPrice.signum() < 0) {
             throw new IllegalArgumentException("monthlyPrice cannot be negative");
         }
-        currency = requireText(currency, "currency").toUpperCase();
+        currency = requireText(currency, "currency").toUpperCase(java.util.Locale.ROOT);
         capabilities = Set.copyOf(Objects.requireNonNull(capabilities, "capabilities are required"));
     }
 
