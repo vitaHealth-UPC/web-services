@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Clock;
 import org.springframework.context.ApplicationEventPublisher;
 import com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand;
-import com.tata.intakeexecution.application.internal.IntakeApplicationException;
+import com.tata.intakeexecution.application.IntakeApplicationException;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
 import com.tata.intakeexecution.application.models.IntakeResult;
 import com.tata.intakeexecution.domain.repositories.IntakeRepository;
