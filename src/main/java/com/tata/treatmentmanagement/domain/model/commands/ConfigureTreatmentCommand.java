@@ -12,4 +12,9 @@ public record ConfigureTreatmentCommand(
         List<LocalTime> scheduledTimes,
         String instructions,
         int reminderLeadMinutes
-) {}
+) {
+    /** Captures the requested schedule so caller mutations cannot alter this command. */
+    public ConfigureTreatmentCommand {
+        scheduledTimes = scheduledTimes == null ? null : List.copyOf(scheduledTimes);
+    }
+}
