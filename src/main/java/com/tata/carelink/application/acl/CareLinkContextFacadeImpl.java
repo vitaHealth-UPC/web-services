@@ -16,8 +16,8 @@ public class CareLinkContextFacadeImpl implements CareLinkContextFacade {
     @Override public java.util.List<CareLinkResult> getConfirmedByCaregiver(String caregiverId) { return queries.getConfirmedByCaregiver(caregiverId); }
     @Override public java.util.Optional<OlderAdultProfileResult> findOlderAdult(String id) {
         try { return java.util.Optional.of(queries.getOlderAdult(id)); }
-        catch (com.tata.carelink.application.internal.CareLinkApplicationException exception) {
-            if (exception.code() == com.tata.carelink.application.internal.CareLinkApplicationException.Code.OLDER_ADULT_NOT_FOUND)
+        catch (com.tata.carelink.application.CareLinkApplicationException exception) {
+            if (exception.code() == com.tata.carelink.application.CareLinkApplicationException.Code.OLDER_ADULT_NOT_FOUND)
                 return java.util.Optional.empty();
             throw exception;
         }
