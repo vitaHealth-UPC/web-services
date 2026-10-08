@@ -11,6 +11,9 @@ public interface IOmissionCaseRepository {
 
   Optional<OmissionCase> findById(Long id);
 
+  /** Reads the case while excluding concurrent omission decisions. */
+  Optional<OmissionCase> findByIdForUpdate(Long id);
+
   Optional<OmissionCase> findByIntakeId(String intakeId);
 
   /** Pending cases whose grace period ended at or before {@code now}. */

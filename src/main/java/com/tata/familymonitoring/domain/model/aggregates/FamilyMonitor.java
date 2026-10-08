@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import static com.tata.shared.domain.validation.DomainText.requireText;
 
 /**
  * Active follow-up of a caregiver over an older adult. The care link, the older adult and the
@@ -49,9 +50,9 @@ public class FamilyMonitor {
   }
 
   public FamilyMonitor(String careLinkId, String olderAdultId, String familiarId) {
-    this.careLinkId = careLinkId;
-    this.olderAdultId = olderAdultId;
-    this.familiarId = familiarId;
+    this.careLinkId = requireText(careLinkId, "careLinkId");
+    this.olderAdultId = requireText(olderAdultId, "olderAdultId");
+    this.familiarId = requireText(familiarId, "familiarId");
   }
 
   /** Adds the alert for an omitted intake. If the intake already has one, nothing changes. */
@@ -148,8 +149,11 @@ public class FamilyMonitor {
         .toList();
   }
 
+  /** Returns the newest note by recording time, then persisted identity; storage order is irrelevant. */
   public CaregiverNote latestNote() {
-    return notes.getLast();
+    return notes.stream().max(Comparator.comparing(CaregiverNote::getRecordedAt)
+        .thenComparing(CaregiverNote::getId, Comparator.nullsFirst(Comparator.naturalOrder())))
+        .orElseThrow();
   }
 
   public Long getId() {
@@ -182,11 +186,8 @@ public class FamilyMonitor {
 
   /** Restores persisted state without replaying business actions. */
   public static FamilyMonitor rehydrate(Long id, String careLinkId, String olderAdultId, String familiarId, List<AlertSummary> alerts, List<CaregiverNote> notes, List<LowStockNotice> lowStockNotices, List<AdherenceInsight> adherenceInsights, Instant createdAt, Instant updatedAt) {
-    var restored = new FamilyMonitor();
+    var restored = new FamilyMonitor(careLinkId, olderAdultId, familiarId);
     restored.id = id;
-    restored.careLinkId = careLinkId;
-    restored.olderAdultId = olderAdultId;
-    restored.familiarId = familiarId;
     restored.alerts = new ArrayList<>(alerts);
     restored.notes = new ArrayList<>(notes);
     restored.lowStockNotices = new ArrayList<>(lowStockNotices);

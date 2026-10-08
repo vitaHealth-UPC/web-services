@@ -1,6 +1,7 @@
 package com.tata.familymonitoring.domain.model.entities;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /** Note written by a caregiver about an intervention. */
 
@@ -32,7 +33,7 @@ public class CaregiverNote {
     }
     this.text = text.strip();
     this.familiarId = familiarId;
-    this.recordedAt = recordedAt;
+    this.recordedAt = Objects.requireNonNull(recordedAt, "recordedAt");
   }
 
   public Long getId() {
