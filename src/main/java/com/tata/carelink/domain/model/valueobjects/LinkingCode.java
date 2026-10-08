@@ -48,7 +48,7 @@ public final class LinkingCode {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("linking code is required");
         }
-        return value.trim().toUpperCase();
+        return value.trim().toUpperCase(java.util.Locale.ROOT);
     }
 
     public String value() { return value; }
