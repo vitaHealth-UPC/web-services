@@ -16,4 +16,4 @@
 
 The package graph must never become a graph of repositories importing repositories. Collaboration happens through IDs, public facades/ACLs, ports, or in-process domain events.
 
-The Android application mirrors domain boundaries as Gradle modules, but the Java backend remains one Maven/Spring Boot deployable whose Bounded Contexts are isolated Java package modules.
+The Android application mirrors domain boundaries as packages inside its single app module. The Java backend remains one Maven/Spring Boot deployable whose Bounded Contexts are isolated Java packages.
