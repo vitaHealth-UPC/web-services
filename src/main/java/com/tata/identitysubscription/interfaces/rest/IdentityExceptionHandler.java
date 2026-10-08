@@ -1,6 +1,6 @@
 package com.tata.identitysubscription.interfaces.rest;
 
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import com.tata.shared.interfaces.rest.transform.ProblemDetailAssembler;
