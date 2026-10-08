@@ -1,6 +1,6 @@
 package com.tata.inventoryreplenishment.interfaces.rest;
 
-import com.tata.inventoryreplenishment.application.internal.InventoryApplicationException;
+import com.tata.inventoryreplenishment.application.InventoryApplicationException;
 import com.tata.inventoryreplenishment.interfaces.rest.resources.ErrorResource;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
