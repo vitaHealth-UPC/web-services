@@ -42,6 +42,8 @@ import org.springframework.transaction.annotation.Transactional;
 class OmissionAndMonitoringFlowTest {
 
   @Autowired ApplicationEventPublisher events;
+  @Autowired com.tata.intakeexecution.domain.repositories.IntakeRepository intakes;
+  @Autowired com.tata.intakeexecution.application.commandservices.ConfirmIntakeCommandService confirmation;
   @Autowired IOmissionCaseRepository omissionCases;
   @Autowired IFamilyMonitorRepository monitors;
   @Autowired EvaluateGracePeriodCommandHandler evaluateHandler;
@@ -64,8 +66,14 @@ class OmissionAndMonitoringFlowTest {
   }
 
   private void unconfirmed(String intakeId, String olderAdultId) {
-    events.publishEvent(
-        new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", Instant.now()));
+    var scheduledAt = Instant.now().minusSeconds(120);
+    if (intakes.findById(intakeId).isEmpty()) {
+      intakes.saveAll(java.util.List.of(com.tata.intakeexecution.domain.model.aggregates.Intake.rehydrate(
+          intakeId, nextId(), nextId(), olderAdultId,
+          new com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot("Losartan 50 mg", "1 comprimido", "Con agua"),
+          scheduledAt, com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.PENDING, scheduledAt)));
+    }
+    events.publishEvent(new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", scheduledAt));
   }
 
   @Test
@@ -136,7 +144,7 @@ class OmissionAndMonitoringFlowTest {
     OlderAdultStatusView view = statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId));
     assertThat(view.status().hasOpenAlert()).isTrue();
     assertThat(view.status().nextIntakeAt()).isNull();
-    assertThat(view.status().lastIntakeStatus()).isNull();
+    assertThat(view.status().lastIntakeStatus().name()).isEqualTo("OMITTED");
     AlertSummary alert = view.openAlerts().getFirst();
 
     AlertSummary attended =
@@ -162,5 +170,20 @@ class OmissionAndMonitoringFlowTest {
     assertThat(notes.getFirst().getId()).isNotNull();
     assertThat(notes.getFirst().getFamiliarId()).isEqualTo("account-5");
     assertThat(notes.getFirst().getRecordedAt()).isNotNull();
+  }
+  @Test
+  void confirmedSourceIntakeCannotProduceAnOmissionOrCaregiverAlert() {
+    var adultId = nextId();
+    givenMonitorFor(adultId);
+    var intakeId = nextId();
+    unconfirmed(intakeId, adultId);
+    confirmation.handle(new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand(
+        intakeId, com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel.TOUCH));
+    evaluateHandler.handle(new EvaluateGracePeriodCommand(Instant.now().plusSeconds(5)));
+    assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getOmittedAt()).isNull();
+    assertThat(monitors.findByOlderAdultId(adultId).orElseThrow().getAlerts()).isEmpty();
+    assertThat(intakes.findById(intakeId).orElseThrow().status())
+        .isIn(com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.CONFIRMED,
+              com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.LATE);
   }
 }

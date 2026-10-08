@@ -4,9 +4,15 @@ import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot;
 import com.tata.intakeexecution.infrastructure.persistence.jpa.entities.IntakePersistenceEntity;
 
+/** Converts Intake state between domain and JPA representations without database access. */
 public final class IntakePersistenceAssembler {
     private IntakePersistenceAssembler() {}
 
+    /**
+     * Restores the stored identity and state without executing a business transition.
+     * @param entity stored JPA representation
+     * @return reconstructed domain object
+     */
     public static Intake toDomain(IntakePersistenceEntity entity) {
         return Intake.rehydrate(
                 entity.getId(),
@@ -27,6 +33,10 @@ public final class IntakePersistenceAssembler {
         );
     }
 
+    /**
+     * Builds the persistence representation while preserving the domain identity.
+     * @return JPA state ready for the repository adapter
+     */
     public static IntakePersistenceEntity toEntity(Intake intake) {
         var entity = new IntakePersistenceEntity(
                 intake.id(),
