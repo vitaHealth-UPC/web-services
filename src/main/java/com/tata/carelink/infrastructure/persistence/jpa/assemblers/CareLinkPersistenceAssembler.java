@@ -5,9 +5,15 @@ import com.tata.carelink.domain.model.valueobjects.Consent;
 import com.tata.carelink.domain.model.valueobjects.LinkingCode;
 import com.tata.carelink.infrastructure.persistence.jpa.entities.CareLinkPersistenceEntity;
 
+/** Converts CareLink state between domain and JPA representations without database access. */
 public final class CareLinkPersistenceAssembler {
     private CareLinkPersistenceAssembler() {}
 
+    /**
+     * Restores the stored identity and state without executing a business transition.
+     * @param entity stored JPA representation
+     * @return reconstructed domain object
+     */
     public static CareLink toDomain(CareLinkPersistenceEntity entity) {
         return CareLink.rehydrate(
                 entity.getId(),
@@ -22,6 +28,10 @@ public final class CareLinkPersistenceAssembler {
         );
     }
 
+    /**
+     * Builds the persistence representation while preserving the domain identity.
+     * @return JPA state ready for the repository adapter
+     */
     public static CareLinkPersistenceEntity toEntity(CareLink careLink) {
         return new CareLinkPersistenceEntity(
                 careLink.id(),
