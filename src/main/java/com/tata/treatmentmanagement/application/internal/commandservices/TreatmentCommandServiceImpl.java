@@ -28,7 +28,7 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
     private final TreatmentRepository treatmentRepository;
     private final ICareLinkVerificationPort careLinkVerificationPort;
     private final TreatmentScheduleEventPublisher scheduleEventPublisher;
-    private final Clock clock = Clock.systemUTC();
+    private final Clock clock;
 
     public TreatmentCommandServiceImpl(
             MedicationRepository medicationRepository,
@@ -43,13 +43,25 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
         );
     }
 
-    @Autowired
     public TreatmentCommandServiceImpl(
             MedicationRepository medicationRepository,
             TreatmentRepository treatmentRepository,
             ICareLinkVerificationPort careLinkVerificationPort,
             TreatmentScheduleEventPublisher scheduleEventPublisher
     ) {
+        this(medicationRepository, treatmentRepository, careLinkVerificationPort,
+                scheduleEventPublisher, Clock.systemUTC());
+    }
+
+    @Autowired
+    public TreatmentCommandServiceImpl(
+            MedicationRepository medicationRepository,
+            TreatmentRepository treatmentRepository,
+            ICareLinkVerificationPort careLinkVerificationPort,
+            TreatmentScheduleEventPublisher scheduleEventPublisher,
+            Clock clock
+    ) {
+        this.clock = java.util.Objects.requireNonNull(clock);
         this.medicationRepository = medicationRepository;
         this.treatmentRepository = treatmentRepository;
         this.careLinkVerificationPort = careLinkVerificationPort;

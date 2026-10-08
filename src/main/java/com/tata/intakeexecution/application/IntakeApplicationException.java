@@ -1,5 +1,6 @@
-package com.tata.intakeexecution.application.internal;
+package com.tata.intakeexecution.application;
 
+/** Public application failure contract; adapters translate its codes to transport responses. */
 public final class IntakeApplicationException extends RuntimeException {
     public enum Code {
         INTAKE_NOT_FOUND,

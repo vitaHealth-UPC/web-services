@@ -1,6 +1,6 @@
 package com.tata.identitysubscription.application.internal.commandservices;
 
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import com.tata.identitysubscription.application.internal.SubscriptionMapper;
 import com.tata.identitysubscription.application.models.SubscriptionResult;
 import com.tata.identitysubscription.domain.model.commands.ChangeSubscriptionCommand;
