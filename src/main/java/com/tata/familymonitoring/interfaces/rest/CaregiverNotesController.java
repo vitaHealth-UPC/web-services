@@ -1,7 +1,7 @@
 package com.tata.familymonitoring.interfaces.rest;
 
-import com.tata.familymonitoring.application.internal.commandservices.CreateCaregiverNoteCommandHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetCaregiverNotesQueryHandler;
+import com.tata.familymonitoring.application.commandservices.CreateCaregiverNoteCommandService;
+import com.tata.familymonitoring.application.queryservices.GetCaregiverNotesQueryService;
 import com.tata.familymonitoring.domain.model.queries.GetCaregiverNotesQuery;
 import com.tata.familymonitoring.interfaces.rest.resources.CaregiverNoteResource;
 import com.tata.familymonitoring.interfaces.rest.resources.CreateCaregiverNoteResource;
@@ -29,14 +29,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Caregiver Notes", description = "Notes a caregiver keeps about interventions")
 public class CaregiverNotesController {
 
-  private final CreateCaregiverNoteCommandHandler createNoteHandler;
-  private final GetCaregiverNotesQueryHandler notesHandler;
+  private final CreateCaregiverNoteCommandService createNoteHandler;
+  private final GetCaregiverNotesQueryService notesHandler;
+  private final com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access;
 
   public CaregiverNotesController(
-      CreateCaregiverNoteCommandHandler createNoteHandler,
-      GetCaregiverNotesQueryHandler notesHandler) {
+      CreateCaregiverNoteCommandService createNoteHandler,
+      GetCaregiverNotesQueryService notesHandler,
+      com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access) {
     this.createNoteHandler = createNoteHandler;
     this.notesHandler = notesHandler;
+    this.access = access;
   }
 
   @Operation(
@@ -50,7 +53,8 @@ public class CaregiverNotesController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public CaregiverNoteResource createNote(
-      @PathVariable Long olderAdultId, @Valid @RequestBody CreateCaregiverNoteResource resource) {
+      @PathVariable String olderAdultId, @Valid @RequestBody CreateCaregiverNoteResource resource) {
+    access.check(resource.familiarId(), olderAdultId);
     return CaregiverNoteResourceFromEntityAssembler.toResourceFromEntity(
         createNoteHandler.handle(
             CreateCaregiverNoteCommandFromResourceAssembler.toCommandFromResource(
@@ -64,7 +68,9 @@ public class CaregiverNotesController {
   @ApiResponse(responseCode = "404", description = "The older adult has no active follow-up",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping
-  public List<CaregiverNoteResource> getNotes(@PathVariable Long olderAdultId) {
+  public List<CaregiverNoteResource> getNotes(@PathVariable String olderAdultId,
+      @org.springframework.web.bind.annotation.RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
     return notesHandler.handle(new GetCaregiverNotesQuery(olderAdultId)).stream()
         .map(CaregiverNoteResourceFromEntityAssembler::toResourceFromEntity)
         .toList();

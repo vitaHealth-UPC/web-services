@@ -1,5 +1,6 @@
 package com.tata.intakeexecution.infrastructure.persistence.jpa.entities;
 
+import com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 import jakarta.persistence.*;
 
@@ -9,6 +10,7 @@ import java.time.Instant;
 @Table(name = "intake_intakes")
 public class IntakePersistenceEntity {
     @Id
+    @Column(length = 36)
     private String id;
 
     @Column(name = "treatment_id", nullable = false, length = 36)
@@ -38,6 +40,25 @@ public class IntakePersistenceEntity {
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "confirmation_channel", length = 16)
+    private ConfirmationChannel confirmationChannel;
+
+    @Column(name = "unconfirmed_reported_at")
+    private Instant unconfirmedReportedAt;
+
+    public void setConfirmation(Instant at, ConfirmationChannel channel) {
+        this.confirmedAt = at;
+        this.confirmationChannel = channel;
+    }
+    public Instant getConfirmedAt() { return confirmedAt; }
+    public ConfirmationChannel getConfirmationChannel() { return confirmationChannel; }
+    public Instant getUnconfirmedReportedAt() { return unconfirmedReportedAt; }
+    public void setUnconfirmedReportedAt(Instant at) { this.unconfirmedReportedAt = at; }
 
     protected IntakePersistenceEntity() {}
 

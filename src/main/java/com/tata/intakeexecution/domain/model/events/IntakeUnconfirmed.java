@@ -4,8 +4,8 @@ import java.time.Instant;
 
 /** Published by Intake Execution when a scheduled intake stays without confirmation. */
 public record IntakeUnconfirmed(
-    Long intakeId,
-    Long olderAdultId,
+    String intakeId,
+    String olderAdultId,
     String medicationName,
     Instant scheduledAt) {
 }

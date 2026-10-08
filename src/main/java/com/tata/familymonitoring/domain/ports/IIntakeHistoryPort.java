@@ -8,7 +8,7 @@ import java.util.Optional;
 /** Port to Intake Execution. */
 public interface IIntakeHistoryPort {
 
-  List<IntakeSummary> getRecentIntakes(Long olderAdultId, int days);
+  List<IntakeSummary> getRecentIntakes(String olderAdultId, int days);
 
-  Optional<Instant> findNextIntakeAt(Long olderAdultId);
+  Optional<Instant> findNextIntakeAt(String olderAdultId);
 }

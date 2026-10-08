@@ -1,4 +1,5 @@
 package com.tata.omissionescalation.domain.model.commands;
 
-public record ResolveOmissionCaseCommand(Long intakeId) {
-}
+import java.time.Instant;
+
+public record ResolveOmissionCaseCommand(String intakeId, Instant confirmedAt) {}

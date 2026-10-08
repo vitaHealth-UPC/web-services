@@ -17,9 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Profile("dev")
 public class FamilyMonitoringDataSeeder implements CommandLineRunner {
 
-  private static final Long SAMPLE_CARE_LINK_ID = 1L;
-  private static final Long SAMPLE_OLDER_ADULT_ID = 1L;
-  private static final Long SAMPLE_FAMILIAR_ID = 1L;
+  private static final String SAMPLE_CARE_LINK_ID = "00000000-0000-0000-0000-000000000001";
+  private static final String SAMPLE_OLDER_ADULT_ID = "00000000-0000-0000-0000-000000000001";
+  private static final String SAMPLE_FAMILIAR_ID = "00000000-0000-0000-0000-000000000001";
 
   private final IFamilyMonitorRepository repository;
 
@@ -37,7 +37,7 @@ public class FamilyMonitoringDataSeeder implements CommandLineRunner {
         new FamilyMonitor(SAMPLE_CARE_LINK_ID, SAMPLE_OLDER_ADULT_ID, SAMPLE_FAMILIAR_ID);
     Instant now = Instant.now();
     monitor.addAlert(
-        101L,
+        "00000000-0000-0000-0000-000000000101",
         "Losartan 50 mg",
         now.minusSeconds(3600),
         "Intake not confirmed within the grace period",

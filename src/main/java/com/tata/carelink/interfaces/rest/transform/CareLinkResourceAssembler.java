@@ -47,6 +47,10 @@ public final class CareLinkResourceAssembler {
         );
     }
 
+    public static CareLinkResource toResource(com.tata.carelink.application.models.AuthenticatedCareLinkResult result) {
+        var l=result.link();
+        return new CareLinkResource(l.id(),l.caregiverId(),l.olderAdultId(),l.status(),l.linkingCode(),l.codeExpiresAt(),l.codeUsedAt(),l.consentGranted(),l.consentRecordedAt(),l.confirmedAt(),result.accessToken(),result.expiresAt());
+    }
     public static CareLinkResource toResource(CareLinkResult result) {
         return new CareLinkResource(
                 result.id(),

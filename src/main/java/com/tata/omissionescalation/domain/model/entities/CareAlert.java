@@ -1,28 +1,18 @@
 package com.tata.omissionescalation.domain.model.entities;
 
 import com.tata.omissionescalation.domain.model.valueobjects.AlertStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import java.time.Instant;
 
 /** Alert generated for the caregiver from an omission, with the result of its delivery. */
-@Entity
+
 public class CareAlert {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private Long id;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+
   private AlertStatus status;
 
-  @Column(nullable = false)
   private Instant generatedAt;
 
   private Instant sentAt;
@@ -66,5 +56,16 @@ public class CareAlert {
 
   public String getFailureReason() {
     return failureReason;
+  }
+
+  /** Restores persisted state without replaying business actions. */
+  public static CareAlert rehydrate(Long id, AlertStatus status, Instant generatedAt, Instant sentAt, String failureReason) {
+    var restored = new CareAlert();
+    restored.id = id;
+    restored.status = status;
+    restored.generatedAt = generatedAt;
+    restored.sentAt = sentAt;
+    restored.failureReason = failureReason;
+    return restored;
   }
 }

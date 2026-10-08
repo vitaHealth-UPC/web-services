@@ -4,8 +4,8 @@ import java.time.Instant;
 
 /** Consumed by Adherence Analytics and Family Monitoring. */
 public record IntakeOmitted(
-    Long intakeId,
-    Long olderAdultId,
+    String intakeId,
+    String olderAdultId,
     String medicationName,
     Instant scheduledAt,
     String reason,

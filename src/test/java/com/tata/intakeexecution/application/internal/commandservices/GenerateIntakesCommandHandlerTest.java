@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
-import com.tata.intakeexecution.application.commands.GenerateIntakesCommand;
+import com.tata.intakeexecution.domain.model.commands.GenerateIntakesCommand;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 import com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot;
@@ -94,6 +94,7 @@ class GenerateIntakesCommandHandlerTest {
     }
 
     private static final class InMemoryIntakeRepository implements IntakeRepository {
+        public java.util.List<Intake> findAgenda(String olderAdultId, java.time.Instant from, java.time.Instant to) { throw new UnsupportedOperationException(); }
         private final List<Intake> values = new ArrayList<>();
 
         @Override

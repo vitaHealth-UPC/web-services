@@ -16,7 +16,9 @@ public final class IntakeMapper {
                 intake.medication().dose(),
                 intake.medication().instructions(),
                 intake.scheduledAt(),
-                intake.status()
+                intake.status(),
+                intake.confirmedAt(),
+                intake.confirmationChannel()
         );
     }
 }

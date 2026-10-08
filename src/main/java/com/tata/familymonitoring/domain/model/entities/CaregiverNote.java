@@ -1,42 +1,33 @@
 package com.tata.familymonitoring.domain.model.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import java.time.Instant;
 
 /** Note written by a caregiver about an intervention. */
-@Entity
+
 public class CaregiverNote {
 
   public static final int MAX_LENGTH = 1000;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private Long id;
 
-  @Column(nullable = false, length = MAX_LENGTH)
   private String text;
 
-  @Column(nullable = false)
   private Instant recordedAt;
 
-  @Column(nullable = false)
-  private Long familiarId;
+  private String familiarId;
 
   protected CaregiverNote() {
   }
 
-  public CaregiverNote(String text, Long familiarId, Instant recordedAt) {
+  public CaregiverNote(String text, String familiarId, Instant recordedAt) {
     if (text == null || text.isBlank()) {
       throw new IllegalArgumentException("The note text must not be blank");
     }
     if (text.length() > MAX_LENGTH) {
       throw new IllegalArgumentException("The note text must not exceed " + MAX_LENGTH + " characters");
     }
-    if (familiarId == null) {
+    if (familiarId == null || familiarId.isBlank()) {
       throw new IllegalArgumentException("The note author is required");
     }
     this.text = text.strip();
@@ -56,7 +47,17 @@ public class CaregiverNote {
     return recordedAt;
   }
 
-  public Long getFamiliarId() {
+  public String getFamiliarId() {
     return familiarId;
+  }
+
+  /** Restores persisted state without replaying business actions. */
+  public static CaregiverNote rehydrate(Long id, String text, Instant recordedAt, String familiarId) {
+    var restored = new CaregiverNote();
+    restored.id = id;
+    restored.text = text;
+    restored.recordedAt = recordedAt;
+    restored.familiarId = familiarId;
+    return restored;
   }
 }

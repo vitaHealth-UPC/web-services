@@ -8,5 +8,5 @@ public record CaregiverNoteResource(
     @Schema(example = "1") Long id,
     @Schema(example = "I called her and she had already taken the pill.") String text,
     @Schema(example = "2026-10-05T14:10:00Z") Instant recordedAt,
-    @Schema(example = "1") Long familiarId) {
+    @Schema(example = "1") String familiarId) {
 }

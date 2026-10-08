@@ -11,7 +11,7 @@ public interface IOmissionCaseRepository {
 
   Optional<OmissionCase> findById(Long id);
 
-  Optional<OmissionCase> findByIntakeId(Long intakeId);
+  Optional<OmissionCase> findByIntakeId(String intakeId);
 
   /** Pending cases whose grace period ended at or before {@code now}. */
   List<OmissionCase> findExpiredPending(Instant now);

@@ -6,10 +6,10 @@ import java.time.Instant;
 public interface INotificationPort {
 
   NotificationResult sendReinforcedReminder(
-      Long olderAdultId, String medicationName, Instant scheduledAt);
+      String olderAdultId, String medicationName, Instant scheduledAt);
 
   NotificationResult sendCaregiverAlert(
-      Long olderAdultId, String medicationName, Instant scheduledAt);
+      String olderAdultId, String medicationName, Instant scheduledAt);
 
   record NotificationResult(boolean delivered, String failureReason) {
 

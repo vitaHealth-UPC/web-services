@@ -1,40 +1,26 @@
 package com.tata.familymonitoring.domain.model.entities;
 
 import com.tata.familymonitoring.domain.model.valueobjects.AlertStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import java.time.Instant;
 
 /** Follow-up state of an alert received from Omission & Escalation. */
-@Entity
+
 public class AlertSummary {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+
   private Long id;
 
-  @Column(nullable = false)
-  private Long intakeId;
+  private String intakeId;
 
-  @Column(nullable = false)
   private String medicationName;
 
-  @Column(nullable = false)
   private Instant scheduledAt;
 
-  @Column(nullable = false)
   private String reason;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+
   private AlertStatus status;
 
-  @Column(nullable = false)
   private Instant openedAt;
 
   private Instant closedAt;
@@ -43,7 +29,7 @@ public class AlertSummary {
   }
 
   public AlertSummary(
-      Long intakeId,
+      String intakeId,
       String medicationName,
       Instant scheduledAt,
       String reason,
@@ -80,7 +66,7 @@ public class AlertSummary {
     return id;
   }
 
-  public Long getIntakeId() {
+  public String getIntakeId() {
     return intakeId;
   }
 
@@ -106,5 +92,19 @@ public class AlertSummary {
 
   public Instant getClosedAt() {
     return closedAt;
+  }
+
+  /** Restores persisted state without replaying business actions. */
+  public static AlertSummary rehydrate(Long id, String intakeId, String medicationName, Instant scheduledAt, String reason, AlertStatus status, Instant openedAt, Instant closedAt) {
+    var restored = new AlertSummary();
+    restored.id = id;
+    restored.intakeId = intakeId;
+    restored.medicationName = medicationName;
+    restored.scheduledAt = scheduledAt;
+    restored.reason = reason;
+    restored.status = status;
+    restored.openedAt = openedAt;
+    restored.closedAt = closedAt;
+    return restored;
   }
 }

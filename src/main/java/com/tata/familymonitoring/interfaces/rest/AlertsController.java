@@ -1,8 +1,8 @@
 package com.tata.familymonitoring.interfaces.rest;
 
-import com.tata.familymonitoring.application.internal.commandservices.CloseAlertCommandHandler;
-import com.tata.familymonitoring.application.internal.commandservices.MarkAlertAttendedCommandHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetAlertDetailQueryHandler;
+import com.tata.familymonitoring.application.commandservices.CloseAlertCommandService;
+import com.tata.familymonitoring.application.commandservices.MarkAlertAttendedCommandService;
+import com.tata.familymonitoring.application.queryservices.GetAlertDetailQueryService;
 import com.tata.familymonitoring.domain.model.commands.CloseAlertCommand;
 import com.tata.familymonitoring.domain.model.commands.MarkAlertAttendedCommand;
 import com.tata.familymonitoring.domain.model.entities.AlertSummary;
@@ -29,17 +29,20 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Alerts", description = "Follow-up of the alerts raised by omitted intakes")
 public class AlertsController {
 
-  private final GetAlertDetailQueryHandler alertDetailHandler;
-  private final MarkAlertAttendedCommandHandler markAttendedHandler;
-  private final CloseAlertCommandHandler closeAlertHandler;
+  private final GetAlertDetailQueryService alertDetailHandler;
+  private final MarkAlertAttendedCommandService markAttendedHandler;
+  private final CloseAlertCommandService closeAlertHandler;
+  private final com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access;
 
   public AlertsController(
-      GetAlertDetailQueryHandler alertDetailHandler,
-      MarkAlertAttendedCommandHandler markAttendedHandler,
-      CloseAlertCommandHandler closeAlertHandler) {
+      GetAlertDetailQueryService alertDetailHandler,
+      MarkAlertAttendedCommandService markAttendedHandler,
+      CloseAlertCommandService closeAlertHandler,
+      com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access) {
     this.alertDetailHandler = alertDetailHandler;
     this.markAttendedHandler = markAttendedHandler;
     this.closeAlertHandler = closeAlertHandler;
+    this.access = access;
   }
 
   @Operation(
@@ -50,7 +53,9 @@ public class AlertsController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/{alertId}")
   public AlertSummaryResource getAlertDetail(
-      @PathVariable Long olderAdultId, @PathVariable Long alertId) {
+      @PathVariable String olderAdultId, @PathVariable Long alertId,
+      @org.springframework.web.bind.annotation.RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
     return AlertSummaryResourceFromEntityAssembler.toResourceFromEntity(
         alertDetailHandler.handle(new GetAlertDetailQuery(olderAdultId, alertId)));
   }
@@ -68,9 +73,11 @@ public class AlertsController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @PutMapping("/{alertId}/status")
   public AlertSummaryResource updateAlertStatus(
-      @PathVariable Long olderAdultId,
+      @PathVariable String olderAdultId,
       @PathVariable Long alertId,
+      @org.springframework.web.bind.annotation.RequestParam String caregiverId,
       @Valid @RequestBody UpdateAlertStatusResource resource) {
+    access.check(caregiverId, olderAdultId);
     AlertSummary alert = switch (resource.status()) {
       case ATTENDED -> markAttendedHandler.handle(new MarkAlertAttendedCommand(olderAdultId, alertId));
       case CLOSED -> closeAlertHandler.handle(new CloseAlertCommand(olderAdultId, alertId));

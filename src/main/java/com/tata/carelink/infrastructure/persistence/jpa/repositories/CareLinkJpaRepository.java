@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface CareLinkJpaRepository extends JpaRepository<CareLinkPersistenceEntity, String> {
+    java.util.List<CareLinkPersistenceEntity> findByCaregiverIdAndStatusOrderByConfirmedAtDescIdAsc(
+            String caregiverId, CareLinkStatus status);
     Optional<CareLinkPersistenceEntity> findByLinkingCode(String linkingCode);
     Optional<CareLinkPersistenceEntity> findFirstByCaregiverIdAndOlderAdultIdAndStatus(
             String caregiverId,

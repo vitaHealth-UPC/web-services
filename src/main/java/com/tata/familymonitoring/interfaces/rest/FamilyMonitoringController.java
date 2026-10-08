@@ -1,8 +1,8 @@
 package com.tata.familymonitoring.interfaces.rest;
 
-import com.tata.familymonitoring.application.internal.queryservices.GetContactChannelQueryHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetOlderAdultStatusQueryHandler;
-import com.tata.familymonitoring.application.internal.queryservices.GetRecentIntakeHistoryQueryHandler;
+import com.tata.familymonitoring.application.queryservices.GetContactChannelQueryService;
+import com.tata.familymonitoring.application.queryservices.GetOlderAdultStatusQueryService;
+import com.tata.familymonitoring.application.queryservices.GetRecentIntakeHistoryQueryService;
 import com.tata.familymonitoring.domain.model.queries.GetContactChannelQuery;
 import com.tata.familymonitoring.domain.model.queries.GetOlderAdultStatusQuery;
 import com.tata.familymonitoring.domain.model.queries.GetRecentIntakeHistoryQuery;
@@ -31,17 +31,20 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Family Monitoring", description = "What a caregiver sees about an older adult")
 public class FamilyMonitoringController {
 
-  private final GetOlderAdultStatusQueryHandler statusHandler;
-  private final GetRecentIntakeHistoryQueryHandler historyHandler;
-  private final GetContactChannelQueryHandler contactChannelHandler;
+  private final GetOlderAdultStatusQueryService statusHandler;
+  private final GetRecentIntakeHistoryQueryService historyHandler;
+  private final GetContactChannelQueryService contactChannelHandler;
+  private final com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access;
 
   public FamilyMonitoringController(
-      GetOlderAdultStatusQueryHandler statusHandler,
-      GetRecentIntakeHistoryQueryHandler historyHandler,
-      GetContactChannelQueryHandler contactChannelHandler) {
+      GetOlderAdultStatusQueryService statusHandler,
+      GetRecentIntakeHistoryQueryService historyHandler,
+      GetContactChannelQueryService contactChannelHandler,
+      com.tata.familymonitoring.application.queryservices.CareRelationshipQueryService access) {
     this.statusHandler = statusHandler;
     this.historyHandler = historyHandler;
     this.contactChannelHandler = contactChannelHandler;
+    this.access = access;
   }
 
   @Operation(
@@ -51,7 +54,8 @@ public class FamilyMonitoringController {
   @ApiResponse(responseCode = "404", description = "The older adult has no active follow-up",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/status")
-  public OlderAdultStatusResource getStatus(@PathVariable Long olderAdultId) {
+  public OlderAdultStatusResource getStatus(@PathVariable String olderAdultId, @RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
     return OlderAdultStatusResourceFromEntityAssembler.toResourceFromEntity(
         statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId)));
   }
@@ -67,9 +71,11 @@ public class FamilyMonitoringController {
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/intakes")
   public List<IntakeSummaryResource> getRecentIntakes(
-      @PathVariable Long olderAdultId,
+      @PathVariable String olderAdultId,
+      @RequestParam String caregiverId,
       @Parameter(description = "Days to look back, from 1 to 30")
       @RequestParam(defaultValue = "7") int days) {
+    access.check(caregiverId, olderAdultId);
     return historyHandler.handle(new GetRecentIntakeHistoryQuery(olderAdultId, days)).stream()
         .map(IntakeSummaryResourceFromEntityAssembler::toResourceFromEntity)
         .toList();
@@ -82,7 +88,8 @@ public class FamilyMonitoringController {
   @ApiResponse(responseCode = "404", description = "No follow-up or no contact channel available",
       content = @Content(schema = @Schema(implementation = ErrorResource.class)))
   @GetMapping("/contact-channel")
-  public ContactChannelResource getContactChannel(@PathVariable Long olderAdultId) {
+  public ContactChannelResource getContactChannel(@PathVariable String olderAdultId, @RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
     return ContactChannelResourceFromEntityAssembler.toResourceFromEntity(
         contactChannelHandler.handle(new GetContactChannelQuery(olderAdultId)));
   }

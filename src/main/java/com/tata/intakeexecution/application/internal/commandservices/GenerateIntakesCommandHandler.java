@@ -1,6 +1,6 @@
 package com.tata.intakeexecution.application.internal.commandservices;
 
-import com.tata.intakeexecution.application.commands.GenerateIntakesCommand;
+import com.tata.intakeexecution.domain.model.commands.GenerateIntakesCommand;
 import com.tata.intakeexecution.application.internal.IntakeMapper;
 import com.tata.intakeexecution.application.models.IntakeResult;
 import com.tata.intakeexecution.domain.model.aggregates.Intake;

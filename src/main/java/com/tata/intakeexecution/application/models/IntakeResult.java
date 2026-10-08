@@ -1,5 +1,6 @@
 package com.tata.intakeexecution.application.models;
 
+import com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel;
 import com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus;
 
 import java.time.Instant;
@@ -13,5 +14,7 @@ public record IntakeResult(
         String dose,
         String instructions,
         Instant scheduledAt,
-        IntakeStatus status
+        IntakeStatus status,
+        Instant confirmedAt,
+        ConfirmationChannel confirmationChannel
 ) {}
