@@ -1,6 +1,6 @@
 package com.tata.inventoryreplenishment.application.internal.queryservices;
 
-import com.tata.inventoryreplenishment.application.internal.InventoryApplicationException;
+import com.tata.inventoryreplenishment.application.InventoryApplicationException;
 import com.tata.inventoryreplenishment.application.internal.fakes.InMemoryInventoryRepository;
 import com.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
 import com.tata.inventoryreplenishment.domain.model.queries.GetRemainingStockQuery;

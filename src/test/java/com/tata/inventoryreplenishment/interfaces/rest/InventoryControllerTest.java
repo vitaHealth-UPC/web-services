@@ -26,7 +26,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class InventoryControllerTest {
 
     @Autowired WebApplicationContext context;
+    @Autowired com.tata.treatmentmanagement.domain.repositories.MedicationRepository medications;
     private MockMvc mockMvc;
+
+    @Test
+    void rejectsInitialInventoryForInactiveMedication() throws Exception {
+        var medication = com.tata.treatmentmanagement.domain.model.aggregates.Medication.register(
+                UUID.randomUUID().toString(), "Losartan", "Tablet", java.time.Instant.now());
+        medication.deactivate();
+        medications.save(medication);
+        mockMvc.perform(post("/api/v1/inventories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(initialInventory(medication.id(), 10, 2)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("MEDICATION_INACTIVE"));
+    }
+
+    @Test
+    void rejectsInventoryForUnknownMedication() throws Exception {
+        mockMvc.perform(post("/api/v1/inventories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(initialInventory(UUID.randomUUID().toString(), 10, 2)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("MEDICATION_NOT_FOUND"));
+    }
 
     @BeforeEach
     void setUp() {
@@ -179,7 +202,8 @@ class InventoryControllerTest {
                 .formatted(medicationId, quantity, threshold);
     }
 
-    private static String newId() {
-        return UUID.randomUUID().toString();
+    private String newId() {
+        return medications.save(com.tata.treatmentmanagement.domain.model.aggregates.Medication.register(
+                UUID.randomUUID().toString(), "Losartan", "Tablet", java.time.Instant.now())).id();
     }
 }

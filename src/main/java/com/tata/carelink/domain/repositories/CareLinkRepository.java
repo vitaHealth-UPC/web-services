@@ -9,4 +9,5 @@ public interface CareLinkRepository {
     Optional<CareLink> findById(String id);
     Optional<CareLink> findByCode(String code);
     Optional<CareLink> findConfirmed(String caregiverId, String olderAdultId);
+    java.util.List<CareLink> findConfirmedByCaregiver(String caregiverId);
 }

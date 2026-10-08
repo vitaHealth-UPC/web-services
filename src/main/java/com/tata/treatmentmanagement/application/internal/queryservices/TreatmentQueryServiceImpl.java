@@ -11,6 +11,9 @@ import com.tata.treatmentmanagement.domain.services.ICareLinkVerificationPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+
 @Service
 @Transactional(readOnly = true)
 public class TreatmentQueryServiceImpl implements TreatmentQueryService {
@@ -44,6 +47,23 @@ public class TreatmentQueryServiceImpl implements TreatmentQueryService {
                         TreatmentApplicationException.Code.TREATMENT_NOT_FOUND, "treatment not found"));
         requireAuthorizedCareLink(caregiverId, treatment.olderAdultId());
         return TreatmentMapper.toResult(treatment);
+    }
+
+    @Override
+    public List<MedicationResult> listMedications(String caregiverId, String olderAdultId) {
+        requireAuthorizedCareLink(caregiverId, olderAdultId);
+        return medications.findByOlderAdultId(olderAdultId).stream().map(TreatmentMapper::toResult).toList();
+    }
+
+    @Override
+    public List<TreatmentResult> listTreatments(String caregiverId, String olderAdultId) {
+        requireAuthorizedCareLink(caregiverId, olderAdultId);
+        return treatments.findByOlderAdultId(olderAdultId).stream().map(TreatmentMapper::toResult).toList();
+    }
+
+    @Override
+    public Optional<MedicationResult> findMedication(String medicationId) {
+        return medications.findById(medicationId).map(TreatmentMapper::toResult);
     }
 
     private void requireAuthorizedCareLink(String caregiverId, String olderAdultId) {

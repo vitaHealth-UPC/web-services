@@ -22,6 +22,10 @@ public final class IdentityResourceAssembler {
         return new AuthenticateFamilyCommand(resource.email(), resource.password());
     }
 
+    public static AccountResource toResource(com.tata.identitysubscription.application.models.VerifiedAccountResult result) {
+        var account=result.account(); var session=result.session();
+        return new AccountResource(account.id(), account.name(), account.email(), account.status().name(), session.accessToken(), session.expiresAt());
+    }
     public static AccountResource toResource(AccountResult result) {
         return new AccountResource(result.id(), result.name(), result.email(), result.status().name());
     }

@@ -1,5 +1,7 @@
 package com.tata.treatmentmanagement.domain.model.aggregates;
 
+import static com.tata.shared.domain.validation.DomainText.requireText;
+
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentRegimen;
 import com.tata.treatmentmanagement.domain.model.valueobjects.TreatmentStatus;
 
@@ -64,10 +66,6 @@ public final class Treatment {
         status = TreatmentStatus.ACTIVE;
     }
 
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
-        return value.trim();
-    }
 
     public String id() { return id; }
     public String olderAdultId() { return olderAdultId; }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class GetCaregiverNotesQueryHandler {
+public class GetCaregiverNotesQueryHandler implements com.tata.familymonitoring.application.queryservices.GetCaregiverNotesQueryService {
 
   private final IFamilyMonitorRepository repository;
 
