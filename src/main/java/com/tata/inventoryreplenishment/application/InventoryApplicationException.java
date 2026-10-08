@@ -1,5 +1,6 @@
-package com.tata.inventoryreplenishment.application.internal;
+package com.tata.inventoryreplenishment.application;
 
+/** Public application failure contract; adapters translate its codes to transport responses. */
 public final class InventoryApplicationException extends RuntimeException {
     public enum Code {
         MEDICATION_NOT_FOUND,

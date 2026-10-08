@@ -1,7 +1,7 @@
 package com.tata.identitysubscription.application.internal.commandservices;
 
 import com.tata.identitysubscription.application.commandservices.AccountCommandService;
-import com.tata.identitysubscription.application.internal.IdentityApplicationException;
+import com.tata.identitysubscription.application.IdentityApplicationException;
 import com.tata.identitysubscription.application.internal.outboundservices.PasswordHasher;
 import com.tata.identitysubscription.application.internal.outboundservices.SessionTokenService;
 import com.tata.identitysubscription.application.internal.outboundservices.VerificationCodeGenerator;
