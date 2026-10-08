@@ -46,7 +46,7 @@ public final class Account {
         this.status = Objects.requireNonNull(status);
         this.verificationCodeHash = verificationCodeHash;
         this.verificationExpiresAt = verificationExpiresAt;
-        this.currentPlanCode = requireText(currentPlanCode, "currentPlanCode").toUpperCase();
+        this.currentPlanCode = requireText(currentPlanCode, "currentPlanCode").toUpperCase(java.util.Locale.ROOT);
         this.subscriptionStatus = Objects.requireNonNull(subscriptionStatus);
         this.subscriptionRenewsAt = subscriptionRenewsAt;
     }

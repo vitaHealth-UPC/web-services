@@ -6,6 +6,7 @@ import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
+/** Maps identifiers to stable snake case and plural table names, preserving explicit quoting. */
 public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements PhysicalNamingStrategy {
     @Override
     public Identifier toPhysicalCatalogName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
@@ -29,7 +30,7 @@ public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements Physi
     }
     private Identifier toSnakeCase(Identifier identifier) {
         if (identifier == null) return null;
-        String snakeCase = identifier.getText().replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase();
+        String snakeCase = identifier.getText().replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT);
         return Identifier.toIdentifier(snakeCase, identifier.isQuoted());
     }
     private Identifier toPlural(Identifier identifier) {
