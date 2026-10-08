@@ -9,4 +9,6 @@ public interface IntakeContextFacade {
  List<IntakeResult> history(String owner, Instant from, Instant to);
  Optional<IntakeResult> next(String owner);
  Optional<IntakeResult> findIntake(String id);
+ /** Locks the source intake for the current transaction before deciding an omission. */
+ boolean lockPendingIntake(String id);
 }
