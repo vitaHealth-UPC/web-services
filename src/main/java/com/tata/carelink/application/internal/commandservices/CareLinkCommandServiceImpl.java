@@ -19,6 +19,7 @@ import com.tata.carelink.domain.model.valueobjects.OlderAdultBasicData;
 import com.tata.carelink.domain.repositories.CareLinkRepository;
 import com.tata.carelink.domain.repositories.OlderAdultProfileRepository;
 import com.tata.carelink.domain.services.CareLinkConfirmationPolicy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,12 +37,15 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
     private final LinkingCodeGenerator linkingCodeGenerator;
     private final CareLinkConfirmationPolicy confirmationPolicy;
     private final Clock clock;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
+    @Autowired
     public CareLinkCommandServiceImpl(
             OlderAdultProfileRepository olderAdultRepository,
             CareLinkRepository careLinkRepository,
             AccountStatusPort accountStatusPort,
-            LinkingCodeGenerator linkingCodeGenerator
+            LinkingCodeGenerator linkingCodeGenerator,
+            org.springframework.context.ApplicationEventPublisher events
     ) {
         this(
                 olderAdultRepository,
@@ -49,7 +53,8 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
                 accountStatusPort,
                 linkingCodeGenerator,
                 new CareLinkConfirmationPolicy(),
-                Clock.systemUTC()
+                Clock.systemUTC(),
+                events
         );
     }
 
@@ -59,7 +64,8 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
             AccountStatusPort accountStatusPort,
             LinkingCodeGenerator linkingCodeGenerator,
             CareLinkConfirmationPolicy confirmationPolicy,
-            Clock clock
+            Clock clock,
+            org.springframework.context.ApplicationEventPublisher events
     ) {
         this.olderAdultRepository = olderAdultRepository;
         this.careLinkRepository = careLinkRepository;
@@ -67,6 +73,7 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
         this.linkingCodeGenerator = linkingCodeGenerator;
         this.confirmationPolicy = confirmationPolicy;
         this.clock = clock;
+        this.events = events;
     }
 
     @Override
@@ -151,7 +158,10 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
         }
 
         careLink.confirm(clock.instant());
-        return CareLinkMapper.toResult(careLinkRepository.save(careLink));
+        var saved = careLinkRepository.save(careLink);
+        events.publishEvent(new com.tata.carelink.domain.model.events.CareLinkConfirmed(
+                saved.id(), saved.caregiverId(), saved.olderAdultId()));
+        return CareLinkMapper.toResult(saved);
     }
 
     private void requireEnabledAccount(String caregiverId) {

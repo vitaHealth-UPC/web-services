@@ -29,7 +29,7 @@ public class AccountsController {
     @PostMapping("/verification")
     public AccountResource verify(@Valid @RequestBody VerifyEmailResource resource) {
         return IdentityResourceAssembler.toResource(
-                service.verify(IdentityResourceAssembler.toCommand(resource))
+                service.verifyAndAuthenticate(IdentityResourceAssembler.toCommand(resource))
         );
     }
 }

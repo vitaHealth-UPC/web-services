@@ -12,9 +12,17 @@ public class AccountSessionPersistenceEntity {
     @Column(name = "token_hash", nullable = false, unique = true, length = 64) private String tokenHash;
     @Column(name = "expires_at", nullable = false) private Instant expiresAt;
 
+    @Column(name = "session_role", length = 24) private String role;
+    @Column(name = "care_link_id", length = 36) private String careLinkId;
+    public String getRole() { return role; }
+    public String getCareLinkId() { return careLinkId; }
     protected AccountSessionPersistenceEntity() {}
 
     public AccountSessionPersistenceEntity(String accountId, String tokenHash, Instant expiresAt) {
+        this(accountId, tokenHash, expiresAt, "CAREGIVER", null);
+    }
+    public AccountSessionPersistenceEntity(String accountId, String tokenHash, Instant expiresAt, String role, String careLinkId) {
+        this.role = role; this.careLinkId = careLinkId;
         this.id = UUID.randomUUID().toString();
         this.accountId = accountId;
         this.tokenHash = tokenHash;

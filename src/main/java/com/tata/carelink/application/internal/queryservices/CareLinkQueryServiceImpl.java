@@ -35,6 +35,13 @@ public class CareLinkQueryServiceImpl implements CareLinkQueryService {
     }
 
     @Override
+    public java.util.List<CareLinkResult> getConfirmedByCaregiver(String caregiverId) {
+        if (caregiverId == null || caregiverId.isBlank()) throw new IllegalArgumentException("caregiverId is required");
+        return careLinkRepository.findConfirmedByCaregiver(caregiverId.trim()).stream()
+                .map(CareLinkMapper::toResult).toList();
+    }
+
+    @Override
     public OlderAdultProfileResult getOlderAdult(String olderAdultId) {
         return olderAdultRepository.findById(olderAdultId)
                 .map(CareLinkMapper::toResult)
