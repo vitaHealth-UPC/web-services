@@ -184,7 +184,7 @@ public class CareLinkCommandServiceImpl implements CareLinkCommandService {
         if (code == null || code.isBlank()) {
             throw error(CareLinkApplicationException.Code.INVALID_LINKING_CODE, "linking code is required");
         }
-        return code.trim().toUpperCase();
+        return code.trim().toUpperCase(java.util.Locale.ROOT);
     }
 
     private static CareLinkApplicationException error(CareLinkApplicationException.Code code, String message) {
