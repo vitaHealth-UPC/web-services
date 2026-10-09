@@ -31,6 +31,7 @@ class IntakeConfirmationIntegrationTest {
     @Autowired ConfirmIntakeCommandHandler handler;
     @Autowired ApplicationEventPublisher publisher;
     @Autowired EventRecorder recorder;
+    @Autowired com.tata.intakeexecution.application.internal.commandservices.MarkIntakeOmittedCommandHandler omissionHandler;
 
     @TestConfiguration
     static class Configuration {
@@ -51,16 +52,30 @@ class IntakeConfirmationIntegrationTest {
     @Test void confirmationResolvesUuidOmissionAndPersistsOriginalMetadata() {
         var intake = pending();
         publisher.publishEvent(new IntakeUnconfirmed(intake.id(), intake.olderAdultId(), "Losartan", intake.scheduledAt()));
-        handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.TOUCH));
+        var initial = handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.TOUCH));
+        assertFalse(initial.alreadyConfirmed());
         var saved = intakes.findById(intake.id()).orElseThrow();
         assertNotNull(saved.confirmedAt());
         assertEquals(ConfirmationChannel.TOUCH, saved.confirmationChannel());
         assertEquals(OmissionCaseStatus.RESOLVED, cases.findByIntakeId(intake.id()).orElseThrow().getStatus());
-        handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.VOICE));
+        var replay = handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.VOICE));
+        assertTrue(replay.alreadyConfirmed());
         var retried = intakes.findById(intake.id()).orElseThrow();
         assertEquals(saved.confirmedAt(), retried.confirmedAt());
         assertEquals(ConfirmationChannel.TOUCH, retried.confirmationChannel());
         assertEquals(1, recorder.events.stream().filter(e -> e.intakeId().equals(intake.id())).count());
+    }
+
+    @Test void delayedOmissionKeepsTheLateConfirmationAndItsOriginalMetadata() {
+        var intake = pending();
+        var initial = handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.TOUCH));
+        assertEquals(com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.LATE, initial.status());
+        omissionHandler.handle(new com.tata.intakeexecution.domain.model.commands.MarkIntakeOmittedCommand(intake.id()));
+        var persisted = intakes.findById(intake.id()).orElseThrow();
+        assertEquals(initial.status(), persisted.status());
+        assertEquals(initial.confirmedAt(), persisted.confirmedAt());
+        assertEquals(ConfirmationChannel.TOUCH, persisted.confirmationChannel());
+        assertTrue(handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.VOICE)).alreadyConfirmed());
     }
 
     @Test void concurrentTouchAndVoicePublishOneConfirmation() throws Exception {
@@ -70,8 +85,10 @@ class IntakeConfirmationIntegrationTest {
             var touch = executor.submit(() -> { start.await(); return handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.TOUCH)); });
             var voice = executor.submit(() -> { start.await(); return handler.handle(new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.VOICE)); });
             start.countDown();
-            assertNotNull(touch.get(20, TimeUnit.SECONDS));
-            assertNotNull(voice.get(20, TimeUnit.SECONDS));
+            var touchResult = touch.get(20, TimeUnit.SECONDS);
+            var voiceResult = voice.get(20, TimeUnit.SECONDS);
+            assertNotEquals(touchResult.alreadyConfirmed(), voiceResult.alreadyConfirmed());
+            assertEquals(touchResult.confirmedAt(), voiceResult.confirmedAt());
         }
         assertEquals(1, recorder.events.stream().filter(e -> e.intakeId().equals(intake.id())).count());
     }

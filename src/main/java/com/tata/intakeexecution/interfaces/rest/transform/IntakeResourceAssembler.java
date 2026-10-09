@@ -26,7 +26,8 @@ public final class IntakeResourceAssembler {
                 result.scheduledAt(),
                 result.status(),
                 result.confirmedAt(),
-                result.confirmationChannel()
+                result.confirmationChannel(),
+                result.alreadyConfirmed()
         );
     }
 }
