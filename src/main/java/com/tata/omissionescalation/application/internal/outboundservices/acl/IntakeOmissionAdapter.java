@@ -10,4 +10,5 @@ public class IntakeOmissionAdapter implements IntakeOmissionPort {
     private final IntakeContextFacade intakes;
     public IntakeOmissionAdapter(IntakeContextFacade intakes) { this.intakes = intakes; }
     @Override public boolean lockPendingIntake(String intakeId) { return intakes.lockPendingIntake(intakeId); }
+    @Override public boolean lockRecordedConfirmation(String intakeId, java.time.Instant confirmedAt) { return intakes.lockRecordedConfirmation(intakeId, confirmedAt); }
 }

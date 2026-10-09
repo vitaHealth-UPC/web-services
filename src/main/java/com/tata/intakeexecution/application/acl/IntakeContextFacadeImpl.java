@@ -31,4 +31,14 @@ public class IntakeContextFacadeImpl implements IntakeContextFacade {
  public boolean lockPendingIntake(String id) {
   return repository.findByIdForConfirmation(id).filter(intake -> intake.isPending()).isPresent();
  }
+ @Override
+ @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY, readOnly = false)
+ public boolean lockRecordedConfirmation(String id, Instant confirmedAt) {
+  if (confirmedAt == null) return false;
+  return repository.findByIdForConfirmation(id)
+   .filter(intake -> intake.status() == com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.CONFIRMED
+       || intake.status() == com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.LATE)
+   .filter(intake -> confirmedAt.equals(intake.confirmedAt())).isPresent();
+ }
+
 }
