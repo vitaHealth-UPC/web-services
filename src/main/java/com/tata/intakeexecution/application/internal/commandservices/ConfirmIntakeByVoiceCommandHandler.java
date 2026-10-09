@@ -14,7 +14,6 @@ import com.tata.intakeexecution.domain.repositories.IntakeRepository;
 import com.tata.intakeexecution.domain.services.VoiceConfirmationValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ConfirmIntakeByVoiceCommandHandler implements com.tata.intakeexecution.application.commandservices.ConfirmIntakeByVoiceCommandService {
@@ -73,7 +72,7 @@ public class ConfirmIntakeByVoiceCommandHandler implements com.tata.intakeexecut
         this.voicePreference = voicePreference;
     }
 
-    @Transactional
+    /** Recognition runs outside a database transaction; the confirmation service locks and commits the intake. */
     public VoiceConfirmationResult handle(ConfirmIntakeByVoiceCommand command) {
         var intake = repository.findById(command.intakeId())
                 .orElseThrow(() -> new IntakeApplicationException(
@@ -148,7 +147,7 @@ public class ConfirmIntakeByVoiceCommandHandler implements com.tata.intakeexecut
                 new ConfirmIntakeCommand(command.intakeId(), ConfirmationChannel.VOICE)
         );
         return new VoiceConfirmationResult(
-                VoiceConfirmationStatus.CONFIRMED,
+                result.alreadyConfirmed() ? VoiceConfirmationStatus.ALREADY_CONFIRMED : VoiceConfirmationStatus.CONFIRMED,
                 recognition.transcript(),
                 recognition.confidence(),
                 result

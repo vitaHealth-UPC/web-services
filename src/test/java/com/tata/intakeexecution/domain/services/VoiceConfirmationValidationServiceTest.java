@@ -69,4 +69,20 @@ class VoiceConfirmationValidationServiceTest {
         assertFalse(service.isValidConfirmation("Ya tomé mi medicamento", Double.POSITIVE_INFINITY, "Losartán"));
         assertFalse(service.isValidConfirmation("Ya tomé mi medicamento", 1.1, "Losartán"));
     }
+    @Test
+    void rejectsFutureIntentionAndConfirmationWithoutCompletedConsumption() {
+        assertFalse(service.isValidConfirmation("Confirmo que tomaré Losartán mañana", 0.99, "Losartán"));
+        assertFalse(service.isValidConfirmation("Confirmo mi medicamento", 0.99, "Losartán"));
+        assertTrue(service.isValidConfirmation("Confirmo que tomé mi medicamento", 0.99, "Losartán"));
+    }
+    @Test
+    void acceptsTheEnglishPrototypePhraseAndRejectsItsNegation() {
+        assertTrue(service.isValidConfirmation("I confirm that I took Losartan fifty milligrams", 0.99, "Losartan 50 mg"));
+        assertTrue(service.isValidConfirmation("I have taken my medication", 0.99, "Losartan 50 mg"));
+        assertFalse(service.isValidConfirmation("I have not taken my medication", 0.99, "Losartan 50 mg"));
+        assertFalse(service.isValidConfirmation("Maybe I took my medication", 0.99, "Losartan 50 mg"));
+        assertFalse(service.isValidConfirmation("I don't think I took my medication", 0.99, "Losartan 50 mg"));
+        assertFalse(service.isValidConfirmation("I didn't say I took my medication", 0.99, "Losartan 50 mg"));
+        assertFalse(service.isValidConfirmation("I confirm I will take Losartan", 0.99, "Losartan 50 mg"));
+    }
 }
