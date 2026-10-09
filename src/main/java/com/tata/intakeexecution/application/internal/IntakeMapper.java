@@ -7,6 +7,11 @@ public final class IntakeMapper {
     private IntakeMapper() {}
 
     public static IntakeResult toResult(Intake intake) {
+        return toResult(intake, false);
+    }
+
+    /** Request metadata: true only when a confirmation command made no new transition. */
+    public static IntakeResult toResult(Intake intake, boolean alreadyConfirmed) {
         return new IntakeResult(
                 intake.id(),
                 intake.treatmentId(),
@@ -18,7 +23,8 @@ public final class IntakeMapper {
                 intake.scheduledAt(),
                 intake.status(),
                 intake.confirmedAt(),
-                intake.confirmationChannel()
+                intake.confirmationChannel(),
+                alreadyConfirmed
         );
     }
 }

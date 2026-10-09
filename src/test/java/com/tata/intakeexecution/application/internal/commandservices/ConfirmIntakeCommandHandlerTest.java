@@ -31,6 +31,7 @@ class ConfirmIntakeCommandHandlerTest {
 
         assertEquals(IntakeStatus.CONFIRMED, result.status());
         assertEquals(1, repository.saveCalls);
+        assertFalse(result.alreadyConfirmed());
     }
 
     @Test
@@ -43,6 +44,7 @@ class ConfirmIntakeCommandHandlerTest {
         var retry = handler.handle(new ConfirmIntakeCommand("intake-1", ConfirmationChannel.VOICE));
 
         assertEquals(IntakeStatus.CONFIRMED, retry.status());
+        assertTrue(retry.alreadyConfirmed());
         assertEquals(1, repository.saveCalls);
         assertEquals(1, events.size());
         var event = (com.tata.intakeexecution.domain.model.events.IntakeConfirmed) events.getFirst();
