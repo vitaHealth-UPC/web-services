@@ -124,7 +124,7 @@ class OmissionAndMonitoringFlowTest {
   }
 
   @Test
-  void confirmationOutsideTheGracePeriod_doesNotResolveTheCase() {
+  void confirmationEventWithoutRecordedEvidence_doesNotResolveTheCase() {
     String intakeId = nextId();
     unconfirmed(intakeId, nextId());
 
@@ -179,8 +179,11 @@ class OmissionAndMonitoringFlowTest {
     unconfirmed(intakeId, adultId);
     confirmation.handle(new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand(
         intakeId, com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel.TOUCH));
+    var recorded = intakes.findById(intakeId).orElseThrow();
+    events.publishEvent(new IntakeConfirmed(intakeId, recorded.medicationId(), adultId, recorded.confirmedAt()));
     evaluateHandler.handle(new EvaluateGracePeriodCommand(Instant.now().plusSeconds(5)));
     assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getOmittedAt()).isNull();
+    assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getStatus()).isEqualTo(OmissionCaseStatus.RESOLVED);
     assertThat(monitors.findByOlderAdultId(adultId).orElseThrow().getAlerts()).isEmpty();
     assertThat(intakes.findById(intakeId).orElseThrow().status())
         .isIn(com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.CONFIRMED,
