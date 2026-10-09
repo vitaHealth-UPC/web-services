@@ -206,6 +206,8 @@ A retry for the same intake must not create a second business confirmation or du
 **Tests**
 - scheduler/handler idempotency;
 - confirmation during grace resolves;
+- grace starts at the scheduled intake time, including delayed event processing;
+- duplicate unconfirmed events preserve the original grace interval;
 - expiry produces one omission;
 - repeated evaluation does not duplicate alert/escalation state.
 
