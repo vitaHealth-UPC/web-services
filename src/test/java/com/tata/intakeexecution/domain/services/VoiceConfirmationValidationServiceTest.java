@@ -54,4 +54,19 @@ class VoiceConfirmationValidationServiceTest {
                 "Losartán 50 mg"
         ));
     }
+    @Test
+    void rejectsNegatedAndUncertainConfirmations() {
+        for (String phrase : new String[]{"No he tomado mi medicamento", "Confirmo que no tomé Losartán", "Todavía no tomé mi pastilla", "Quizás ya tomé mi medicamento"}) {
+            assertFalse(service.isValidConfirmation(phrase, 0.99, "Losartán 50 mg"), phrase);
+        }
+    }
+
+    @Test
+    void requiresWholeWordsAndFiniteConfidence() {
+        assertFalse(service.isValidConfirmation("Desconfirmo mi medicamento", 0.99, "Losartán"));
+        assertFalse(service.isValidConfirmation("Confirmo losartanina", 0.99, "Losartán"));
+        assertFalse(service.isValidConfirmation("Ya tomé mi medicamento", Double.NaN, "Losartán"));
+        assertFalse(service.isValidConfirmation("Ya tomé mi medicamento", Double.POSITIVE_INFINITY, "Losartán"));
+        assertFalse(service.isValidConfirmation("Ya tomé mi medicamento", 1.1, "Losartán"));
+    }
 }

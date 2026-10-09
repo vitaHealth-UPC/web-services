@@ -86,7 +86,7 @@ public class ConfirmIntakeByVoiceCommandHandler implements com.tata.intakeexecut
                     VoiceConfirmationStatus.ALREADY_CONFIRMED,
                     null,
                     1.0,
-                    IntakeMapper.toResult(intake)
+                    IntakeMapper.toResult(intake, true)
             );
         }
 
