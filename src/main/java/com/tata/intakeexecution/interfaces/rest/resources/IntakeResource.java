@@ -16,5 +16,6 @@ public record IntakeResource(
         Instant scheduledAt,
         IntakeStatus status,
         Instant confirmedAt,
-        ConfirmationChannel confirmationChannel
+        ConfirmationChannel confirmationChannel,
+        boolean alreadyConfirmed
 ) {}
