@@ -67,11 +67,13 @@ class IntakeConfirmationTest {
     }
 
     @Test
-    void definitiveOmissionCanSupersedeLateOutcomeButNotOnTimeConfirmation() {
+    void delayedOmissionCannotReplaceAnyPersistedConfirmation() {
         var late = pendingIntake();
         late.confirm(SCHEDULED_AT.plusSeconds(60), ConfirmationChannel.TOUCH);
-        assertTrue(late.markOmitted());
-        assertEquals(IntakeStatus.OMITTED, late.status());
+        assertFalse(late.markOmitted());
+        assertEquals(IntakeStatus.LATE, late.status());
+        assertEquals(SCHEDULED_AT.plusSeconds(60), late.confirmedAt());
+        assertEquals(ConfirmationChannel.TOUCH, late.confirmationChannel());
 
         var onTime = pendingIntake();
         onTime.confirm(SCHEDULED_AT, ConfirmationChannel.TOUCH);

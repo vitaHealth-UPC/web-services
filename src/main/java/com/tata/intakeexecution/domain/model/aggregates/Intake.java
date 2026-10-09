@@ -181,14 +181,11 @@ public final class Intake {
 
     /**
      * Applies the definitive omission outcome emitted by Omission & Escalation.
-     * A late confirmation can still be superseded when the omission case proves
-     * that the grace period had already expired. A timely confirmation is kept.
+     * A persisted confirmation is definitive, including a late confirmation.
+     * A delayed omission event cannot replace its original time or channel.
      */
     public boolean markOmitted() {
-        if (status == IntakeStatus.OMITTED) {
-            return false;
-        }
-        if (status == IntakeStatus.CONFIRMED) {
+        if (status != IntakeStatus.PENDING) {
             return false;
         }
         status = IntakeStatus.OMITTED;

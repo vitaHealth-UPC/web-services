@@ -32,17 +32,17 @@ class OmissionCaseTest {
   void resolve_whenConfirmedDuringGracePeriod_setsStatusResolved() {
     OmissionCase omissionCase = pendingCase();
 
-    omissionCase.resolve(START.plus(Duration.ofMinutes(10)));
+    omissionCase.resolve();
 
     assertThat(omissionCase.getStatus()).isEqualTo(OmissionCaseStatus.RESOLVED);
   }
 
   @Test
-  void resolve_whenGracePeriodEnded_isRejected() {
-    OmissionCase omissionCase = pendingCase();
-
-    assertThatThrownBy(() -> omissionCase.resolve(AFTER_GRACE))
-        .isInstanceOf(IllegalStateException.class);
+  void resolve_cannotReplaceADefinitiveOmission() {
+    OmissionCase omissionCase = omittedCase();
+    assertThatThrownBy(omissionCase::resolve).isInstanceOf(IllegalStateException.class);
+    assertThat(omissionCase.getStatus()).isEqualTo(OmissionCaseStatus.OMITTED);
+    assertThat(omissionCase.getOmittedAt()).isEqualTo(AFTER_GRACE);
   }
 
   @Test
@@ -110,7 +110,7 @@ class OmissionCaseTest {
   @Test
   void escalationPolicy_ignoresResolvedCases() {
     OmissionCase omissionCase = pendingCase();
-    omissionCase.resolve(START.plus(Duration.ofMinutes(1)));
+    omissionCase.resolve();
 
     assertThat(new EscalationPolicy().shouldEscalate(omissionCase, AFTER_GRACE.plusSeconds(3600)))
         .isFalse();
