@@ -78,12 +78,9 @@ public class OmissionCase {
     }
   }
 
-  /** The intake was confirmed while the grace period was still active. */
-  public void resolve(Instant now) {
+  /** Closes a pending case after Intake Execution records a confirmation. A definitive omission remains unchanged. */
+  public void resolve() {
     requireStatus(OmissionCaseStatus.PENDING);
-    if (!gracePeriod.isActive(now)) {
-      throw new IllegalStateException("The grace period is no longer active");
-    }
     this.status = OmissionCaseStatus.RESOLVED;
   }
 

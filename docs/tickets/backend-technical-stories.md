@@ -205,7 +205,8 @@ A retry for the same intake must not create a second business confirmation or du
 
 **Tests**
 - scheduler/handler idempotency;
-- confirmation during grace resolves;
+- recorded confirmations resolve pending cases; the source intake and its original timestamp are checked under lock;
+- definitive omissions cannot be replaced by a confirmation event;
 - grace starts at the scheduled intake time, including delayed event processing;
 - duplicate unconfirmed events preserve the original grace interval;
 - expiry produces one omission;
