@@ -37,7 +37,7 @@ class DemoSeedIntegrationTest {
         mvc.perform(
                 post("/api/v1/sessions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"email\":\"demo@tata.app\",\"password\":\"Tata-Demo-2026\"}"))
+                    .content("{\"email\":\"demo.caregiver@tata.app\",\"password\":\"Tata-Demo-2026\"}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.accountId").value(CAREGIVER_ID))
             .andReturn();

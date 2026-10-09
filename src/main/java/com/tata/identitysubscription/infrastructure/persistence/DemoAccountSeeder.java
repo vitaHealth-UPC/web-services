@@ -9,6 +9,8 @@ import com.tata.identitysubscription.domain.model.valueobjects.EmailAddress;
 import com.tata.identitysubscription.domain.repositories.AccountRepository;
 import com.tata.identitysubscription.domain.repositories.PinCredentialRepository;
 import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,6 +29,8 @@ public class DemoAccountSeeder implements CommandLineRunner {
   public static final String CAREGIVER_ID = "d3a10000-0000-4000-8000-000000000001";
   public static final String OLDER_ADULT_ID = "d3a10000-0000-4000-8000-000000000002";
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(DemoAccountSeeder.class);
+
   private final AccountRepository accounts;
   private final PinCredentialRepository pins;
   private final PasswordHasher hasher;
@@ -40,7 +44,7 @@ public class DemoAccountSeeder implements CommandLineRunner {
       PinCredentialRepository pins,
       PasswordHasher hasher,
       ApplicationEventPublisher events,
-      @Value("${tata.demo.email:demo@tata.app}") String email,
+      @Value("${tata.demo.email:demo.caregiver@tata.app}") String email,
       @Value("${tata.demo.password:Tata-Demo-2026}") String password,
       @Value("${tata.demo.pin:1234}") String pin) {
     this.accounts = accounts;
@@ -56,7 +60,13 @@ public class DemoAccountSeeder implements CommandLineRunner {
   @Transactional
   public void run(String... args) {
     var address = new EmailAddress(email);
-    if (accounts.findByEmail(address.value()).isEmpty()) {
+    if (accounts.findById(CAREGIVER_ID).isEmpty()) {
+      if (accounts.findByEmail(address.value()).isPresent()) {
+        LOGGER.warn(
+            "Demo account not created: {} already belongs to another account. Set TATA_DEMO_EMAIL to a free address.",
+            address.value());
+        return;
+      }
       accounts.save(
           Account.rehydrate(
               CAREGIVER_ID,
