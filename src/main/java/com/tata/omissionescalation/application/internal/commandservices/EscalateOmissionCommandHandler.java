@@ -29,21 +29,24 @@ public class EscalateOmissionCommandHandler {
     this.closeHandler = closeHandler;
   }
 
-  /** Raises the level when the policy says so, and closes the case once the top level is reached. */
+  /**
+   * Raises the level when the policy says so, and closes the case once the top level is reached.
+   */
   @Transactional
   public void handle(EscalateOmissionCommand command) {
-    OmissionCase omissionCase = repository.findById(command.omissionCaseId()).orElse(null);
+    OmissionCase omissionCase = repository.findByIdForUpdate(command.omissionCaseId()).orElse(null);
     if (omissionCase == null || !escalationPolicy.shouldEscalate(omissionCase, command.now())) {
       return;
     }
     omissionCase.escalate(ESCALATION_REASON, command.now());
     repository.save(omissionCase);
-    eventPublisher.publish(new EscalationExecuted(
-        omissionCase.getId(),
-        omissionCase.getIntakeId(),
-        omissionCase.getOlderAdultId(),
-        omissionCase.currentLevel().value(),
-        command.now()));
+    eventPublisher.publish(
+        new EscalationExecuted(
+            omissionCase.getId(),
+            omissionCase.getIntakeId(),
+            omissionCase.getOlderAdultId(),
+            omissionCase.currentLevel().value(),
+            command.now()));
     if (omissionCase.currentLevel().isMax()) {
       closeHandler.handle(new CloseOmissionCaseCommand(omissionCase.getId(), command.now()));
     }

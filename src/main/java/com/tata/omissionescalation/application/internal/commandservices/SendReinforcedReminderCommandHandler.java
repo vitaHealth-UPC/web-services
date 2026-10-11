@@ -25,13 +25,6 @@ public class SendReinforcedReminderCommandHandler {
   public SendReinforcedReminderCommandHandler(
       IOmissionCaseRepository repository,
       INotificationPort notificationPort,
-      INotificationPreferencesPort preferencesPort) {
-    this(repository, notificationPort, preferencesPort, Clock.systemUTC());
-  }
-
-  SendReinforcedReminderCommandHandler(
-      IOmissionCaseRepository repository,
-      INotificationPort notificationPort,
       INotificationPreferencesPort preferencesPort,
       Clock clock) {
     this.repository = repository;
@@ -43,7 +36,7 @@ public class SendReinforcedReminderCommandHandler {
   /** Sends one reinforced reminder per case, respecting the user's channel and quiet hours. */
   @Transactional
   public void handle(SendReinforcedReminderCommand command) {
-    OmissionCase omissionCase = repository.findById(command.omissionCaseId()).orElse(null);
+    OmissionCase omissionCase = repository.findByIdForUpdate(command.omissionCaseId()).orElse(null);
     if (omissionCase == null
         || omissionCase.getStatus() != OmissionCaseStatus.PENDING
         || omissionCase.getReinforcedReminderSentAt() != null) {
@@ -55,10 +48,11 @@ public class SendReinforcedReminderCommandHandler {
     if (!preferences.pushEnabled() || preferences.isQuietAt(now)) {
       return;
     }
-    INotificationPort.NotificationResult result = notificationPort.sendReinforcedReminder(
-        omissionCase.getOlderAdultId(),
-        omissionCase.getMedicationName(),
-        omissionCase.getScheduledAt());
+    INotificationPort.NotificationResult result =
+        notificationPort.sendReinforcedReminder(
+            omissionCase.getOlderAdultId(),
+            omissionCase.getMedicationName(),
+            omissionCase.getScheduledAt());
     if (result.delivered()) {
       omissionCase.markReminderSent(now);
       repository.save(omissionCase);
