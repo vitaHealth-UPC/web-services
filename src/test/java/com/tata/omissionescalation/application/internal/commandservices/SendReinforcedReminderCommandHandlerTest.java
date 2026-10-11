@@ -45,16 +45,13 @@ class SendReinforcedReminderCommandHandlerTest {
 
   private SendReinforcedReminderCommandHandler handler() {
     return new SendReinforcedReminderCommandHandler(
-        repository,
-        notifications,
-        preferences,
-        Clock.fixed(NOW, ZoneOffset.UTC));
+        repository, notifications, preferences, Clock.fixed(NOW, ZoneOffset.UTC));
   }
 
   @Test
   void enabledPushOutsideQuietHours_marksReminderAsSent() {
     OmissionCase omissionCase = pendingCase();
-    when(repository.findById(7L)).thenReturn(Optional.of(omissionCase));
+    when(repository.findByIdForUpdate(7L)).thenReturn(Optional.of(omissionCase));
     when(preferences.getPreferences("adult-10")).thenReturn(NotificationPreferences.defaults());
     when(notifications.sendReinforcedReminder(any(), any(), any()))
         .thenReturn(INotificationPort.NotificationResult.success());
@@ -68,7 +65,7 @@ class SendReinforcedReminderCommandHandlerTest {
   @Test
   void disabledPush_skipsDeliveryAndKeepsReminderPending() {
     OmissionCase omissionCase = pendingCase();
-    when(repository.findById(7L)).thenReturn(Optional.of(omissionCase));
+    when(repository.findByIdForUpdate(7L)).thenReturn(Optional.of(omissionCase));
     when(preferences.getPreferences("adult-10"))
         .thenReturn(new NotificationPreferences(false, null, null));
 
@@ -82,12 +79,9 @@ class SendReinforcedReminderCommandHandlerTest {
   @Test
   void quietHours_skipDelivery() {
     OmissionCase omissionCase = pendingCase();
-    when(repository.findById(7L)).thenReturn(Optional.of(omissionCase));
+    when(repository.findByIdForUpdate(7L)).thenReturn(Optional.of(omissionCase));
     when(preferences.getPreferences("adult-10"))
-        .thenReturn(new NotificationPreferences(
-            true,
-            LocalTime.of(7, 0),
-            LocalTime.of(9, 0)));
+        .thenReturn(new NotificationPreferences(true, LocalTime.of(7, 0), LocalTime.of(9, 0)));
 
     handler().handle(new SendReinforcedReminderCommand(7L));
 
@@ -98,7 +92,7 @@ class SendReinforcedReminderCommandHandlerTest {
   @Test
   void providerFailure_doesNotMarkReminderAsSent() {
     OmissionCase omissionCase = pendingCase();
-    when(repository.findById(7L)).thenReturn(Optional.of(omissionCase));
+    when(repository.findByIdForUpdate(7L)).thenReturn(Optional.of(omissionCase));
     when(preferences.getPreferences("adult-10")).thenReturn(NotificationPreferences.defaults());
     when(notifications.sendReinforcedReminder(any(), any(), any()))
         .thenReturn(INotificationPort.NotificationResult.failure("provider unavailable"));

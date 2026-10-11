@@ -33,27 +33,29 @@ public class GenerateCaregiverAlertCommandHandler {
    */
   @Transactional
   public void handle(GenerateCaregiverAlertCommand command) {
-    OmissionCase omissionCase = repository.findById(command.omissionCaseId()).orElse(null);
+    OmissionCase omissionCase = repository.findByIdForUpdate(command.omissionCaseId()).orElse(null);
     if (omissionCase == null
         || omissionCase.getStatus() != OmissionCaseStatus.OMITTED
         || !omissionCase.getAlerts().isEmpty()) {
       return;
     }
     CareAlert alert = omissionCase.addAlert(command.now());
-    INotificationPort.NotificationResult result = notificationPort.sendCaregiverAlert(
-        omissionCase.getOlderAdultId(),
-        omissionCase.getMedicationName(),
-        omissionCase.getScheduledAt());
+    INotificationPort.NotificationResult result =
+        notificationPort.sendCaregiverAlert(
+            omissionCase.getOlderAdultId(),
+            omissionCase.getMedicationName(),
+            omissionCase.getScheduledAt());
     if (result.delivered()) {
       alert.markSent(command.now());
     } else {
       alert.markFailed(result.failureReason());
     }
     repository.save(omissionCase);
-    eventPublisher.publish(new CaregiverAlertGenerated(
-        omissionCase.getId(),
-        omissionCase.getIntakeId(),
-        omissionCase.getOlderAdultId(),
-        command.now()));
+    eventPublisher.publish(
+        new CaregiverAlertGenerated(
+            omissionCase.getId(),
+            omissionCase.getIntakeId(),
+            omissionCase.getOlderAdultId(),
+            command.now()));
   }
 }
