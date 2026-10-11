@@ -11,4 +11,6 @@ public interface IntakeContextFacade {
  Optional<IntakeResult> findIntake(String id);
  /** Locks the source intake for the current transaction before deciding an omission. */
  boolean lockPendingIntake(String id);
+ /** Locks and verifies the original recorded confirmation, including its timestamp. */
+ boolean lockRecordedConfirmation(String id, Instant confirmedAt);
 }

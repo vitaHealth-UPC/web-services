@@ -6,7 +6,6 @@ import com.tata.omissionescalation.domain.model.commands.OpenOmissionCaseCommand
 import com.tata.omissionescalation.domain.model.valueobjects.GracePeriod;
 import com.tata.omissionescalation.domain.repositories.IOmissionCaseRepository;
 import java.time.Duration;
-import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ public class OpenOmissionCaseCommandHandler {
     this.gracePeriodLength = gracePeriodLength;
   }
 
-  /** Opens the case for the intake; if it already exists it is returned unchanged. */
+  /** Opens one case per intake. The scheduled time anchors grace even when processing is delayed. */
   @Transactional
   public OmissionCase handle(OpenOmissionCaseCommand command) {
     return repository.findByIntakeId(command.intakeId())
@@ -33,6 +32,6 @@ public class OpenOmissionCaseCommandHandler {
             command.olderAdultId(),
             command.medicationName(),
             command.scheduledAt(),
-            GracePeriod.startingAt(Instant.now(), gracePeriodLength))));
+            GracePeriod.startingAt(command.scheduledAt(), gracePeriodLength))));
   }
 }

@@ -43,7 +43,10 @@ class OmissionAndMonitoringFlowTest {
 
   @Autowired ApplicationEventPublisher events;
   @Autowired com.tata.intakeexecution.domain.repositories.IntakeRepository intakes;
-  @Autowired com.tata.intakeexecution.application.commandservices.ConfirmIntakeCommandService confirmation;
+
+  @Autowired
+  com.tata.intakeexecution.application.commandservices.ConfirmIntakeCommandService confirmation;
+
   @Autowired IOmissionCaseRepository omissionCases;
   @Autowired IFamilyMonitorRepository monitors;
   @Autowired EvaluateGracePeriodCommandHandler evaluateHandler;
@@ -68,12 +71,21 @@ class OmissionAndMonitoringFlowTest {
   private void unconfirmed(String intakeId, String olderAdultId) {
     var scheduledAt = Instant.now().minusSeconds(120);
     if (intakes.findById(intakeId).isEmpty()) {
-      intakes.saveAll(java.util.List.of(com.tata.intakeexecution.domain.model.aggregates.Intake.rehydrate(
-          intakeId, nextId(), nextId(), olderAdultId,
-          new com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot("Losartan 50 mg", "1 comprimido", "Con agua"),
-          scheduledAt, com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.PENDING, scheduledAt)));
+      intakes.saveAll(
+          java.util.List.of(
+              com.tata.intakeexecution.domain.model.aggregates.Intake.rehydrate(
+                  intakeId,
+                  nextId(),
+                  nextId(),
+                  olderAdultId,
+                  new com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot(
+                      "Losartan 50 mg", "1 comprimido", "Con agua"),
+                  scheduledAt,
+                  com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.PENDING,
+                  scheduledAt)));
     }
-    events.publishEvent(new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", scheduledAt));
+    events.publishEvent(
+        new IntakeUnconfirmed(intakeId, olderAdultId, "Losartan 50 mg", scheduledAt));
   }
 
   @Test
@@ -115,7 +127,8 @@ class OmissionAndMonitoringFlowTest {
     evaluateHandler.handle(new EvaluateGracePeriodCommand(now));
 
     for (int step = 1; step <= 3; step++) {
-      evaluateHandler.handle(new EvaluateGracePeriodCommand(now.plus(Duration.ofMinutes(31L * step))));
+      evaluateHandler.handle(
+          new EvaluateGracePeriodCommand(now.plus(Duration.ofMinutes(31L * step))));
     }
 
     OmissionCase omissionCase = omissionCases.findByIntakeId(intakeId).orElseThrow();
@@ -124,7 +137,7 @@ class OmissionAndMonitoringFlowTest {
   }
 
   @Test
-  void confirmationOutsideTheGracePeriod_doesNotResolveTheCase() {
+  void confirmationEventWithoutRecordedEvidence_doesNotResolveTheCase() {
     String intakeId = nextId();
     unconfirmed(intakeId, nextId());
 
@@ -149,13 +162,19 @@ class OmissionAndMonitoringFlowTest {
 
     AlertSummary attended =
         markAttendedHandler.handle(new MarkAlertAttendedCommand(olderAdultId, alert.getId()));
-    assertThat(attended.getStatus()).isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.AlertStatus.ATTENDED);
+    assertThat(attended.getStatus())
+        .isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.AlertStatus.ATTENDED);
 
     AlertSummary closed =
         closeAlertHandler.handle(new CloseAlertCommand(olderAdultId, alert.getId()));
-    assertThat(closed.getStatus()).isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.AlertStatus.CLOSED);
-    assertThat(statusHandler.handle(new GetOlderAdultStatusQuery(olderAdultId))
-        .status().hasOpenAlert()).isFalse();
+    assertThat(closed.getStatus())
+        .isEqualTo(com.tata.familymonitoring.domain.model.valueobjects.AlertStatus.CLOSED);
+    assertThat(
+            statusHandler
+                .handle(new GetOlderAdultStatusQuery(olderAdultId))
+                .status()
+                .hasOpenAlert())
+        .isFalse();
   }
 
   @Test
@@ -163,7 +182,8 @@ class OmissionAndMonitoringFlowTest {
     String olderAdultId = nextId();
     givenMonitorFor(olderAdultId);
 
-    createNoteHandler.handle(new CreateCaregiverNoteCommand(olderAdultId, "account-5", "Called her"));
+    createNoteHandler.handle(
+        new CreateCaregiverNoteCommand(olderAdultId, "account-5", "Called her"));
 
     var notes = notesHandler.handle(new GetCaregiverNotesQuery(olderAdultId));
     assertThat(notes).hasSize(1);
@@ -171,19 +191,59 @@ class OmissionAndMonitoringFlowTest {
     assertThat(notes.getFirst().getFamiliarId()).isEqualTo("account-5");
     assertThat(notes.getFirst().getRecordedAt()).isNotNull();
   }
+
   @Test
   void confirmedSourceIntakeCannotProduceAnOmissionOrCaregiverAlert() {
     var adultId = nextId();
     givenMonitorFor(adultId);
     var intakeId = nextId();
     unconfirmed(intakeId, adultId);
-    confirmation.handle(new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand(
-        intakeId, com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel.TOUCH));
+    confirmation.handle(
+        new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand(
+            intakeId,
+            com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel.TOUCH));
+    var recorded = intakes.findById(intakeId).orElseThrow();
+    events.publishEvent(
+        new IntakeConfirmed(intakeId, recorded.medicationId(), adultId, recorded.confirmedAt()));
     evaluateHandler.handle(new EvaluateGracePeriodCommand(Instant.now().plusSeconds(5)));
     assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getOmittedAt()).isNull();
+    assertThat(omissionCases.findByIntakeId(intakeId).orElseThrow().getStatus())
+        .isEqualTo(OmissionCaseStatus.RESOLVED);
     assertThat(monitors.findByOlderAdultId(adultId).orElseThrow().getAlerts()).isEmpty();
     assertThat(intakes.findById(intakeId).orElseThrow().status())
-        .isIn(com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.CONFIRMED,
-              com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.LATE);
+        .isIn(
+            com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.CONFIRMED,
+            com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.LATE);
+  }
+
+  @Test
+  void delayedUnconfirmedEventCannotOpenACaseForAnAlreadyConfirmedIntake() {
+    var adultId = nextId();
+    givenMonitorFor(adultId);
+    var intakeId = nextId();
+    var scheduledAt = Instant.now().minusSeconds(120);
+    intakes.saveAll(
+        java.util.List.of(
+            com.tata.intakeexecution.domain.model.aggregates.Intake.rehydrate(
+                intakeId,
+                nextId(),
+                nextId(),
+                adultId,
+                new com.tata.intakeexecution.domain.model.valueobjects.MedicationSnapshot(
+                    "Losartan 50 mg", "1 comprimido", "Con agua"),
+                scheduledAt,
+                com.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.PENDING,
+                scheduledAt)));
+    confirmation.handle(
+        new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand(
+            intakeId,
+            com.tata.intakeexecution.domain.model.valueobjects.ConfirmationChannel.TOUCH));
+
+    events.publishEvent(new IntakeUnconfirmed(intakeId, adultId, "Losartan 50 mg", scheduledAt));
+    events.publishEvent(new IntakeUnconfirmed(intakeId, adultId, "Losartan 50 mg", scheduledAt));
+    evaluateHandler.handle(new EvaluateGracePeriodCommand(Instant.now().plusSeconds(5)));
+
+    assertThat(omissionCases.findByIntakeId(intakeId)).isEmpty();
+    assertThat(monitors.findByOlderAdultId(adultId).orElseThrow().getAlerts()).isEmpty();
   }
 }

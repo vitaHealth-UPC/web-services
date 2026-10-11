@@ -21,12 +21,12 @@ public class ConfirmIntakeCommandHandler implements com.tata.intakeexecution.app
     private final ApplicationEventPublisher events;
     private final Clock clock;
 
-    @Autowired
     public ConfirmIntakeCommandHandler(IntakeRepository repository, ApplicationEventPublisher events) {
         this(repository, events, Clock.systemUTC());
     }
 
-    ConfirmIntakeCommandHandler(IntakeRepository repository, ApplicationEventPublisher events, Clock clock) {
+    @Autowired
+    public ConfirmIntakeCommandHandler(IntakeRepository repository, ApplicationEventPublisher events, Clock clock) {
         this.repository = repository;
         this.events = events;
         this.clock = clock;
@@ -41,7 +41,7 @@ public class ConfirmIntakeCommandHandler implements com.tata.intakeexecution.app
 
         final boolean changed;
         try {
-            changed = intake.confirm(clock.instant(), command.channel());
+            changed = intake.confirm(clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS), command.channel());
         } catch (IllegalStateException exception) {
             throw new IntakeApplicationException(
                     IntakeApplicationException.Code.INTAKE_NOT_CONFIRMABLE,
@@ -55,6 +55,6 @@ public class ConfirmIntakeCommandHandler implements com.tata.intakeexecution.app
                     intake.id(), intake.medicationId(), intake.olderAdultId(), intake.confirmedAt()));
         }
 
-        return IntakeMapper.toResult(intake);
+        return IntakeMapper.toResult(intake, !changed);
     }
 }

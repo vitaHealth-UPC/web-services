@@ -119,6 +119,21 @@ class ConfirmIntakeByVoiceCommandHandlerTest {
         assertEquals(ConfirmationChannel.TOUCH, result.intake().confirmationChannel());
     }
 
+    @Test
+    void aTouchConfirmationDuringRecognitionIsReturnedAsAnIdempotentReplay() {
+        var repository = new SingleIntakeRepository(pendingIntake());
+        var confirm = new ConfirmIntakeCommandHandler(repository, event -> {}, CLOCK);
+        IVoiceRecognitionPort voice = (audio, contentType, language) -> {
+            confirm.handle(new com.tata.intakeexecution.domain.model.commands.ConfirmIntakeCommand("intake-1", ConfirmationChannel.TOUCH));
+            return IVoiceRecognitionPort.VoiceRecognitionResult.recognized("Confirmo que tomé Losartán", 0.99);
+        };
+        var result = new ConfirmIntakeByVoiceCommandHandler(voice, repository, confirm).handle(command());
+        assertEquals(VoiceConfirmationStatus.ALREADY_CONFIRMED, result.status());
+        assertEquals(true, result.intake().alreadyConfirmed());
+        assertEquals(ConfirmationChannel.TOUCH, result.intake().confirmationChannel());
+        assertEquals(1, repository.saveCalls);
+    }
+
     private static ConfirmIntakeByVoiceCommand command() {
         return new ConfirmIntakeByVoiceCommand(
                 "intake-1",
