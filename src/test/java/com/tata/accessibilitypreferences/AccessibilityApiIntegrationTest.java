@@ -157,6 +157,21 @@ class AccessibilityApiIntegrationTest {
     }
 
     @Test
+    void callPreferenceIsPersistedAndCanBeDisabled() throws Exception {
+        var userId = newUser();
+        for (boolean enabled : new boolean[] {true, false}) {
+            mockMvc.perform(put(notificationPreferences(userId))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"quietHours\":null,\"channels\":[{\"type\":\"CALL\",\"enabled\":" + enabled + "}]}"))
+                .andExpect(status().isOk());
+            mockMvc.perform(get(preferences(userId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notificationChannels[0].type").value("CALL"))
+                .andExpect(jsonPath("$.notificationChannels[0].enabled").value(enabled));
+        }
+    }
+
+    @Test
     void quietHoursCanBeRemoved() throws Exception {
         var userId = newUser();
         mockMvc.perform(put(notificationPreferences(userId))
