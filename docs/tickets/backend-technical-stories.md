@@ -219,10 +219,13 @@ A retry for the same intake must not create a second business confirmation or du
 **Goal:** deliver reminders and caregiver alerts without coupling Domain to a vendor.
 
 **Application contract**
-- INotificationPort.
+- NotificationIntentStore for atomic delivery intentions.
+- NotificationRecipientPort for current consent and session-scoped device lookup.
+- NotificationDeviceTransport for provider acceptance outside the business transaction.
 
 **Infrastructure**
-- PushNotificationAdapter as Anti-Corruption Layer.
+- NotificationRecipientAdapter translates Care Link and Identity evidence.
+- FirebaseNotificationMessageAssembler translates versioned device data for FCM HTTP v1.
 - Record provider success/failure.
 - Obtain quiet-hours/channel preferences through the Accessibility & Preferences public contract.
 
@@ -391,7 +394,7 @@ Treatment updates regenerate only future intakes without definitive outcomes; re
 **Goal:** convert a spoken confirmation into validated input for the Intake confirmation invariant.
 
 **Application**
-- IVoiceRecognitionPort.
+- VoiceRecognitionPort.
 - ConfirmIntakeByVoiceCommandHandler.
 
 **Domain**

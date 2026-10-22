@@ -35,6 +35,11 @@ captures metrics and recurrence evidence from a single outcome read. The snapsho
 contains the configured recurrence threshold and consolidation time. The same
 owner, bounds and normalized zone return the original persisted snapshot with
 HTTP 200; retries and concurrent requests neither overwrite nor duplicate it.
+Stored evidence is looked up before consulting Intake, so replay does not depend on
+current source availability. New snapshots and synchronous Family Monitoring projections
+commit in the same transaction. A projection failure rolls back both; a retry can then
+capture and publish successfully. Concurrent requests return the committed winner without
+publishing its patterns again.
 Later intake changes remain visible in live queries without changing saved evidence.
 
 `GET /api/v1/older-adults/{olderAdultId}/adherence/consolidations/{snapshotId}`
@@ -46,7 +51,9 @@ older adult return HTTP 404. Invalid bounds/zones return HTTP 400.
 These two read endpoints serve the adherence screens of the mobile app (US-08, US-09,
 US-32, US-33 and US-34). They return data and stable codes; the app owns the translated
 display text. Both accept `days` (1–31, default 30) and `zone` (IANA calendar zone,
-default `America/Lima`). The period ends now and starts `days` days earlier. Pending
+default `America/Lima`). The period ends at the shared application clock instant and starts
+`days` elapsed 24-hour durations earlier. The zone controls local date labels and time-band
+grouping; it does not move the rolling period to midnight. Pending
 intakes never enter any figure. Invalid values return HTTP 400 (`VALIDATION_ERROR`).
 
 ## History summary
@@ -94,16 +101,38 @@ Returns HTTP 204 when the evidence is insufficient for a conclusive recommendati
 {
   "periodDays": 30,
   "pattern": { "type": "OMISSION", "timeBand": "EVENING", "omittedCount": 4, "lateCount": 2, "fromHour": 18, "toHour": 21 },
-  "concentration": [[0.27, 0.495, 0.72, 0.42, 0.345, 0.795, 0.645], [], []],
+  "concentration": [[0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2], [0.8, 0.8, 0.8, 0.2, 0.2, 0.2, 0.2]],
   "recommendations": ["ADJUST_REMINDER", "REVIEW_SCHEDULE", "FOLLOW_UP_ONE_WEEK"]
 }
 ~~~
 
-- `concentration` has three rows (morning, afternoon, evening and night) by seven columns (Monday to Sunday),
+- `concentration` has three rows (morning, afternoon, combined evening/night) by seven columns (Monday to Sunday),
   each cell an intensity between 0.2 and 0.8 proportional to the late or omitted intakes in that slot.
 - `type` is `OMISSION` when omissions are at least as many as late intakes in the band, otherwise `LATENESS`.
-- `fromHour` is inclusive and `toHour` exclusive, in local time.
+- `fromHour` is inclusive and `toHour` exclusive, in local time. An end at or before
+  the start belongs to the following day: `23` to `3` means 23:00 to 03:00. An end
+  of `24` explicitly denotes midnight. Night evidence on both sides of midnight is
+  ordered within the night band rather than expanded across daytime hours.
 - Recommendation codes only concern reminders, schedules and caregiver follow-up. They never change a
   dose or a medical indication.
 
 The singular /insight path is canonical; /insights is a compatible alias. Both accept the same period and calendar zone. Mobile clients pass their device IANA zone explicitly.
+
+
+## Scheduled consolidation
+
+The daily job runs at 03:00 in `adherence.consolidation.zone` (default
+`America/Lima`) and captures the last seven complete local calendar days.
+It discovers distinct source owners in ordered pages of at most 100 with an
+exclusive owner cursor. Failure for one owner does not prevent processing later
+owners. Repeating the same owner-period-zone retains the stored snapshot.
+
+## Error responses
+
+Both controller groups use `ProblemDetail` with `title` as the stable error code
+and `detail` as a public message localized through `Accept-Language`.
+Missing parameters, invalid conversions and unsupported periods or zones return
+400 `VALIDATION_ERROR`. Unavailable Intake reads and inconsistent returned evidence
+return 500 `ADHERENCE_SOURCE_ERROR`; they do not produce empty successful results
+or expose provider diagnostics. Valid requests without sufficient evidence retain
+the documented zero, empty-list or 204 behavior for each endpoint.
