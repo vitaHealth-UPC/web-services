@@ -2,7 +2,7 @@
 
 `POST /api/v1/accounts`, `POST /api/v1/accounts/verification`, `POST /api/v1/email-verification-requests`, `POST /api/v1/sessions`, `POST /api/v1/pin-sessions` and `POST /api/v1/care-links/acceptances` are public credential-establishment operations. Plans, liveness endpoints (`/health`, `/actuator/health`) and OpenAPI documentation can be read publicly.
 
-Other API operations require `Authorization: Bearer <accessToken>`. Tokens are opaque, persisted as SHA-256 hashes and validated on every protected request. An invalid, expired or revoked session returns `401` with code `AUTHENTICATION_REQUIRED`. Resource ownership violations return `403` with code `RESOURCE_ACCESS_DENIED`.
+Other API operations require `Authorization: Bearer <accessToken>`. New sessions use signed JWTs with persisted SHA-256 credential hashes and live authorization checks. The supported legacy opaque format uses the same persisted revocation checks. An invalid, expired or revoked session returns `401` with code `AUTHENTICATION_REQUIRED`. Resource ownership violations return `403` with code `RESOURCE_ACCESS_DENIED`.
 
 ## Establishing sessions
 
@@ -10,6 +10,7 @@ Other API operations require `Authorization: Bearer <accessToken>`. Tokens are o
 - Password sign-in establishes a caregiver session. PIN sign-in establishes an older-adult session after verifying a confirmed care link.
 - Accepting a linking code returns the existing care-link fields plus a 15-minute restricted session. It grants access only to that link, its adult profile and the consent operation.
 - Confirming consent replaces the restricted session with a 12-hour older-adult session. The client persists the replacement credentials before entering the adult's home screen.
+- Onboarding credentials authorize only an awaiting-consent relationship. Adult credentials require their exact relationship to remain confirmed and consented; another relationship does not authorize a stale credential. Withdrawing consent removes every credential scoped to that relationship.
 - Caregiver and older-adult sessions expire after 12 hours. Legacy persisted records without a role are rejected.
 
 `GET /api/v1/sessions/current` returns the authenticated subject, role, expiration and logical care-link identifier. It never exposes credential hashes. `DELETE /api/v1/sessions` revokes the presented session and returns `204`.
