@@ -19,7 +19,7 @@ This repository is a **single deployable modular monolith** built with Java and 
 Each Bounded Context follows this Java structure:
 
 ~~~text
-com.tata.<boundedcontext>/
+com.vitahealth.tata.<boundedcontext>/
 ├── domain/
 ├── application/
 ├── interfaces/
@@ -52,11 +52,11 @@ Read before implementing a feature:
 
 ## Internationalization
 
-English is the default API/documentation language. Latin American Spanish is supported through es-419.
+English is the default API/documentation language. Accept-Language supports regional English and Spanish, including es-419 and es-PE, through language fallbacks. Identity and Inventory localize public failure messages while preserving machine-readable error codes.
 
 ~~~text
 src/main/resources/i18n/messages.properties
-src/main/resources/i18n/messages_es_419.properties
+src/main/resources/i18n/messages_es.properties
 ~~~
 
 ## Local configuration
