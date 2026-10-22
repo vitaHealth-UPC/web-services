@@ -1,2 +1,2 @@
-org.springframework.boot.env.EnvironmentPostProcessor=\
-com.tata.shared.infrastructure.persistence.DatabaseUrlEnvironmentPostProcessor
+org.springframework.boot.EnvironmentPostProcessor=\
+com.vitahealth.tata.shared.infrastructure.persistence.DatabaseUrlEnvironmentPostProcessor

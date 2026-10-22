@@ -10,7 +10,7 @@
 | Adherence Analytics | adherence ledger/snapshots, outcome metrics, patterns, insights/recommendations | treatment prescription editing, alert delivery | consumes intake/omission outcomes |
 | Family Monitoring | caregiver-facing consolidated state, alert summaries, follow-up notes, private routine notes | source-of-truth intake/treatment rules | consumes omission/stock/pattern events; queries through ports |
 | Accessibility & Preferences | text size, contrast, reduced motion, reading/voice preferences, quiet hours, notification channels | UI rendering itself, omission business rules | exposes a public preference contract/shared concepts |
-| Inventory & Replenishment | stock, batches, thresholds, replenishments | medication definition | consumes confirmed intake; publishes low-stock/replenishment |
+| Inventory & Replenishment | stock, batches, thresholds, replenishments | medication definition | recovers confirmed-intake consumption; publishes revisioned stock and business stock events |
 
 ## Integration rule
 
