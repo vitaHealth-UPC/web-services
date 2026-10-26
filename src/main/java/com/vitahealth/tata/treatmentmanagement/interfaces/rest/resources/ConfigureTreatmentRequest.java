@@ -28,7 +28,8 @@ public record ConfigureTreatmentRequest(
         int reminderLeadMinutes,
     String recurrenceMode,
     String recurrenceZone,
-    Instant recurrenceAnchor) {
+    Instant recurrenceAnchor,
+    @Min(0) @Max(1440) Integer followUpDelayMinutes) {
   /** Preserves the UTC local-time contract for callers without explicit recurrence metadata. */
   public ConfigureTreatmentRequest(
       String caregiverId,
@@ -48,6 +49,32 @@ public record ConfigureTreatmentRequest(
         reminderLeadMinutes,
         null,
         null,
+        null);
+  }
+
+  /** Retains existing callers with the system follow-up default. */
+  public ConfigureTreatmentRequest(
+      String caregiverId,
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      int reminderLeadMinutes,
+      String recurrenceMode,
+      String recurrenceZone,
+      Instant recurrenceAnchor) {
+    this(
+        caregiverId,
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrenceMode,
+        recurrenceZone,
+        recurrenceAnchor,
         null);
   }
 }

@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * rejections.
  */
 @RestControllerAdvice(
-    assignableTypes = {AccessibilityController.class, NotificationPreferencesController.class})
+    assignableTypes = {
+      AccessibilityController.class,
+      DarkThemeController.class,
+      NotificationPreferencesController.class
+    })
 public class AccessibilityExceptionHandler {
   private final PreferencesResponseAssembler responses;
 

@@ -34,6 +34,7 @@ public final class UserPreferencesResourceFromResultAssembler {
             policy.dailySummaryTime()),
         preferences.emergencyContacts().stream()
             .map(c -> new EmergencyContactResource(c.name(), c.phone()))
-            .toList());
+            .toList(),
+        preferences.darkTheme());
   }
 }

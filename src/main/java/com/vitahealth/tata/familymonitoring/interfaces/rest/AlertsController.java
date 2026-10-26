@@ -4,20 +4,24 @@ import com.vitahealth.tata.familymonitoring.application.commandservices.CloseAle
 import com.vitahealth.tata.familymonitoring.application.commandservices.MarkAlertAttendedCommandService;
 import com.vitahealth.tata.familymonitoring.application.queryservices.CareRelationshipQueryService;
 import com.vitahealth.tata.familymonitoring.application.queryservices.GetAlertDetailQueryService;
+import com.vitahealth.tata.familymonitoring.application.queryservices.GetAlertTimelineQueryService;
 import com.vitahealth.tata.familymonitoring.application.result.AlertResult;
 import com.vitahealth.tata.familymonitoring.domain.model.commands.CloseAlertCommand;
 import com.vitahealth.tata.familymonitoring.domain.model.commands.MarkAlertAttendedCommand;
 import com.vitahealth.tata.familymonitoring.domain.model.queries.GetAlertDetailQuery;
 import com.vitahealth.tata.familymonitoring.interfaces.rest.resources.AlertSummaryResource;
 import com.vitahealth.tata.familymonitoring.interfaces.rest.resources.ErrorResource;
+import com.vitahealth.tata.familymonitoring.interfaces.rest.resources.RecordedAlertEventResource;
 import com.vitahealth.tata.familymonitoring.interfaces.rest.resources.UpdateAlertStatusResource;
 import com.vitahealth.tata.familymonitoring.interfaces.rest.transform.AlertSummaryResourceFromResultAssembler;
+import com.vitahealth.tata.familymonitoring.interfaces.rest.transform.RecordedAlertEventResourceAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -45,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AlertsController {
 
   private final GetAlertDetailQueryService alertDetailHandler;
+  private final GetAlertTimelineQueryService timeline;
   private final MarkAlertAttendedCommandService markAttendedHandler;
   private final CloseAlertCommandService closeAlertHandler;
   private final CareRelationshipQueryService access;
@@ -54,7 +59,9 @@ public class AlertsController {
       GetAlertDetailQueryService alertDetailHandler,
       MarkAlertAttendedCommandService markAttendedHandler,
       CloseAlertCommandService closeAlertHandler,
-      CareRelationshipQueryService access) {
+      CareRelationshipQueryService access,
+      GetAlertTimelineQueryService timeline) {
+    this.timeline = timeline;
     this.alertDetailHandler = alertDetailHandler;
     this.markAttendedHandler = markAttendedHandler;
     this.closeAlertHandler = closeAlertHandler;
@@ -78,6 +85,19 @@ public class AlertsController {
     access.check(caregiverId, olderAdultId);
     return AlertSummaryResourceFromResultAssembler.toResourceFromResult(
         alertDetailHandler.handle(new GetAlertDetailQuery(olderAdultId, caregiverId, alertId)));
+  }
+
+  /** Returns only timestamps persisted on this caregiver-owned alert. */
+  @GetMapping("/{alertId}/timeline")
+  @Operation(summary = "Get recorded alert timeline")
+  public List<RecordedAlertEventResource> timeline(
+      @PathVariable String olderAdultId,
+      @PathVariable Long alertId,
+      @RequestParam String caregiverId) {
+    access.check(caregiverId, olderAdultId);
+    return timeline.handle(new GetAlertDetailQuery(olderAdultId, caregiverId, alertId)).stream()
+        .map(RecordedAlertEventResourceAssembler::from)
+        .toList();
   }
 
   /** Dispatches attendance or closure without altering original omission evidence. */

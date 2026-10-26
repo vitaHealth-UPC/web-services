@@ -38,6 +38,9 @@ public class UserPreferencesPersistenceEntity {
   @Column(name = "high_contrast", nullable = false)
   private boolean highContrast;
 
+  @Column(name = "dark_theme")
+  private Boolean darkTheme;
+
   @Column(name = "reduced_motion", nullable = false)
   private boolean reducedMotion;
 
@@ -121,6 +124,14 @@ public class UserPreferencesPersistenceEntity {
   }
 
   /** Returns the stored high-contrast choice. */
+  public boolean isDarkTheme() {
+    return Boolean.TRUE.equals(darkTheme);
+  }
+
+  public void setDarkTheme(boolean enabled) {
+    darkTheme = enabled;
+  }
+
   public boolean isHighContrast() {
     return highContrast;
   }
@@ -191,6 +202,7 @@ public class UserPreferencesPersistenceEntity {
   public void applyMutableState(UserPreferencesPersistenceEntity source) {
     textSize = source.textSize;
     highContrast = source.highContrast;
+    darkTheme = source.darkTheme;
     reducedMotion = source.reducedMotion;
     readingAssistance = source.readingAssistance;
     voiceConfirmationEnabled = source.voiceConfirmationEnabled;

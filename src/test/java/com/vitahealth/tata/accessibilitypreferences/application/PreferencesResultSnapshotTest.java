@@ -50,7 +50,8 @@ class PreferencesResultSnapshotTest {
             channels,
             Instant.EPOCH,
             defaults.notificationPolicy(),
-            contacts);
+            contacts,
+            false);
     channels.clear();
     contacts.clear();
     assertEquals(1, snapshot.emergencyContacts().size());

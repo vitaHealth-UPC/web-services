@@ -62,7 +62,8 @@ public class ConfigureTreatmentCommandHandler {
             command.scheduledTimes(),
             command.instructions(),
             command.reminderLeadMinutes(),
-            recurrence));
+            recurrence,
+            command.followUpDelayMinutes()));
     var saved = treatmentRepository.save(treatment);
     schedules.publish(saved);
     return TreatmentMapper.toResult(saved);

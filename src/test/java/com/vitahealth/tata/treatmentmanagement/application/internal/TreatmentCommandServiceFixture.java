@@ -29,6 +29,7 @@ public final class TreatmentCommandServiceFixture {
         new ConfigureTreatmentCommandHandler(lookup, treatments, access, schedules),
         new ActivateTreatmentCommandHandler(lookup, treatments, access, schedules),
         new PauseTreatmentCommandHandler(lookup, treatments, access, schedules),
-        new ResumeTreatmentCommandHandler(lookup, treatments, access, schedules));
+        new ResumeTreatmentCommandHandler(lookup, treatments, access, schedules),
+        new ReactivateMedicationCommandHandler(medications, access));
   }
 }

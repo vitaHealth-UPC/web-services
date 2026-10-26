@@ -16,7 +16,8 @@ public record ConfigureTreatmentCommand(
     int reminderLeadMinutes,
     String recurrenceMode,
     String recurrenceZone,
-    Instant recurrenceAnchor) {
+    Instant recurrenceAnchor,
+    Integer followUpDelayMinutes) {
   /** Captures the requested schedule so caller mutations cannot alter this command. */
   public ConfigureTreatmentCommand {
     scheduledTimes = scheduledTimes == null ? null : List.copyOf(scheduledTimes);
@@ -43,6 +44,34 @@ public record ConfigureTreatmentCommand(
         reminderLeadMinutes,
         null,
         null,
+        null);
+  }
+
+  /** Retains existing callers with the system follow-up default. */
+  public ConfigureTreatmentCommand(
+      String caregiverId,
+      String treatmentId,
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      int reminderLeadMinutes,
+      String recurrenceMode,
+      String recurrenceZone,
+      Instant recurrenceAnchor) {
+    this(
+        caregiverId,
+        treatmentId,
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrenceMode,
+        recurrenceZone,
+        recurrenceAnchor,
         null);
   }
 }

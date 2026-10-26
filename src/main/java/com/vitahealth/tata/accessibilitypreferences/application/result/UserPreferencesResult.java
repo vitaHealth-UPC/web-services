@@ -22,7 +22,8 @@ public record UserPreferencesResult(
     List<NotificationChannel> notificationChannels,
     Instant createdAt,
     NotificationPolicy notificationPolicy,
-    List<EmergencyContact> emergencyContacts) {
+    List<EmergencyContact> emergencyContacts,
+    boolean darkTheme) {
   /** Owns collection snapshots so later aggregate or caller changes cannot alter this outcome. */
   public UserPreferencesResult {
     notificationChannels = List.copyOf(notificationChannels);

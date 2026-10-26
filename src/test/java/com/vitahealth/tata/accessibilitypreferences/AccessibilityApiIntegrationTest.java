@@ -97,6 +97,74 @@ class AccessibilityApiIntegrationTest {
   }
 
   @Test
+  void darkThemePersistsWithoutReplacingOtherFieldsAndOnlyItsOwnerCanChangeIt() throws Exception {
+    var user = newUser();
+    mockMvc
+        .perform(get(preferences(user)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.darkTheme").value(false));
+    mockMvc
+        .perform(
+            put(preferences(user) + "/dark-theme")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"enabled\":true}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.darkTheme").value(true));
+    entityManager.flush();
+    entityManager.clear();
+    mockMvc
+        .perform(
+            put(preferences(user) + "/text-size")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"textSize\":\"LARGE\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.darkTheme").value(true));
+    entityManager.flush();
+    entityManager.clear();
+    mockMvc
+        .perform(get(preferences(user)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.darkTheme").value(true))
+        .andExpect(jsonPath("$.textSize").value("LARGE"));
+    mockMvc
+        .perform(
+            put(preferences(user) + "/dark-theme")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"enabled\":false}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.darkTheme").value(false));
+    mockMvc
+        .perform(
+            put(preferences(user) + "/dark-theme")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("VALIDATION_ERROR"));
+    entityManager.flush();
+    jdbc.update("update user_preferences set dark_theme = null where user_id = ?", user);
+    entityManager.clear();
+    mockMvc
+        .perform(get(preferences(user)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.darkTheme").value(false));
+    var other = newUser(); // Default request now authenticates the other owner.
+    mockMvc
+        .perform(
+            put(preferences(user) + "/dark-theme")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"enabled\":true}"))
+        .andExpect(status().isForbidden());
+    MockMvcBuilders.webAppContextSetup(context)
+        .apply(springSecurity())
+        .build()
+        .perform(
+            put(preferences(other) + "/dark-theme")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"enabled\":true}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
   void bindingAndDomainFailuresUseTheSameRequestedLanguageAndStableCode() throws Exception {
     var user = newUser();
     for (var language : new String[] {"es-PE", "en-US"}) {

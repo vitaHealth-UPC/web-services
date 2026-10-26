@@ -21,6 +21,7 @@ public final class TreatmentPersistenceAssembler {
             || entity.getFrequency() != null
             || !entity.getScheduledTimes().isEmpty()
             || entity.getReminderLeadMinutes() != null
+            || entity.getFollowUpDelayMinutes() != null
             || (entity.getInstructions() != null && !entity.getInstructions().isBlank()))) {
       throw new IllegalStateException("stored treatment has regimen evidence without a medication");
     }
@@ -42,7 +43,8 @@ public final class TreatmentPersistenceAssembler {
               entity.getScheduledTimes(),
               entity.getInstructions(),
               entity.getReminderLeadMinutes(),
-              recurrenceFrom(entity));
+              recurrenceFrom(entity),
+              entity.getFollowUpDelayMinutes());
     }
     return Treatment.rehydrate(
         entity.getId(),
@@ -60,21 +62,24 @@ public final class TreatmentPersistenceAssembler {
    */
   public static TreatmentPersistenceEntity toEntity(Treatment treatment) {
     var regimen = treatment.regimen();
-    return new TreatmentPersistenceEntity(
-        treatment.id(),
-        treatment.olderAdultId(),
-        treatment.name(),
-        treatment.status(),
-        regimen == null ? null : regimen.medicationId(),
-        regimen == null ? null : regimen.dose(),
-        regimen == null ? null : regimen.frequency(),
-        regimen == null ? null : regimen.scheduledTimes(),
-        regimen == null ? null : regimen.instructions(),
-        regimen == null ? null : regimen.reminderLeadMinutes(),
-        treatment.createdAt(),
-        regimen == null ? null : regimen.recurrence().mode().name(),
-        regimen == null ? null : regimen.recurrence().zone(),
-        regimen == null ? null : regimen.recurrence().anchor());
+    var entity =
+        new TreatmentPersistenceEntity(
+            treatment.id(),
+            treatment.olderAdultId(),
+            treatment.name(),
+            treatment.status(),
+            regimen == null ? null : regimen.medicationId(),
+            regimen == null ? null : regimen.dose(),
+            regimen == null ? null : regimen.frequency(),
+            regimen == null ? null : regimen.scheduledTimes(),
+            regimen == null ? null : regimen.instructions(),
+            regimen == null ? null : regimen.reminderLeadMinutes(),
+            treatment.createdAt(),
+            regimen == null ? null : regimen.recurrence().mode().name(),
+            regimen == null ? null : regimen.recurrence().zone(),
+            regimen == null ? null : regimen.recurrence().anchor());
+    entity.setFollowUpDelayMinutes(regimen == null ? null : regimen.followUpDelayMinutes());
+    return entity;
   }
 
   /** Restores explicit evidence or the documented all-null legacy interpretation. */

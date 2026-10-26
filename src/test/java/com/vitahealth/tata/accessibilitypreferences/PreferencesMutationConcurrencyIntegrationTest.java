@@ -6,10 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateContrastCommandService;
+import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateDarkThemeCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateVoiceConfirmationCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.internal.commandservices.UserPreferencesMutationService;
 import com.vitahealth.tata.accessibilitypreferences.application.internal.outboundservices.PreferencesMutationLock;
 import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateContrastCommand;
+import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateDarkThemeCommand;
 import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateVoiceConfirmationCommand;
 import com.vitahealth.tata.accessibilitypreferences.domain.repositories.UserPreferencesRepository;
 import java.util.UUID;
@@ -36,6 +38,7 @@ class PreferencesMutationConcurrencyIntegrationTest {
   @Autowired PreferencesMutationLock reservations;
   @Autowired UserPreferencesMutationService mutations;
   @Autowired UpdateContrastCommandService contrast;
+  @Autowired UpdateDarkThemeCommandService darkTheme;
   @Autowired UpdateVoiceConfirmationCommandService voice;
   @Autowired PlatformTransactionManager transactions;
   @Autowired JdbcTemplate jdbc;
@@ -78,6 +81,45 @@ class PreferencesMutationConcurrencyIntegrationTest {
     var stored = preferences.findByUserId(user).orElseThrow();
     assertTrue(stored.highContrast());
     assertFalse(stored.voiceConfirmationEnabled());
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "select count(*) from user_preferences where user_id = ?", Integer.class, user));
+    assertEquals(
+        1,
+        jdbc.queryForObject(
+            "select count(*) from user_preference_locks where user_id = ?", Integer.class, user));
+  }
+
+  @Test
+  void simultaneousDarkAndContrastCreationPreservesBothDecisions() throws Exception {
+    var user = UUID.randomUUID().toString();
+    var start = new CountDownLatch(1);
+    try (var workers = Executors.newFixedThreadPool(2)) {
+      var first =
+          workers.submit(
+              () -> {
+                assertTrue(start.await(5, TimeUnit.SECONDS));
+                return contrast
+                    .handle(new UpdateContrastCommand(user, true))
+                    .toOptional()
+                    .orElseThrow();
+              });
+      var second =
+          workers.submit(
+              () -> {
+                assertTrue(start.await(5, TimeUnit.SECONDS));
+                return darkTheme
+                    .handle(new UpdateDarkThemeCommand(user, true))
+                    .toOptional()
+                    .orElseThrow();
+              });
+      start.countDown();
+      assertEquals(first.get(15, TimeUnit.SECONDS).id(), second.get(15, TimeUnit.SECONDS).id());
+    }
+    var stored = preferences.findByUserId(user).orElseThrow();
+    assertTrue(stored.highContrast());
+    assertTrue(stored.darkTheme());
     assertEquals(
         1,
         jdbc.queryForObject(

@@ -10,6 +10,7 @@ import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ChangeTreat
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ConfigureTreatmentCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.CreateTreatmentCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.DeactivateMedicationCommand;
+import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ReactivateMedicationCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.RegisterMedicationCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.UpdateMedicationCommand;
 import java.util.function.Supplier;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 /** Delegates commands to handlers that own their individual transaction boundaries. */
 @Service
 public class TreatmentCommandServiceImpl implements TreatmentCommandService {
+  private final ReactivateMedicationCommandHandler reactivations;
   private final RegisterMedicationCommandHandler registrations;
   private final CreateTreatmentCommandHandler creations;
   private final UpdateMedicationCommandHandler updates;
@@ -36,7 +38,9 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
       ConfigureTreatmentCommandHandler configurations,
       ActivateTreatmentCommandHandler activations,
       PauseTreatmentCommandHandler pauses,
-      ResumeTreatmentCommandHandler resumptions) {
+      ResumeTreatmentCommandHandler resumptions,
+      ReactivateMedicationCommandHandler reactivations) {
+    this.reactivations = reactivations;
     this.registrations = registrations;
     this.creations = creations;
     this.updates = updates;
@@ -66,6 +70,12 @@ public class TreatmentCommandServiceImpl implements TreatmentCommandService {
   public Result<MedicationResult, ApplicationError> deactivateMedication(
       DeactivateMedicationCommand command) {
     return execute(() -> deactivations.handle(command));
+  }
+
+  @Override
+  public Result<MedicationResult, ApplicationError> reactivateMedication(
+      ReactivateMedicationCommand command) {
+    return execute(() -> reactivations.handle(command));
   }
 
   /** Creates an unconfigured draft for an adult with current consented access. */

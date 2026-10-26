@@ -14,7 +14,8 @@ public record TreatmentRegimen(
     List<LocalTime> scheduledTimes,
     String instructions,
     int reminderLeadMinutes,
-    TreatmentRecurrence recurrence) {
+    TreatmentRecurrence recurrence,
+    Integer followUpDelayMinutes) {
   /** Validates the full value and snapshots sorted distinct scheduled times. */
   public TreatmentRegimen {
     medicationId = requireText(medicationId, "medicationId");
@@ -40,6 +41,9 @@ public record TreatmentRegimen(
     if (instructions.length() > 500) {
       throw new IllegalArgumentException("instructions must not exceed 500 characters");
     }
+    if (followUpDelayMinutes != null && (followUpDelayMinutes < 0 || followUpDelayMinutes > 1440)) {
+      throw new IllegalArgumentException("followUpDelayMinutes must be between 0 and 1440");
+    }
     if (reminderLeadMinutes < 0 || reminderLeadMinutes > 24 * 60) {
       throw new IllegalArgumentException("reminderLeadMinutes must be between 0 and 1440");
     }
@@ -61,5 +65,25 @@ public record TreatmentRegimen(
         instructions,
         reminderLeadMinutes,
         TreatmentRecurrence.legacyUtc());
+  }
+
+  /** Retains existing callers with the system follow-up default. */
+  public TreatmentRegimen(
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      int reminderLeadMinutes,
+      TreatmentRecurrence recurrence) {
+    this(
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrence,
+        null);
   }
 }

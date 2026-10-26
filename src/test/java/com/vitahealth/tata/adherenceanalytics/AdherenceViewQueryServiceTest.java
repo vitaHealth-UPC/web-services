@@ -47,6 +47,42 @@ class AdherenceViewQueryServiceTest {
   }
 
   @Test
+  void treatmentFilterAppliesToPreviousPeriodTrendAndInsightEvidence() {
+    stored.add(
+        new AdherenceIntakeRecord(
+            "Selected",
+            NOW.minus(Duration.ofDays(1)),
+            NOW.minus(Duration.ofDays(1)),
+            Status.CONFIRMED,
+            "selected"));
+    stored.add(
+        new AdherenceIntakeRecord(
+            "Selected", NOW.minus(Duration.ofDays(10)), null, Status.OMITTED, "selected"));
+    for (int day = 1; day <= 3; day++) {
+      stored.add(
+          new AdherenceIntakeRecord(
+              "Other", NOW.minus(Duration.ofDays(day)), null, Status.OMITTED, "other"));
+      stored.add(
+          new AdherenceIntakeRecord(
+              "Other",
+              NOW.minus(Duration.ofDays(day + 8)),
+              NOW.minus(Duration.ofDays(day + 8)),
+              Status.CONFIRMED,
+              "other"));
+    }
+    var query = new GetAdherenceViewQuery("owner", 7, LIMA, NOW, "selected");
+    var summary = service.summary(query).orElseThrow();
+    assertThat(summary.scheduledCount()).isEqualTo(1);
+    assertThat(summary.adherencePercent()).isEqualTo(100);
+    assertThat(summary.adherenceChangePercent()).isEqualTo(100);
+    assertThat(summary.recentIntakes())
+        .allSatisfy(record -> assertThat(record.medicationName()).isEqualTo("Selected"));
+    assertThat(summary.trend())
+        .allSatisfy(point -> assertThat(point.adherencePercent()).isEqualTo(100));
+    assertThat(service.insights(query)).isEmpty();
+  }
+
+  @Test
   void summaryIsEmptyWhenThereAreOnlyPendingIntakes() {
     add(NOW.minus(Duration.ofDays(1)), Status.PENDING);
     assertThat(service.summary(new GetAdherenceViewQuery("owner", 30, LIMA, NOW))).isEmpty();

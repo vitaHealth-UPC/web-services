@@ -19,6 +19,7 @@ public final class UserPreferences {
   private final String userId;
   private TextSizeLevel textSize;
   private boolean highContrast;
+  private boolean darkTheme;
   private boolean reducedMotion;
   private boolean readingAssistance;
   private boolean voiceConfirmationEnabled;
@@ -133,6 +134,16 @@ public final class UserPreferences {
   /** Replaces only the high-contrast choice. */
   public void setHighContrast(boolean enabled) {
     this.highContrast = enabled;
+  }
+
+  /** Replaces only the explicit dark-theme choice. */
+  public void setDarkTheme(boolean enabled) {
+    this.darkTheme = enabled;
+  }
+
+  /** Returns the explicit theme choice, defaulting to light for existing users. */
+  public boolean darkTheme() {
+    return darkTheme;
   }
 
   /** Replaces only the reduced-motion choice. */

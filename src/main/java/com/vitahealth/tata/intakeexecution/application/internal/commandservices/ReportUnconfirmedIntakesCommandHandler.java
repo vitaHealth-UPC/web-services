@@ -37,7 +37,8 @@ public class ReportUnconfirmedIntakesCommandHandler {
     int failed = 0;
     IntakeReportingCandidate after = null;
     while (true) {
-      var candidates = repository.findUnreportedPendingDueAfter(command.cutoff(), after, PAGE_SIZE);
+      var candidates =
+          repository.findUnreportedPendingDueAfter(command.reportedAt(), after, PAGE_SIZE);
       if (candidates.isEmpty()) break;
       for (var candidate : candidates) {
         try {

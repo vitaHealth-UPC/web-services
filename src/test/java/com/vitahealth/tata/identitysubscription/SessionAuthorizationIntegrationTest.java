@@ -70,6 +70,65 @@ class SessionAuthorizationIntegrationTest {
   }
 
   @Test
+  void adherenceViewsRequireTheAdultOrACurrentlyConsentedCaregiver() throws Exception {
+    var caregiver = account(true);
+    var stranger = account(true);
+    var adult =
+        links
+            .registerOlderAdult(
+                new RegisterOlderAdultProfileCommand(
+                    caregiver.id(), "Rosa", LocalDate.of(1950, 1, 1), null, null, null))
+            .toOptional()
+            .orElseThrow();
+    var generated =
+        links
+            .generateLinkingCode(new GenerateLinkingCodeCommand(caregiver.id(), adult.id()))
+            .toOptional()
+            .orElseThrow();
+    var link =
+        links
+            .accept(
+                new com.vitahealth.tata.carelink.domain.model.commands.AcceptCareLinkCommand(
+                    caregiver.id(), generated.linkingCode()))
+            .toOptional()
+            .orElseThrow();
+    links
+        .registerConsent(
+            new com.vitahealth.tata.carelink.domain.model.commands.RegisterConsentCommand(
+                link.id(), true))
+        .toOptional()
+        .orElseThrow();
+    var caregiverHeader = bearer(caregiver);
+    var strangerHeader = bearer(stranger);
+    var adultHeader = "Bearer " + tokens.issueOlderAdult(adult.id(), link.id()).accessToken();
+    for (var suffix : new String[] {"summary", "insight", "insights"}) {
+      var path = "/api/v1/older-adults/" + adult.id() + "/adherence/" + suffix;
+      mvc.perform(get(path)).andExpect(status().isUnauthorized());
+      mvc.perform(get(path).header("Authorization", strangerHeader))
+          .andExpect(status().isForbidden());
+      mvc.perform(get(path).header("Authorization", caregiverHeader))
+          .andExpect(status().isNoContent());
+      mvc.perform(get(path).header("Authorization", adultHeader)).andExpect(status().isNoContent());
+      mvc.perform(
+              get(path.replace(adult.id(), UUID.randomUUID().toString()))
+                  .header("Authorization", adultHeader))
+          .andExpect(status().isForbidden());
+    }
+    links
+        .withdrawConsent(
+            new com.vitahealth.tata.carelink.domain.model.commands.WithdrawCareLinkConsentCommand(
+                link.id(), adult.id()))
+        .toOptional()
+        .orElseThrow();
+    for (var suffix : new String[] {"summary", "insight", "insights"}) {
+      mvc.perform(
+              get("/api/v1/older-adults/" + adult.id() + "/adherence/" + suffix)
+                  .header("Authorization", caregiverHeader))
+          .andExpect(status().isForbidden());
+    }
+  }
+
+  @Test
   void notificationPolicyCanOnlyBeChangedAndReadByItsOwner() throws Exception {
     var owner = account(true);
     var other = account(true);

@@ -23,7 +23,8 @@ public record TreatmentResponse(
     @Schema(example = "10") Integer reminderLeadMinutes,
     String recurrenceMode,
     String recurrenceZone,
-    Instant recurrenceAnchor) {
+    Instant recurrenceAnchor,
+    Integer followUpDelayMinutes) {
   /** Preserves the UTC local-time contract for callers without explicit recurrence metadata. */
   public TreatmentResponse(
       String id,
@@ -49,6 +50,38 @@ public record TreatmentResponse(
         reminderLeadMinutes,
         null,
         null,
+        null);
+  }
+
+  /** Retains existing callers with the system follow-up default. */
+  public TreatmentResponse(
+      String id,
+      String olderAdultId,
+      String name,
+      String status,
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      Integer reminderLeadMinutes,
+      String recurrenceMode,
+      String recurrenceZone,
+      Instant recurrenceAnchor) {
+    this(
+        id,
+        olderAdultId,
+        name,
+        status,
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrenceMode,
+        recurrenceZone,
+        recurrenceAnchor,
         null);
   }
 }

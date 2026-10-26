@@ -24,7 +24,7 @@ Public application reads and changes return immutable preference snapshots. REST
 
 Send `quietHours: null` to disable the interval. Start and end must differ and have minute precision; nonzero seconds or fractions are rejected without rounding. Overnight intervals are valid. The response contains `notificationChannels`, with the saved enabled state. Configuring a channel records a user preference; it does not establish delivery, a provider connection or receipt of a notification.
 
-Every supplied channel requires an explicit boolean `enabled`; omission or null returns `400`. The accessibility replacements at `/preferences/contrast`, `/preferences/reduced-motion`, `/preferences/reading-assistance` and `/preferences/voice-confirmation` also require `{"enabled":true}` or `{"enabled":false}`. Invalid input preserves saved choices.
+Every supplied channel requires an explicit boolean `enabled`; omission or null returns `400`. The accessibility replacements at `/preferences/contrast`, `/preferences/dark-theme`, `/preferences/reduced-motion`, `/preferences/reading-assistance` and `/preferences/voice-confirmation` also require `{"enabled":true}` or `{"enabled":false}`. Invalid input preserves saved choices.
 
 Android presents the four channel icons and opens native switches from Editar. Its quiet-hours editor uses native time pickers. Both retain the same read and update endpoints.
 
@@ -54,3 +54,5 @@ Stored quiet intervals require both boundaries. A saved timing policy requires a
 Preference writes preserve the stored identity and original creation time. The persistence adapter records the shared application-clock time in updated_at for every deliberate save, including changes limited to channel or contact collections. Read-only lookups preserve both audit timestamps.
 
 The repository reconstructs preference values and ordered contacts inside its read transaction. Callers receive domain values that remain usable after that transaction closes; HTTP rendering does not require an open persistence session.
+
+The preference snapshot includes `darkTheme`. `PUT /api/v1/users/{userId}/preferences/dark-theme` replaces only that owner's theme choice with an explicit `enabled` boolean. New users and legacy stored null values read as false. The update uses the same per-user mutation reservation and preserves other accessibility and notification settings.
