@@ -50,6 +50,11 @@ public final class IdentityErrorResponseAssembler {
       case "INVALID_VERIFICATION", "INVALID_CREDENTIALS", "INVALID_PIN" -> HttpStatus.UNAUTHORIZED;
       case "VERIFICATION_EXPIRED" -> HttpStatus.GONE;
       case "DEVICE_ACCESS_DENIED", "ACCOUNT_NOT_ACTIVE", "PIN_LOCKED" -> HttpStatus.FORBIDDEN;
+      case "SOCIAL_LINK_REQUIRED", "SOCIAL_LINK_CONFLICT" -> HttpStatus.CONFLICT;
+      case "INVALID_SOCIAL_CREDENTIAL" -> HttpStatus.UNAUTHORIZED;
+      case "SOCIAL_EMAIL_REQUIRED" -> HttpStatus.UNPROCESSABLE_CONTENT;
+      case "SOCIAL_PROVIDER_UNAVAILABLE" -> HttpStatus.SERVICE_UNAVAILABLE;
+      case "INVALID_RECOVERY_CODE" -> HttpStatus.BAD_REQUEST;
       case "VALIDATION_ERROR" -> HttpStatus.BAD_REQUEST;
       default -> HttpStatus.INTERNAL_SERVER_ERROR;
     };
