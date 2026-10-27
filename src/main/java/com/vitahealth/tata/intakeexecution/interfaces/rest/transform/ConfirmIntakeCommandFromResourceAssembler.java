@@ -15,6 +15,6 @@ public final class ConfirmIntakeCommandFromResourceAssembler {
     if (!"TOUCH".equals(resource.channel()))
       throw new IllegalArgumentException(
           "spoken confirmation requires the voice recognition endpoint");
-    return new ConfirmIntakeCommand(intakeId, ConfirmationChannel.TOUCH);
+    return new ConfirmIntakeCommand(intakeId, ConfirmationChannel.TOUCH, resource.confirmedAt());
   }
 }

@@ -11,17 +11,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetAlertDetailQueryHandler implements GetAlertDetailQueryService {
 
   private final FamilyMonitorSelectionService selection;
+  private final AlertResultProjection projection;
 
   /** Injects the context-owned follow-up repository. */
-  public GetAlertDetailQueryHandler(FamilyMonitorSelectionService selection) {
+  public GetAlertDetailQueryHandler(
+      FamilyMonitorSelectionService selection, AlertResultProjection projection) {
     this.selection = selection;
+    this.projection = projection;
   }
 
   /** Reads the requested alert only from its caregiver-owned follow-up. */
   @Override
   @Transactional(readOnly = true)
   public AlertResult handle(GetAlertDetailQuery query) {
-    return AlertResult.from(
+    return projection.project(
+        query.olderAdultId(),
         selection
             .requireCurrent(query.olderAdultId(), query.caregiverId())
             .findAlert(query.alertId()));

@@ -163,26 +163,29 @@ public final class Intake {
     return status == IntakeStatus.PENDING;
   }
 
-  /**
-   * Confirms a pending intake exactly once.
-   *
-   * <p>A confirmation after the scheduled instant is classified as LATE while the intake remains
-   * pending. CONFIRMED and LATE are definitive confirmation outcomes, so a retry is an idempotent
-   * no-op. An OMITTED intake cannot be replaced implicitly by a later confirmation.
-   */
+  /** Confirms using receipt time; legacy calls cannot replace an omission. */
   public boolean confirm(Instant now, ConfirmationChannel channel) {
-    Objects.requireNonNull(now);
+    return confirm(now, channel, false);
+  }
+
+  /**
+   * Records the original action once. An explicit offline TOUCH report may reconcile an omission;
+   * its historical omission evidence remains available to the owning context. The caller validates
+   * device time against server receipt before invoking this transition.
+   */
+  public boolean confirm(Instant occurredAt, ConfirmationChannel channel, boolean offlineReport) {
+    Objects.requireNonNull(occurredAt);
     Objects.requireNonNull(channel);
-
-    if (status == IntakeStatus.CONFIRMED || status == IntakeStatus.LATE) {
-      return false;
-    }
-    if (status != IntakeStatus.PENDING) {
+    if (status == IntakeStatus.CONFIRMED || status == IntakeStatus.LATE) return false;
+    if (status != IntakeStatus.PENDING
+        && !(status == IntakeStatus.OMITTED
+            && offlineReport
+            && channel == ConfirmationChannel.TOUCH))
       throw new IllegalStateException("intake can no longer be confirmed");
-    }
-
-    status = now.isAfter(scheduledAt) ? IntakeStatus.LATE : IntakeStatus.CONFIRMED;
-    confirmedAt = now;
+    if (offlineReport && occurredAt.isBefore(createdAt))
+      throw new IllegalArgumentException("confirmation precedes intake creation");
+    status = occurredAt.isAfter(scheduledAt) ? IntakeStatus.LATE : IntakeStatus.CONFIRMED;
+    confirmedAt = occurredAt;
     confirmationChannel = channel;
     return true;
   }

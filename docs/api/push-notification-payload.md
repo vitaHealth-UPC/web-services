@@ -27,3 +27,7 @@ Each device attempt reserves durable work, revalidates its address and notificat
 The recovery scan finds pending reminders and active omission alerts without a durable intention. It invokes the same locked command handlers used by source events, preserving existing alert identifiers, generation times and historical failure evidence. Existing intentions are excluded regardless of technical state, so recovery does not reopen cancelled or completed work. Scalar ID cursors and per-case transactions allow later records to progress when one source is inconsistent.
 
 Quiet hours use the explicit deployment zone `tata.notifications.quiet-hours-zone`, defaulting to `America/Lima`. Preference intervals have distinct minute-precision boundaries, with an inclusive start and exclusive end; overnight intervals cross midnight. The preference contract contains no per-user timezone.
+
+### Background delivery
+
+FCM HTTP v1 sends data-only messages with Android high delivery priority. For Apple devices, the APNs configuration uses background push type, priority 5 and aps.content-available = 1. The receiving client checks its current session and destination before displaying a local notice. Delivery still depends on the operating system, device settings and platform provisioning.
