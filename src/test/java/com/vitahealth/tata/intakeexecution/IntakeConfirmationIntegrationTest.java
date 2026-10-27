@@ -112,6 +112,51 @@ class IntakeConfirmationIntegrationTest {
             .alreadyConfirmed());
   }
 
+  @Autowired
+  com.vitahealth.tata.omissionescalation.application.internal.commandservices
+          .EvaluateGracePeriodCommandHandler
+      evaluation;
+
+  @Test
+  void offlineConfirmationReconcilesOmissionAndClosesHistoricalCaseOnce() {
+    var scheduled =
+        Instant.now().minusSeconds(7200).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+    var intake =
+        intakes
+            .saveAll(
+                List.of(
+                    Intake.createScheduled(
+                        java.util.UUID.randomUUID().toString(),
+                        java.util.UUID.randomUUID().toString(),
+                        java.util.UUID.randomUUID().toString(),
+                        new MedicationSnapshot("Losartan", "1 tablet", "With water"),
+                        scheduled,
+                        scheduled.minusSeconds(60))))
+            .getFirst();
+    publisher.publishEvent(
+        new IntakeUnconfirmed(intake.id(), intake.olderAdultId(), "Losartan", scheduled));
+    evaluation.handle(
+        new com.vitahealth.tata.omissionescalation.domain.model.commands.EvaluateGracePeriodCommand(
+            Instant.now()));
+    var original = cases.findByIntakeId(intake.id()).orElseThrow();
+    assertNotNull(original.getOmittedAt());
+    assertEquals(
+        com.vitahealth.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.OMITTED,
+        intakes.findById(intake.id()).orElseThrow().status());
+    var command = new ConfirmIntakeCommand(intake.id(), ConfirmationChannel.TOUCH, scheduled);
+    var result = handler.handle(command);
+    assertEquals(
+        com.vitahealth.tata.intakeexecution.domain.model.valueobjects.IntakeStatus.CONFIRMED,
+        result.status());
+    assertEquals(scheduled, result.confirmedAt());
+    var closed = cases.findByIntakeId(intake.id()).orElseThrow();
+    assertEquals(OmissionCaseStatus.CLOSED, closed.getStatus());
+    assertEquals(original.getOmittedAt(), closed.getOmittedAt());
+    assertEquals(original.getAlerts().size(), closed.getAlerts().size());
+    assertTrue(handler.handle(command).alreadyConfirmed());
+    assertEquals(1, recorder.events.stream().filter(e -> e.intakeId().equals(intake.id())).count());
+  }
+
   @Test
   void concurrentTouchAndVoicePublishOneConfirmation() throws Exception {
     var intake = pending();
