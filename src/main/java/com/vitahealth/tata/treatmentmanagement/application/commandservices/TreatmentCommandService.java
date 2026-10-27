@@ -8,6 +8,7 @@ import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ChangeTreat
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ConfigureTreatmentCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.CreateTreatmentCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.DeactivateMedicationCommand;
+import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ReactivateMedicationCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.RegisterMedicationCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.UpdateMedicationCommand;
 
@@ -25,6 +26,10 @@ public interface TreatmentCommandService {
   /** Deactivates a medication and pauses its active dependent treatments atomically. */
   Result<MedicationResult, ApplicationError> deactivateMedication(
       DeactivateMedicationCommand command);
+
+  /** Restores availability without resuming dependent treatments. */
+  Result<MedicationResult, ApplicationError> reactivateMedication(
+      ReactivateMedicationCommand command);
 
   /** Creates an unconfigured draft for an adult with current consented access. */
   Result<TreatmentResult, ApplicationError> createTreatment(CreateTreatmentCommand command);

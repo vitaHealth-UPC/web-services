@@ -52,12 +52,28 @@ public class AdherenceViewController {
           int days,
       @Parameter(description = "IANA calendar zone used to bucket the days")
           @RequestParam(defaultValue = "America/Lima")
-          String zone) {
+          String zone,
+      @Parameter(description = "Optional treatment identifier; excludes other regimens")
+          @RequestParam(required = false)
+          String treatmentId) {
     return views
-        .summary(new GetAdherenceViewQuery(olderAdultId, days, zoneOf(zone), clock.instant()))
+        .summary(
+            new GetAdherenceViewQuery(
+                olderAdultId, days, zoneOf(zone), clock.instant(), treatmentId))
         .map(AdherenceSummaryResourceAssembler::from)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.noContent().build());
+  }
+
+  /** Returns supported follow-up recommendations or no content for insufficient evidence. */
+  @Operation(summary = "Adherence summary for one treatment")
+  @GetMapping("/treatments/{treatmentId}/summary")
+  public ResponseEntity<SummaryResource> treatmentSummary(
+      @PathVariable String olderAdultId,
+      @PathVariable String treatmentId,
+      @RequestParam(defaultValue = "7") int days,
+      @RequestParam(defaultValue = "America/Lima") String zone) {
+    return summary(olderAdultId, days, zone, treatmentId);
   }
 
   /** Returns supported follow-up recommendations or no content for insufficient evidence. */
@@ -78,9 +94,14 @@ public class AdherenceViewController {
           int days,
       @Parameter(description = "IANA calendar zone used to bucket the days")
           @RequestParam(defaultValue = "America/Lima")
-          String zone) {
+          String zone,
+      @Parameter(description = "Optional treatment identifier; excludes other regimens")
+          @RequestParam(required = false)
+          String treatmentId) {
     return views
-        .insights(new GetAdherenceViewQuery(olderAdultId, days, zoneOf(zone), clock.instant()))
+        .insights(
+            new GetAdherenceViewQuery(
+                olderAdultId, days, zoneOf(zone), clock.instant(), treatmentId))
         .map(AdherenceInsightsResourceAssembler::from)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.noContent().build());

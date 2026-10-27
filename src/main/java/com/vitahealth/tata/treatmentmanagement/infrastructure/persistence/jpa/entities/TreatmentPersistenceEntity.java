@@ -56,6 +56,17 @@ public class TreatmentPersistenceEntity {
   @Column(name = "reminder_lead_minutes")
   private Integer reminderLeadMinutes;
 
+  @Column(name = "follow_up_delay_minutes")
+  private Integer followUpDelayMinutes;
+
+  public Integer getFollowUpDelayMinutes() {
+    return followUpDelayMinutes;
+  }
+
+  public void setFollowUpDelayMinutes(Integer minutes) {
+    followUpDelayMinutes = minutes;
+  }
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 

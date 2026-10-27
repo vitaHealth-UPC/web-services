@@ -136,3 +136,19 @@ Missing parameters, invalid conversions and unsupported periods or zones return
 return 500 `ADHERENCE_SOURCE_ERROR`; they do not produce empty successful results
 or expose provider diagnostics. Valid requests without sufficient evidence retain
 the documented zero, empty-list or 204 behavior for each endpoint.
+
+## Treatment-scoped screen metrics
+
+The summary and insight endpoints accept an optional `treatmentId` query parameter:
+
+`GET /api/v1/older-adults/{olderAdultId}/adherence/summary?days=7&zone=America/Bogota&treatmentId={treatmentId}`
+
+The filter applies to current and previous periods, trends, recent intakes and recommendations. Omitting it retains the adult-wide view. Confirmed and late outcomes both count as adherent; pending outcomes do not enter the denominator. A selected treatment without definitive evidence returns HTTP 204 rather than adult-wide figures.
+
+The authenticated adult or a currently consented caregiver can read these views. Both adult and treatment selectors pass through resource authorization; foreign resources return HTTP 403. Withdrawing consent removes caregiver access on subsequent requests.
+
+Android management uses the explicit scoped route to avoid an older server silently ignoring a new query parameter:
+
+`GET /api/v1/older-adults/{olderAdultId}/adherence/treatments/{treatmentId}/summary?days=7&zone=America/Bogota`
+
+It has the same calculations, authorization and 204 semantics. A server without this route returns an error; clients do not retry with the adult-wide summary.

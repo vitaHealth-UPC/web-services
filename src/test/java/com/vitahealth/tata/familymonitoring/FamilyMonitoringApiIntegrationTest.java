@@ -145,6 +145,16 @@ class FamilyMonitoringApiIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"CLOSED\"}"))
         .andExpect(status().isOk());
+    mvc.perform(
+            get("/api/v1/older-adults/{id}/alerts/{alert}/timeline", owner, alertId)
+                .param("caregiverId", caregiver))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(3))
+        .andExpect(jsonPath("$[0].type").value("INTAKE_SCHEDULED"))
+        .andExpect(jsonPath("$[0].occurredAt").value(now.minusSeconds(60).toString()))
+        .andExpect(jsonPath("$[1].type").value("ALERT_GENERATED"))
+        .andExpect(jsonPath("$[1].occurredAt").value(now.toString()))
+        .andExpect(jsonPath("$[2].type").value("ALERT_CLOSED"));
     for (String transition : List.of("ATTENDED", "CLOSED"))
       mvc.perform(
               put("/api/v1/older-adults/{id}/alerts/{alert}/status", owner, alertId)
@@ -164,9 +174,37 @@ class FamilyMonitoringApiIntegrationTest {
   }
 
   @Test
+  void timelineRequiresSessionAndCurrentConsentAndDoesNotInventDeliveryEvents() throws Exception {
+    var monitor = selection.requireCurrent(owner, caregiver);
+    var now = clock.instant();
+    monitor.addAlert(
+        UUID.randomUUID().toString(), "Medication", now.minusSeconds(60), "Omitted", now);
+    var alertId = monitors.save(monitor).getAlerts().getFirst().getId();
+    var path = "/api/v1/older-adults/{id}/alerts/{alert}/timeline";
+    mvc.perform(get(path, owner, alertId).param("caregiverId", caregiver))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].type").value("INTAKE_SCHEDULED"))
+        .andExpect(jsonPath("$[1].type").value("ALERT_GENERATED"));
+    mvc.perform(get(path, owner, Long.MAX_VALUE).param("caregiverId", caregiver))
+        .andExpect(status().isNotFound());
+    MockMvcBuilders.webAppContextSetup(context)
+        .apply(springSecurity())
+        .build()
+        .perform(get(path, owner, alertId).param("caregiverId", caregiver))
+        .andExpect(status().isUnauthorized());
+    var currentLink = links.findById(monitor.getCareLinkId()).orElseThrow();
+    currentLink.withdrawConsent(owner, now);
+    links.save(currentLink);
+    mvc.perform(get(path, owner, alertId).param("caregiverId", caregiver))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void unrelatedCaregiverCannotReadAnyMonitoringResourceOrWriteNotes() throws Exception {
     var stranger = UUID.randomUUID().toString();
-    for (var suffix : List.of("status", "intakes", "contact-channel", "notes", "alerts/1"))
+    for (var suffix :
+        List.of("status", "intakes", "contact-channel", "notes", "alerts/1", "alerts/1/timeline"))
       mvc.perform(
               get("/api/v1/older-adults/" + owner + "/" + suffix).param("caregiverId", stranger))
           .andExpect(status().isForbidden());

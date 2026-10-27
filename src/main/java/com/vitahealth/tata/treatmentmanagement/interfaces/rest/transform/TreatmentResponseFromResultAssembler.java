@@ -22,6 +22,7 @@ public final class TreatmentResponseFromResultAssembler {
         result.reminderLeadMinutes(),
         result.recurrenceMode(),
         result.recurrenceZone(),
-        result.recurrenceAnchor());
+        result.recurrenceAnchor(),
+        result.followUpDelayMinutes());
   }
 }

@@ -38,25 +38,28 @@ public final class UserPreferencesPersistenceAssembler {
         entity.getQuietHoursStart() == null || entity.getQuietHoursEnd() == null
             ? null
             : QuietHoursRange.between(entity.getQuietHoursStart(), entity.getQuietHoursEnd());
-    return UserPreferences.rehydrate(
-        entity.getId(),
-        entity.getUserId(),
-        entity.getTextSize(),
-        entity.isHighContrast(),
-        entity.isReducedMotion(),
-        entity.isReadingAssistance(),
-        entity.isVoiceConfirmationEnabled(),
-        quietHours,
-        entity.getChannels().stream()
-            .map(c -> new NotificationChannel(c.getType(), c.isEnabled()))
-            .toList(),
-        entity.getCreatedAt(),
-        entity.getNotificationPolicy() == null
-            ? NotificationPolicy.defaults()
-            : policyFrom(entity.getNotificationPolicy()),
-        entity.getEmergencyContacts().stream()
-            .map(c -> new EmergencyContact(c.getName(), c.getPhone()))
-            .toList());
+    var preferences =
+        UserPreferences.rehydrate(
+            entity.getId(),
+            entity.getUserId(),
+            entity.getTextSize(),
+            entity.isHighContrast(),
+            entity.isReducedMotion(),
+            entity.isReadingAssistance(),
+            entity.isVoiceConfirmationEnabled(),
+            quietHours,
+            entity.getChannels().stream()
+                .map(c -> new NotificationChannel(c.getType(), c.isEnabled()))
+                .toList(),
+            entity.getCreatedAt(),
+            entity.getNotificationPolicy() == null
+                ? NotificationPolicy.defaults()
+                : policyFrom(entity.getNotificationPolicy()),
+            entity.getEmergencyContacts().stream()
+                .map(c -> new EmergencyContact(c.getName(), c.getPhone()))
+                .toList());
+    preferences.setDarkTheme(entity.isDarkTheme());
+    return preferences;
   }
 
   /**
@@ -81,6 +84,7 @@ public final class UserPreferencesPersistenceAssembler {
                 .map(c -> new NotificationChannelEmbeddable(c.type(), c.enabled()))
                 .toList(),
             preferences.createdAt());
+    entity.setDarkTheme(preferences.darkTheme());
     var policy = preferences.notificationPolicy();
     entity.setNotificationPolicy(
         new NotificationPolicyEmbeddable(

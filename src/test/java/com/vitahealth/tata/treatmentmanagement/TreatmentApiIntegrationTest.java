@@ -49,11 +49,17 @@ class TreatmentApiIntegrationTest {
   private static final String CAREGIVER = "caregiver-1";
 
   @Autowired WebApplicationContext context;
+  @Autowired jakarta.persistence.EntityManager entityManager;
   @Autowired AccountRepository accounts;
   @Autowired SessionTokenService tokens;
   @Autowired CareLinkCommandService links;
   @Autowired IntakeRepository intakes;
   @Autowired TreatmentRepository treatments;
+
+  @Autowired
+  com.vitahealth.tata.treatmentmanagement.domain.repositories.MedicationRepository medications;
+
+  @Autowired com.vitahealth.tata.carelink.interfaces.acl.CareLinkContextFacade careLinks;
   @Autowired TreatmentSchedulePublicationService publication;
   private MockMvc mockMvc;
 
@@ -142,6 +148,58 @@ class TreatmentApiIntegrationTest {
                         + " comprimido\",\"frequency\":\"DAILY\",\"scheduledTimes\":[\"08:00:00\",\"20:00:00\"],\"instructions\":\"Con"
                         + " agua\",\"reminderLeadMinutes\":10}"))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void followUpDelaySurvivesStorageAndDoesNotResetAnExplicitRecurrence() throws Exception {
+    var adult = newAdult();
+    var medication = registerMedication(adult, "Losartan");
+    var treatment = createTreatment(adult, "Control");
+    var base =
+        "{\"caregiverId\":\""
+            + CAREGIVER
+            + "\",\"medicationId\":\""
+            + medication
+            + "\",\"dose\":\"1 tableta\",\"frequency\":\"cada 12"
+            + " horas\",\"scheduledTimes\":[\"08:00:00\",\"20:00:00\"],\"instructions\":\"Con"
+            + " agua\",\"reminderLeadMinutes\":7";
+    mockMvc
+        .perform(
+            put("/api/v1/treatments/" + treatment + "/regimen")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    base
+                        + ",\"followUpDelayMinutes\":25,\"recurrenceMode\":\"FIXED_INTERVAL\",\"recurrenceZone\":\"America/Bogota\",\"recurrenceAnchor\":\"2026-10-21T13:00:00Z\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.followUpDelayMinutes").value(25));
+    entityManager.flush();
+    entityManager.clear();
+    mockMvc
+        .perform(get("/api/v1/treatments/" + treatment).param("caregiverId", CAREGIVER))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.followUpDelayMinutes").value(25));
+    for (String value : List.of("0", "null")) {
+      mockMvc
+          .perform(
+              put("/api/v1/treatments/" + treatment + "/regimen")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(base + ",\"followUpDelayMinutes\":" + value + "}"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.recurrenceMode").value("FIXED_INTERVAL"))
+          .andExpect(jsonPath("$.recurrenceZone").value("America/Bogota"))
+          .andExpect(jsonPath("$.reminderLeadMinutes").value(7));
+      entityManager.flush();
+      entityManager.clear();
+      assertEquals(
+          value.equals("null") ? null : Integer.valueOf(0),
+          treatments.findById(treatment).orElseThrow().regimen().followUpDelayMinutes());
+    }
+    mockMvc
+        .perform(
+            put("/api/v1/treatments/" + treatment + "/regimen")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(base + ",\"followUpDelayMinutes\":-1}"))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -325,6 +383,72 @@ class TreatmentApiIntegrationTest {
             post("/api/v1/treatments/" + treatmentId + "/resume").param("caregiverId", CAREGIVER))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.title").value("MEDICATION_INACTIVE"));
+    var before = intakes.findFutureByTreatmentId(treatmentId, Instant.EPOCH).size();
+    for (int retry = 0; retry < 2; retry++) {
+      mockMvc
+          .perform(
+              post("/api/v1/medications/" + medicationId + "/reactivation")
+                  .param("caregiverId", CAREGIVER))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.active").value(true));
+      mockMvc
+          .perform(get("/api/v1/treatments/" + treatmentId).param("caregiverId", CAREGIVER))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.status").value("PAUSED"));
+    }
+    assertEquals(before, intakes.findFutureByTreatmentId(treatmentId, Instant.EPOCH).size());
+    mockMvc
+        .perform(
+            post("/api/v1/treatments/" + treatmentId + "/resume").param("caregiverId", CAREGIVER))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("ACTIVE"));
+  }
+
+  @Test
+  void medicationReactivationRejectsAnonymousForeignAndWithdrawnAccessWithoutChangingAvailability()
+      throws Exception {
+    var adult = newAdult();
+    var medication = registerMedication(adult, "Losartan");
+    mockMvc
+        .perform(
+            post("/api/v1/medications/" + medication + "/deactivation")
+                .param("caregiverId", CAREGIVER))
+        .andExpect(status().isOk());
+    var path = "/api/v1/medications/" + medication + "/reactivation";
+    var anonymous = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+    anonymous
+        .perform(post(path).param("caregiverId", CAREGIVER))
+        .andExpect(status().isUnauthorized());
+    var stranger = UUID.randomUUID().toString();
+    accounts.save(
+        Account.rehydrate(
+            stranger,
+            "Other",
+            new EmailAddress(stranger + "@example.com"),
+            "hash",
+            AccountStatus.ACTIVE,
+            null,
+            null));
+    anonymous
+        .perform(
+            post(path)
+                .param("caregiverId", stranger)
+                .header("Authorization", "Bearer " + tokens.issue(stranger).accessToken()))
+        .andExpect(status().isForbidden());
+    assertTrue(!medications.findById(medication).orElseThrow().active());
+    var link =
+        careLinks.getConfirmedByCaregiver(CAREGIVER).stream()
+            .filter(value -> value.olderAdultId().equals(adult))
+            .findFirst()
+            .orElseThrow();
+    links
+        .withdrawConsent(
+            new com.vitahealth.tata.carelink.domain.model.commands.WithdrawCareLinkConsentCommand(
+                link.id(), adult))
+        .toOptional()
+        .orElseThrow();
+    mockMvc.perform(post(path).param("caregiverId", CAREGIVER)).andExpect(status().isForbidden());
+    assertTrue(!medications.findById(medication).orElseThrow().active());
   }
 
   @Test

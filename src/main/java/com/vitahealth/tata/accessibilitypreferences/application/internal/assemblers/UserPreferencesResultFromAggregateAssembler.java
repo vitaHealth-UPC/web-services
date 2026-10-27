@@ -23,6 +23,7 @@ public final class UserPreferencesResultFromAggregateAssembler {
         preferences.notificationChannels(),
         preferences.createdAt(),
         preferences.notificationPolicy(),
-        preferences.emergencyContacts());
+        preferences.emergencyContacts(),
+        preferences.darkTheme());
   }
 }

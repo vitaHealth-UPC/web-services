@@ -32,7 +32,8 @@ public class IntakeRecordAdapter implements IntakeRecordPort {
                       case CONFIRMED -> Status.CONFIRMED;
                       case LATE -> Status.LATE;
                       case OMITTED -> Status.OMITTED;
-                    }))
+                    },
+                    intake.treatmentId()))
         .toList();
   }
 }

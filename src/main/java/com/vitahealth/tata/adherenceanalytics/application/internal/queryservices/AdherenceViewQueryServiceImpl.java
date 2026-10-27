@@ -56,7 +56,8 @@ public class AdherenceViewQueryServiceImpl implements AdherenceViewQueryService 
     Instant now = query.now();
     Instant from = now.minus(Duration.ofDays(periodDays));
     Instant previousFrom = from.minus(Duration.ofDays(periodDays));
-    List<AdherenceIntakeRecord> all = records.find(olderAdultId.trim(), previousFrom, now);
+    List<AdherenceIntakeRecord> all =
+        scoped(records.find(olderAdultId.trim(), previousFrom, now), query);
     List<AdherenceIntakeRecord> current = definitive(all, from, now);
     if (current.isEmpty()) return Optional.empty();
     List<AdherenceIntakeRecord> previous = definitive(all, previousFrom, from);
@@ -94,7 +95,7 @@ public class AdherenceViewQueryServiceImpl implements AdherenceViewQueryService 
     Instant now = query.now();
     Instant from = now.minus(Duration.ofDays(periodDays));
     List<AdherenceIntakeRecord> issues =
-        definitive(records.find(olderAdultId.trim(), from, now), from, now).stream()
+        definitive(scoped(records.find(olderAdultId.trim(), from, now), query), from, now).stream()
             .filter(record -> record.status() == Status.LATE || record.status() == Status.OMITTED)
             .toList();
     if (issues.size() < MINIMUM_ISSUES_FOR_PATTERN) return Optional.empty();
@@ -122,6 +123,14 @@ public class AdherenceViewQueryServiceImpl implements AdherenceViewQueryService 
             pattern,
             concentration(issues, zone),
             List.of("ADJUST_REMINDER", "REVIEW_SCHEDULE", "FOLLOW_UP_ONE_WEEK")));
+  }
+
+  private static List<AdherenceIntakeRecord> scoped(
+      List<AdherenceIntakeRecord> records, GetAdherenceViewQuery query) {
+    if (query.treatmentId() == null) return records;
+    return records.stream()
+        .filter(record -> query.treatmentId().equals(record.treatmentId()))
+        .toList();
   }
 
   private static List<AdherenceIntakeRecord> definitive(

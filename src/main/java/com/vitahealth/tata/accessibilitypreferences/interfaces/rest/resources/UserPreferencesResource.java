@@ -17,7 +17,8 @@ public record UserPreferencesResource(
         QuietHoursResource quietHours,
     List<ChannelResource> notificationChannels,
     NotificationPolicyResource notificationPolicy,
-    List<EmergencyContactResource> emergencyContacts) {
+    List<EmergencyContactResource> emergencyContacts,
+    boolean darkTheme) {
   /** Retains immutable response collections independently of the caller's list instances. */
   public UserPreferencesResource {
     notificationChannels = List.copyOf(notificationChannels);

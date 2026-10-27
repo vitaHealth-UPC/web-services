@@ -3,6 +3,7 @@ package com.vitahealth.tata.accessibilitypreferences.application.internal.comman
 import com.vitahealth.tata.accessibilitypreferences.application.PreferencesApplicationException;
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.NotificationPreferencesCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateContrastCommandService;
+import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateDarkThemeCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateNotificationChannelsCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateNotificationPolicyCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateQuietHoursCommandService;
@@ -12,6 +13,7 @@ import com.vitahealth.tata.accessibilitypreferences.application.commandservices.
 import com.vitahealth.tata.accessibilitypreferences.application.commandservices.UpdateVoiceConfirmationCommandService;
 import com.vitahealth.tata.accessibilitypreferences.application.result.UserPreferencesResult;
 import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateContrastCommand;
+import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateDarkThemeCommand;
 import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateNotificationChannelsCommand;
 import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateNotificationPolicyCommand;
 import com.vitahealth.tata.accessibilitypreferences.domain.model.commands.UpdateNotificationPreferencesCommand;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserPreferencesCommandServiceImpl
     implements UpdateContrastCommandService,
+        UpdateDarkThemeCommandService,
         UpdateNotificationChannelsCommandService,
         UpdateNotificationPolicyCommandService,
         UpdateQuietHoursCommandService,
@@ -38,6 +41,7 @@ public class UserPreferencesCommandServiceImpl
         UpdateVoiceConfirmationCommandService,
         NotificationPreferencesCommandService {
   private final UpdateContrastCommandHandler contrast;
+  private final UpdateDarkThemeCommandHandler darkTheme;
   private final UpdateNotificationChannelsCommandHandler channels;
   private final UpdateNotificationPolicyCommandHandler policy;
   private final UpdateQuietHoursCommandHandler quiet;
@@ -50,6 +54,7 @@ public class UserPreferencesCommandServiceImpl
   /** Injects transaction-owning handlers for each independent preference decision. */
   public UserPreferencesCommandServiceImpl(
       UpdateContrastCommandHandler contrast,
+      UpdateDarkThemeCommandHandler darkTheme,
       UpdateNotificationChannelsCommandHandler channels,
       UpdateNotificationPolicyCommandHandler policy,
       UpdateQuietHoursCommandHandler quiet,
@@ -59,6 +64,7 @@ public class UserPreferencesCommandServiceImpl
       UpdateVoiceConfirmationCommandHandler voice,
       UpdateNotificationPreferencesCommandHandler combined) {
     this.contrast = contrast;
+    this.darkTheme = darkTheme;
     this.channels = channels;
     this.policy = policy;
     this.quiet = quiet;
@@ -73,6 +79,12 @@ public class UserPreferencesCommandServiceImpl
   @Override
   public Result<UserPreferencesResult, ApplicationError> handle(UpdateContrastCommand command) {
     return execute(() -> contrast.handle(command));
+  }
+
+  /** Returns the dark-theme outcome only after its reserved transaction completes. */
+  @Override
+  public Result<UserPreferencesResult, ApplicationError> handle(UpdateDarkThemeCommand command) {
+    return execute(() -> darkTheme.handle(command));
   }
 
   /** Returns an immutable NotificationChannels outcome after the handler transaction finishes. */

@@ -63,6 +63,11 @@ public final class Medication {
     active = false;
   }
 
+  /** Restores availability without changing identity or restarting any dependent regimen. */
+  public void reactivate() {
+    active = true;
+  }
+
   private static String description(String value, String field) {
     var normalized = requireText(value, field);
     if (normalized.length() > MAX_DESCRIPTION_LENGTH) {

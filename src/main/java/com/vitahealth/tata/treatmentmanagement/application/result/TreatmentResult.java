@@ -19,7 +19,8 @@ public record TreatmentResult(
     Integer reminderLeadMinutes,
     String recurrenceMode,
     String recurrenceZone,
-    Instant recurrenceAnchor) {
+    Instant recurrenceAnchor,
+    Integer followUpDelayMinutes) {
   /** Snapshots configured times while retaining null for a draft without a regimen. */
   public TreatmentResult {
     scheduledTimes = scheduledTimes == null ? null : List.copyOf(scheduledTimes);
@@ -50,6 +51,38 @@ public record TreatmentResult(
         reminderLeadMinutes,
         null,
         null,
+        null);
+  }
+
+  /** Retains existing callers with the system follow-up default. */
+  public TreatmentResult(
+      String id,
+      String olderAdultId,
+      String name,
+      TreatmentStatus status,
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      Integer reminderLeadMinutes,
+      String recurrenceMode,
+      String recurrenceZone,
+      Instant recurrenceAnchor) {
+    this(
+        id,
+        olderAdultId,
+        name,
+        status,
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrenceMode,
+        recurrenceZone,
+        recurrenceAnchor,
         null);
   }
 }

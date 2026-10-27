@@ -3,6 +3,7 @@ package com.vitahealth.tata.treatmentmanagement.interfaces.rest;
 import com.vitahealth.tata.treatmentmanagement.application.commandservices.TreatmentCommandService;
 import com.vitahealth.tata.treatmentmanagement.application.queryservices.TreatmentQueryService;
 import com.vitahealth.tata.treatmentmanagement.domain.model.commands.DeactivateMedicationCommand;
+import com.vitahealth.tata.treatmentmanagement.domain.model.commands.ReactivateMedicationCommand;
 import com.vitahealth.tata.treatmentmanagement.domain.model.queries.GetMedicationQuery;
 import com.vitahealth.tata.treatmentmanagement.domain.model.queries.ListMedicationsQuery;
 import com.vitahealth.tata.treatmentmanagement.interfaces.rest.resources.RegisterMedicationRequest;
@@ -133,6 +134,16 @@ public class MedicationsController {
       @PathVariable String medicationId, @RequestParam String caregiverId) {
     return TreatmentResponseAssembler.toResponse(
         commands.deactivateMedication(new DeactivateMedicationCommand(caregiverId, medicationId)),
+        HttpStatus.OK,
+        MedicationResponseFromResultAssembler::toResource);
+  }
+
+  @Operation(summary = "Reactivate medication without resuming its treatments")
+  @PostMapping("/medications/{medicationId}/reactivation")
+  public ResponseEntity<?> reactivate(
+      @PathVariable String medicationId, @RequestParam String caregiverId) {
+    return TreatmentResponseAssembler.toResponse(
+        commands.reactivateMedication(new ReactivateMedicationCommand(caregiverId, medicationId)),
         HttpStatus.OK,
         MedicationResponseFromResultAssembler::toResource);
   }

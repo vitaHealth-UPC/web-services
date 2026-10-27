@@ -21,6 +21,7 @@ public final class ConfigureTreatmentCommandFromResourceAssembler {
         resource.reminderLeadMinutes(),
         resource.recurrenceMode(),
         resource.recurrenceZone(),
-        resource.recurrenceAnchor());
+        resource.recurrenceAnchor(),
+        resource.followUpDelayMinutes());
   }
 }
