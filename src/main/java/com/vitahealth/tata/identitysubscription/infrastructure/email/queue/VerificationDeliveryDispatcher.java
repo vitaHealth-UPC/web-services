@@ -4,7 +4,10 @@ import com.vitahealth.tata.identitysubscription.application.internal.outboundser
 import com.vitahealth.tata.identitysubscription.application.internal.outboundservices.VerificationEmailProvider;
 import com.vitahealth.tata.identitysubscription.application.internal.outboundservices.VerificationPayloadCipher;
 import com.vitahealth.tata.identitysubscription.domain.model.valueobjects.AccountStatus;
+import com.vitahealth.tata.identitysubscription.domain.model.valueobjects.CredentialEmailPurpose;
+import com.vitahealth.tata.identitysubscription.domain.model.valueobjects.PasswordRecoveryChallenge;
 import com.vitahealth.tata.identitysubscription.infrastructure.persistence.jpa.repositories.AccountJpaRepository;
+import com.vitahealth.tata.identitysubscription.infrastructure.persistence.jpa.repositories.PasswordRecoveryJpaRepository;
 import com.vitahealth.tata.identitysubscription.infrastructure.persistence.jpa.repositories.VerificationDeliveryJpaRepository;
 import java.time.Clock;
 import java.util.Objects;
@@ -24,6 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class VerificationDeliveryDispatcher {
   private final VerificationDeliveryJpaRepository deliveries;
   private final AccountJpaRepository accounts;
+  private final PasswordRecoveryJpaRepository recoveries;
   private final VerificationPayloadCipher cipher;
   private final VerificationEmailProvider provider;
   private final Clock clock;
@@ -33,12 +37,14 @@ public class VerificationDeliveryDispatcher {
   public VerificationDeliveryDispatcher(
       VerificationDeliveryJpaRepository deliveries,
       AccountJpaRepository accounts,
+      PasswordRecoveryJpaRepository recoveries,
       VerificationPayloadCipher cipher,
       VerificationEmailProvider provider,
       Clock clock,
       PlatformTransactionManager manager) {
     this.deliveries = deliveries;
     this.accounts = accounts;
+    this.recoveries = recoveries;
     this.cipher = cipher;
     this.provider = provider;
     this.clock = clock;
@@ -88,11 +94,27 @@ public class VerificationDeliveryDispatcher {
       return null;
     }
     var account = accounts.findByIdForUpdate(delivery.accountId());
-    if (!now.isBefore(delivery.expiresAt())
-        || account.isEmpty()
-        || account.get().getStatus() != AccountStatus.PENDING_VERIFICATION
-        || !Objects.equals(account.get().getVerificationCodeHash(), delivery.challengeHash())
-        || !Objects.equals(account.get().getVerificationExpiresAt(), delivery.expiresAt())) {
+    boolean currentChallenge = false;
+    if (account.isPresent()) {
+      if (delivery.purpose() == CredentialEmailPurpose.ACCOUNT_VERIFICATION) {
+        currentChallenge =
+            account.get().getStatus() == AccountStatus.PENDING_VERIFICATION
+                && Objects.equals(account.get().getVerificationCodeHash(), delivery.challengeHash())
+                && Objects.equals(account.get().getVerificationExpiresAt(), delivery.expiresAt());
+      } else if (account.get().getStatus() == AccountStatus.ACTIVE) {
+        currentChallenge =
+            recoveries
+                .findById(delivery.accountId())
+                .filter(
+                    recovery ->
+                        recovery.getConsumedAt() == null
+                            && recovery.getFailedAttempts() < PasswordRecoveryChallenge.MAX_ATTEMPTS
+                            && Objects.equals(recovery.getCodeHash(), delivery.challengeHash())
+                            && Objects.equals(recovery.getExpiresAt(), delivery.expiresAt()))
+                .isPresent();
+      }
+    }
+    if (!now.isBefore(delivery.expiresAt()) || !currentChallenge) {
       delivery.complete(null);
       return null;
     }
@@ -104,7 +126,7 @@ public class VerificationDeliveryDispatcher {
       return null;
     }
     return new VerificationDeliveryRequest(
-        delivery.id(), delivery.email(), code, delivery.expiresAt());
+        delivery.id(), delivery.email(), code, delivery.expiresAt(), delivery.purpose());
   }
 
   private void finish(String id, String token, String providerId, boolean accepted) {

@@ -1,5 +1,6 @@
 package com.vitahealth.tata.familymonitoring.interfaces.rest.resources;
 
+import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AlertSeverity;
 import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AlertStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
@@ -14,4 +15,8 @@ public record AlertSummaryResource(
     @Schema(example = "Intake not confirmed within the grace period") String reason,
     @Schema(example = "OPEN") AlertStatus status,
     @Schema(example = "2026-10-05T13:30:00Z") Instant openedAt,
-    @Schema(example = "null", nullable = true) Instant closedAt) {}
+    @Schema(example = "null", nullable = true) Instant closedAt,
+    @Schema(
+            description = "Recorded escalation priority, not medical severity",
+            example = "STANDARD")
+        AlertSeverity severity) {}

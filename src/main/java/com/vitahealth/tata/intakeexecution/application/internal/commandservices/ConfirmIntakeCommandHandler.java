@@ -56,9 +56,22 @@ public class ConfirmIntakeCommandHandler {
           "voice confirmation is turned off for this user");
     }
 
+    var receivedAt = clock.instant().truncatedTo(ChronoUnit.MICROS);
+    var occurredAt =
+        command.confirmedAt() == null
+            ? receivedAt
+            : command.confirmedAt().truncatedTo(ChronoUnit.MICROS);
+    if (command.confirmedAt() != null
+        && (command.channel() != ConfirmationChannel.TOUCH
+            || command.confirmedAt().isAfter(receivedAt)
+            || occurredAt.isBefore(intake.createdAt())))
+      throw new IntakeApplicationException(
+          IntakeApplicationException.Code.VALIDATION_ERROR,
+          "confirmation time must be between intake creation and server receipt");
+
     final boolean changed;
     try {
-      changed = intake.confirm(clock.instant().truncatedTo(ChronoUnit.MICROS), command.channel());
+      changed = intake.confirm(occurredAt, command.channel(), command.confirmedAt() != null);
     } catch (IllegalStateException exception) {
       throw new IntakeApplicationException(
           IntakeApplicationException.Code.INTAKE_NOT_CONFIRMABLE, exception.getMessage());

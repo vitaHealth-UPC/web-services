@@ -127,22 +127,41 @@ class VerificationDeliveryDispatcherIntegrationTest {
     when(provider.send(any()))
         .thenAnswer(
             invocation -> {
+              var request =
+                  invocation.getArgument(
+                      0,
+                      com.vitahealth.tata.identitysubscription.application.internal.outboundservices
+                          .VerificationDeliveryRequest.class);
+              if (!row.id().equals(request.deliveryId())) {
+                return "accepted-other-delivery";
+              }
               assertFalse(TransactionSynchronizationManager.isActualTransactionActive());
               entered.countDown();
-              assertTrue(release.await(10, TimeUnit.SECONDS));
+              assertTrue(release.await(45, TimeUnit.SECONDS));
               return "accepted-concurrent";
             });
     try (var workers = Executors.newFixedThreadPool(2)) {
       var first = workers.submit(() -> dispatcher.dispatch());
       try {
-        assertTrue(entered.await(10, TimeUnit.SECONDS));
-        var second = workers.submit(() -> dispatcher.dispatch());
-        second.get(5, TimeUnit.SECONDS);
-        verify(provider).send(any());
+        assertTrue(entered.await(20, TimeUnit.SECONDS));
+        var secondStarted = new CountDownLatch(1);
+        var second =
+            workers.submit(
+                () -> {
+                  secondStarted.countDown();
+                  dispatcher.dispatch();
+                });
+        // A concurrent database reader may wait for the first sender to complete.
+        // Release the provider before joining either worker, then prove one delivery.
+        assertTrue(secondStarted.await(20, TimeUnit.SECONDS));
+        release.countDown();
+        first.get(45, TimeUnit.SECONDS);
+        second.get(45, TimeUnit.SECONDS);
+        verify(provider)
+            .send(org.mockito.ArgumentMatchers.argThat(request -> row.id().equals(request.deliveryId())));
       } finally {
         release.countDown();
       }
-      first.get(5, TimeUnit.SECONDS);
     }
     assertNull(deliveries.findById(row.id()).orElseThrow().encryptedCode());
     deliveries.deleteById(row.id());

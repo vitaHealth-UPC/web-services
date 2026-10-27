@@ -1,6 +1,7 @@
 package com.vitahealth.tata.familymonitoring.application.result;
 
 import com.vitahealth.tata.familymonitoring.domain.model.entities.AlertSummary;
+import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AlertSeverity;
 import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AlertStatus;
 import java.time.Instant;
 
@@ -13,9 +14,15 @@ public record AlertResult(
     String reason,
     AlertStatus status,
     Instant openedAt,
-    Instant closedAt) {
+    Instant closedAt,
+    AlertSeverity severity) {
   /** Copies original evidence without retaining a mutable domain entity. */
   public static AlertResult from(AlertSummary source) {
+    return from(source, AlertSeverity.UNKNOWN);
+  }
+
+  /** Copies source evidence and the separately queried operational priority. */
+  public static AlertResult from(AlertSummary source, AlertSeverity severity) {
     return new AlertResult(
         source.getId(),
         source.getIntakeId(),
@@ -24,6 +31,7 @@ public record AlertResult(
         source.getReason(),
         source.getStatus(),
         source.getOpenedAt(),
-        source.getClosedAt());
+        source.getClosedAt(),
+        severity);
   }
 }

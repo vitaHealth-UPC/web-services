@@ -128,5 +128,35 @@ class IntakeConfirmationHttpTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.alreadyConfirmed").value(true))
         .andExpect(jsonPath("$.confirmedAt").value(recorded));
+    var action = Instant.now().minusSeconds(120).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+    var offline =
+        repository
+            .saveAll(
+                List.of(
+                    Intake.createScheduled(
+                        UUID.randomUUID().toString(),
+                        UUID.randomUUID().toString(),
+                        owner,
+                        new MedicationSnapshot("Losartán", "1 comprimido", "Con agua"),
+                        action,
+                        action.minusSeconds(60))))
+            .getFirst();
+    mvc.perform(
+            post("/api/v1/intakes/" + offline.id() + "/confirmation")
+                .header("Authorization", "Bearer " + token.accessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"channel\":\"TOUCH\",\"confirmedAt\":\""
+                        + Instant.now().plusSeconds(3600)
+                        + "\"}"))
+        .andExpect(status().isBadRequest());
+    mvc.perform(
+            post("/api/v1/intakes/" + offline.id() + "/confirmation")
+                .header("Authorization", "Bearer " + token.accessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"channel\":\"TOUCH\",\"confirmedAt\":\"" + action + "\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    assertEquals(action, repository.findById(offline.id()).orElseThrow().confirmedAt());
   }
 }

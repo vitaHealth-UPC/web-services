@@ -56,7 +56,7 @@ class PushDevicePersistenceIntegrationTest {
         new PushDeviceRegistration(
             original.installationId(), "different-session", "replacement", NOW, NOW);
     assertThatThrownBy(() -> devices.save(forged))
-        .hasRootCauseInstanceOf(IllegalStateException.class);
+        .isInstanceOf(DuplicatePushDeviceRegistration.class);
     assertThat(devices.findByInstallationId(original.installationId())).contains(original);
   }
 

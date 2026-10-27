@@ -2,7 +2,6 @@ package com.vitahealth.tata.familymonitoring.application.internal.queryservices;
 
 import com.vitahealth.tata.familymonitoring.application.queryservices.GetOlderAdultStatusQueryService;
 import com.vitahealth.tata.familymonitoring.application.result.AdherenceInsightResult;
-import com.vitahealth.tata.familymonitoring.application.result.AlertResult;
 import com.vitahealth.tata.familymonitoring.application.result.LowStockNoticeResult;
 import com.vitahealth.tata.familymonitoring.application.result.OlderAdultStatusResult;
 import com.vitahealth.tata.familymonitoring.domain.model.aggregates.FamilyMonitor;
@@ -25,6 +24,7 @@ public class GetOlderAdultStatusQueryHandler implements GetOlderAdultStatusQuery
   private static final int RECENT_INSIGHTS = 5;
 
   private final FamilyMonitorSelectionService selection;
+  private final AlertResultProjection projection;
   private final IntakeHistoryPort intakeHistoryPort;
   private final AdherenceSummaryPort adherenceSummaryPort;
 
@@ -32,8 +32,10 @@ public class GetOlderAdultStatusQueryHandler implements GetOlderAdultStatusQuery
   public GetOlderAdultStatusQueryHandler(
       FamilyMonitorSelectionService selection,
       IntakeHistoryPort intakeHistoryPort,
-      AdherenceSummaryPort adherenceSummaryPort) {
+      AdherenceSummaryPort adherenceSummaryPort,
+      AlertResultProjection projection) {
     this.selection = selection;
+    this.projection = projection;
     this.intakeHistoryPort = intakeHistoryPort;
     this.adherenceSummaryPort = adherenceSummaryPort;
   }
@@ -52,7 +54,7 @@ public class GetOlderAdultStatusQueryHandler implements GetOlderAdultStatusQuery
         new OlderAdultStatus(nextIntakeAt, lastIntakeStatus, monitor.hasPendingAlerts());
     return new OlderAdultStatusResult(
         status,
-        monitor.pendingAlerts().stream().map(AlertResult::from).toList(),
+        projection.project(query.olderAdultId(), monitor.pendingAlerts()),
         adherenceSummaryPort.getWeeklySummary(query.olderAdultId()),
         monitor.getLowStockNotices().stream().map(LowStockNoticeResult::from).toList(),
         monitor.recentInsights(RECENT_INSIGHTS).stream()

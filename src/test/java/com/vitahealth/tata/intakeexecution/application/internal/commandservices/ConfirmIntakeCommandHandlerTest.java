@@ -23,6 +23,42 @@ class ConfirmIntakeCommandHandlerTest {
   private static final Clock ON_TIME_CLOCK = Clock.fixed(SCHEDULED_AT, ZoneOffset.UTC);
 
   @Test
+  void offlineActionUsesOriginalTimeAndReplayPublishesOnce() {
+    var repository = new SingleIntakeRepository(pendingIntake());
+    var events = new java.util.ArrayList<Object>();
+    var handler =
+        new ConfirmIntakeCommandHandler(
+            repository,
+            events::add,
+            Clock.fixed(SCHEDULED_AT.plusSeconds(7200), ZoneOffset.UTC),
+            id -> true);
+    var command = new ConfirmIntakeCommand("intake-1", ConfirmationChannel.TOUCH, SCHEDULED_AT);
+    var result = handler.handle(command);
+    assertEquals(IntakeStatus.CONFIRMED, result.status());
+    assertEquals(SCHEDULED_AT, result.confirmedAt());
+    assertTrue(handler.handle(command).alreadyConfirmed());
+    assertEquals(1, events.size());
+    assertEquals(1, repository.saveCalls);
+  }
+
+  @Test
+  void rejectsFuturePreCreationAndVoiceDeviceTimesWithoutSaving() {
+    var repository = new SingleIntakeRepository(pendingIntake());
+    var handler =
+        new ConfirmIntakeCommandHandler(repository, event -> fail(), ON_TIME_CLOCK, id -> true);
+    for (var command :
+        List.of(
+            new ConfirmIntakeCommand(
+                "intake-1", ConfirmationChannel.TOUCH, SCHEDULED_AT.plusSeconds(1)),
+            new ConfirmIntakeCommand("intake-1", ConfirmationChannel.TOUCH, Instant.EPOCH),
+            new ConfirmIntakeCommand("intake-1", ConfirmationChannel.VOICE, SCHEDULED_AT))) {
+      var failure = assertThrows(IntakeApplicationException.class, () -> handler.handle(command));
+      assertEquals(IntakeApplicationException.Code.VALIDATION_ERROR, failure.code());
+    }
+    assertEquals(0, repository.saveCalls);
+  }
+
+  @Test
   void confirmsPendingIntakeAndPersistsTransition() {
     var repository = new SingleIntakeRepository(pendingIntake());
     var handler =
@@ -138,7 +174,8 @@ class ConfirmIntakeCommandHandlerTest {
     }
 
     @Override
-    public List<String> findOlderAdultIdsWithIntakes(Instant from, Instant to, String after, int limit) {
+    public List<String> findOlderAdultIdsWithIntakes(
+        Instant from, Instant to, String after, int limit) {
       throw new UnsupportedOperationException("participant discovery is outside this fixture");
     }
 
