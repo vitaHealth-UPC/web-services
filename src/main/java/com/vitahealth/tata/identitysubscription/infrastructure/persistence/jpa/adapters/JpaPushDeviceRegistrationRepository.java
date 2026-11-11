@@ -43,7 +43,7 @@ public class JpaPushDeviceRegistrationRepository implements PushDeviceRegistrati
       if (!managed.getSessionId().equals(value.sessionId())
           || !managed.getCreatedAt().equals(value.createdAt())
           || value.updatedAt().isBefore(managed.getUpdatedAt()))
-        throw new IllegalStateException("push device ownership or write evidence changed");
+        throw new DuplicatePushDeviceRegistration();
       managed.rotate(
           value.token(),
           PushDeviceRegistrationPersistenceAssembler.fingerprint(value.token()),

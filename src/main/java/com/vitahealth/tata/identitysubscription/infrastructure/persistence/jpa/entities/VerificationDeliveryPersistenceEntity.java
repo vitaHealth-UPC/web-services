@@ -1,16 +1,29 @@
 package com.vitahealth.tata.identitysubscription.infrastructure.persistence.jpa.entities;
 
+import com.vitahealth.tata.identitysubscription.domain.model.valueobjects.CredentialEmailPurpose;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.ColumnDefault;
 
 /** Durable encrypted delivery intention committed atomically with its account challenge. */
 @Entity
 @Table(name = "identity_verification_deliveries")
 public class VerificationDeliveryPersistenceEntity {
   @Id private String id;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 40)
+  @ColumnDefault("'ACCOUNT_VERIFICATION'")
+  private CredentialEmailPurpose purpose = CredentialEmailPurpose.ACCOUNT_VERIFICATION;
+
+  public CredentialEmailPurpose purpose() {
+    return purpose;
+  }
 
   @Column(nullable = false)
   private String accountId;
@@ -52,6 +65,27 @@ public class VerificationDeliveryPersistenceEntity {
       String encryptedCode,
       Instant expiresAt,
       Instant now) {
+    this(
+        id,
+        accountId,
+        email,
+        challengeHash,
+        encryptedCode,
+        expiresAt,
+        now,
+        CredentialEmailPurpose.ACCOUNT_VERIFICATION);
+  }
+
+  public VerificationDeliveryPersistenceEntity(
+      String id,
+      String accountId,
+      String email,
+      String challengeHash,
+      String encryptedCode,
+      Instant expiresAt,
+      Instant now,
+      CredentialEmailPurpose purpose) {
+    this.purpose = java.util.Objects.requireNonNull(purpose);
     this.id = id;
     this.accountId = accountId;
     this.email = email;
