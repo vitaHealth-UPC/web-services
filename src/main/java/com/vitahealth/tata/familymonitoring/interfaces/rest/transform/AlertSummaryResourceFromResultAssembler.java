@@ -18,6 +18,7 @@ public final class AlertSummaryResourceFromResultAssembler {
         alert.reason(),
         alert.status(),
         alert.openedAt(),
-        alert.closedAt());
+        alert.closedAt(),
+        alert.severity());
   }
 }

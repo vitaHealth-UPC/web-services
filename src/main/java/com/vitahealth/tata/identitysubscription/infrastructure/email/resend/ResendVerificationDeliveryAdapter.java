@@ -2,6 +2,7 @@ package com.vitahealth.tata.identitysubscription.infrastructure.email.resend;
 
 import com.vitahealth.tata.identitysubscription.application.internal.outboundservices.VerificationDeliveryRequest;
 import com.vitahealth.tata.identitysubscription.application.internal.outboundservices.VerificationEmailProvider;
+import com.vitahealth.tata.identitysubscription.domain.model.valueobjects.CredentialEmailPurpose;
 import java.time.Clock;
 import java.util.Objects;
 import org.springframework.http.MediaType;
@@ -39,7 +40,12 @@ public final class ResendVerificationDeliveryAdapter implements VerificationEmai
               .post()
               .uri("/emails")
               .headers(headers -> headers.setBearerAuth(apiKey))
-              .header("Idempotency-Key", "verification-" + request.deliveryId())
+              .header(
+                  "Idempotency-Key",
+                  (request.purpose() == CredentialEmailPurpose.PASSWORD_RECOVERY
+                          ? "recovery-"
+                          : "verification-")
+                      + request.deliveryId())
               .contentType(MediaType.APPLICATION_JSON)
               .body(ResendEmailRequestAssembler.from(sender, request))
               .retrieve()

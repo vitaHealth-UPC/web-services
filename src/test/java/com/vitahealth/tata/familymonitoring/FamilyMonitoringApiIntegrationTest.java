@@ -30,7 +30,10 @@ import com.vitahealth.tata.intakeexecution.domain.model.aggregates.Intake;
 import com.vitahealth.tata.intakeexecution.domain.model.valueobjects.*;
 import com.vitahealth.tata.intakeexecution.domain.repositories.IntakeRepository;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.events.InventoryStockChanged;
+import com.vitahealth.tata.omissionescalation.domain.model.aggregates.OmissionCase;
 import com.vitahealth.tata.omissionescalation.domain.model.events.IntakeOmitted;
+import com.vitahealth.tata.omissionescalation.domain.model.valueobjects.GracePeriod;
+import com.vitahealth.tata.omissionescalation.domain.repositories.IOmissionCaseRepository;
 import com.vitahealth.tata.treatmentmanagement.domain.model.aggregates.Medication;
 import com.vitahealth.tata.treatmentmanagement.domain.repositories.MedicationRepository;
 import java.time.*;
@@ -60,6 +63,7 @@ class FamilyMonitoringApiIntegrationTest {
   @Autowired Clock clock;
 
   @Autowired IFamilyMonitorRepository monitors;
+  @Autowired IOmissionCaseRepository omissions;
   @Autowired FamilyMonitorSelectionService selection;
   @Autowired IntakeRepository intakes;
   @Autowired OlderAdultProfileRepository profiles;
@@ -110,6 +114,50 @@ class FamilyMonitoringApiIntegrationTest {
         new MedicationSnapshot("Medication", "1 tablet", ""),
         scheduled,
         Instant.now());
+  }
+
+  @Test
+  void recordedCriticalPriorityIsIdenticalInStatusDetailAndTransitionReceipts() throws Exception {
+    var now = clock.instant();
+    var scheduled = now.minusSeconds(10800);
+    var intakeId = UUID.randomUUID().toString();
+    var source =
+        new OmissionCase(
+            intakeId,
+            owner,
+            "Medication",
+            scheduled,
+            GracePeriod.startingAt(scheduled, Duration.ofMinutes(30)));
+    source.markOmitted(scheduled.plusSeconds(1800));
+    source.escalate("first", scheduled.plusSeconds(3600));
+    source.escalate("second", scheduled.plusSeconds(5400));
+    source.escalate("third", scheduled.plusSeconds(7200));
+    omissions.save(source);
+    var monitor = selection.requireCurrent(owner, caregiver);
+    monitor.addAlert(
+        intakeId, "Medication", scheduled, "No confirmation", scheduled.plusSeconds(1800));
+    var alertId = monitors.save(monitor).getAlerts().getFirst().getId();
+    mvc.perform(get("/api/v1/older-adults/{id}/status", owner).param("caregiverId", caregiver))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.openAlerts[0].severity").value("CRITICAL"));
+    mvc.perform(
+            get("/api/v1/older-adults/{id}/alerts/{alert}", owner, alertId)
+                .param("caregiverId", caregiver))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.severity").value("CRITICAL"));
+    for (String transition : List.of("ATTENDED", "CLOSED")) {
+      mvc.perform(
+              put("/api/v1/older-adults/{id}/alerts/{alert}/status", owner, alertId)
+                  .param("caregiverId", caregiver)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"status\":\"" + transition + "\"}"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.status").value(transition))
+          .andExpect(jsonPath("$.severity").value("CRITICAL"));
+    }
+    mvc.perform(get("/api/v1/older-adults/{id}/status", owner).param("caregiverId", caregiver))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.openAlerts.length()").value(0));
   }
 
   @Test

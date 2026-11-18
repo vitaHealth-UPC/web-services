@@ -28,6 +28,9 @@ final class PublicSessionEndpoints {
                 "/api/v1/accounts",
                 "/api/v1/accounts/verification",
                 "/api/v1/email-verification-requests",
+                "/api/v1/password-recovery-requests",
+                "/api/v1/password-recoveries",
+                "/api/v1/social-sessions",
                 "/api/v1/sessions",
                 "/api/v1/pin-sessions",
                 "/api/v1/care-links/acceptances")

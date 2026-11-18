@@ -28,12 +28,11 @@ com.vitahealth.tata.<boundedcontext>/
 
 The Java layout deliberately follows the course/reference backend style rather than copying the Android folders literally. Commands and Queries express CQRS intent; application handlers/services orchestrate them; REST belongs to interfaces; JPA, schedulers and provider adapters belong to infrastructure.
 
-Read before implementing a feature:
+Architecture and API documentation:
 
 - docs/architecture/backend-architecture.md
 - docs/architecture/bounded-contexts.md
-- docs/tickets/backend-technical-stories.md
-- docs/tickets/agent-template.md
+- docs/architecture/technical-stories.md
 - docs/api/contract-guidelines.md
 
 ## Technology

@@ -1,6 +1,7 @@
 package com.vitahealth.tata.familymonitoring.application.internal.commandservices;
 
 import com.vitahealth.tata.familymonitoring.application.commandservices.CloseAlertCommandService;
+import com.vitahealth.tata.familymonitoring.application.internal.queryservices.AlertResultProjection;
 import com.vitahealth.tata.familymonitoring.application.internal.queryservices.FamilyMonitorSelectionService;
 import com.vitahealth.tata.familymonitoring.application.result.AlertResult;
 import com.vitahealth.tata.familymonitoring.domain.model.aggregates.FamilyMonitor;
@@ -16,13 +17,18 @@ public class CloseAlertCommandHandler implements CloseAlertCommandService {
 
   private final IFamilyMonitorRepository repository;
   private final FamilyMonitorSelectionService selection;
+  private final AlertResultProjection projection;
   private final Clock clock;
 
   /** Injects the context-owned follow-up repository. */
   public CloseAlertCommandHandler(
-      IFamilyMonitorRepository repository, Clock clock, FamilyMonitorSelectionService selection) {
+      IFamilyMonitorRepository repository,
+      Clock clock,
+      FamilyMonitorSelectionService selection,
+      AlertResultProjection projection) {
     this.repository = repository;
     this.selection = selection;
+    this.projection = projection;
     this.clock = clock;
   }
 
@@ -33,6 +39,7 @@ public class CloseAlertCommandHandler implements CloseAlertCommandService {
     FamilyMonitor monitor =
         selection.requireCurrentForUpdate(command.olderAdultId(), command.caregiverId());
     monitor.closeAlert(command.alertId(), clock.instant());
-    return AlertResult.from(repository.save(monitor).findAlert(command.alertId()));
+    return projection.project(
+        command.olderAdultId(), repository.save(monitor).findAlert(command.alertId()));
   }
 }

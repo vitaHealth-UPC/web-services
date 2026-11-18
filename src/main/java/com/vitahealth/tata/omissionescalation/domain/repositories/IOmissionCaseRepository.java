@@ -1,9 +1,12 @@
 package com.vitahealth.tata.omissionescalation.domain.repositories;
 
 import com.vitahealth.tata.omissionescalation.domain.model.aggregates.OmissionCase;
+import com.vitahealth.tata.omissionescalation.domain.model.valueobjects.EscalationLevel;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /** Stores omission evidence and selects active work without exposing persistence entities. */
 public interface IOmissionCaseRepository {
@@ -21,6 +24,9 @@ public interface IOmissionCaseRepository {
 
   /** Looks up the single omission case associated with the original scheduled intake. */
   Optional<OmissionCase> findByIntakeId(String intakeId);
+
+  /** Highest recorded level for existing cases in the selected adult and intake scope. */
+  Map<String, EscalationLevel> findAttentionLevels(String olderAdultId, Set<String> intakeIds);
 
   /** Pending cases whose grace period ended at or before {@code now}. */
   List<Long> findExpiredPendingIdsAfter(Instant now, long afterId, int limit);
