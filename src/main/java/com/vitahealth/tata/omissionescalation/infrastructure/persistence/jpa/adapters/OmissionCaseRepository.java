@@ -1,6 +1,7 @@
 package com.vitahealth.tata.omissionescalation.infrastructure.persistence.jpa.adapters;
 
 import com.vitahealth.tata.omissionescalation.domain.model.aggregates.OmissionCase;
+import com.vitahealth.tata.omissionescalation.domain.model.valueobjects.EscalationLevel;
 import com.vitahealth.tata.omissionescalation.domain.model.valueobjects.OmissionCaseStatus;
 import com.vitahealth.tata.omissionescalation.domain.repositories.IOmissionCaseRepository;
 import com.vitahealth.tata.omissionescalation.infrastructure.persistence.jpa.assemblers.OmissionCasePersistenceAssembler;
@@ -10,8 +11,11 @@ import jakarta.persistence.LockModeType;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -27,6 +31,19 @@ public class OmissionCaseRepository implements IOmissionCaseRepository {
   private final OmissionCaseJpaRepository jpaRepository;
   private final EntityManager entities;
   private final Clock clock;
+
+  /** Reads only source-recorded levels, preserving unknown references as absent. */
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, EscalationLevel> findAttentionLevels(
+      String olderAdultId, Set<String> intakeIds) {
+    if (intakeIds.isEmpty()) return Map.of();
+    return jpaRepository.findAttentionLevels(olderAdultId, intakeIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                OmissionCaseJpaRepository.AttentionLevel::getIntakeId,
+                row -> new EscalationLevel(row.getLevel())));
+  }
 
   /** Injects storage and the persistence context used to refresh reserved evidence. */
   public OmissionCaseRepository(

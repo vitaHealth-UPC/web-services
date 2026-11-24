@@ -63,7 +63,12 @@ class FirebaseCloudMessagingClientTest {
     assertThat(bearer.get()).isEqualTo("Bearer test-credential");
     assertThat(body.get())
         .contains("\"message\"", "\"token\":\"device-secret\"", "CAREGIVER_ALERT")
-        .doesNotContain("topic", "validate_only");
+        .contains(
+            "\"android\":{\"priority\":\"HIGH\"}",
+            "\"apns-priority\":\"5\"",
+            "\"apns-push-type\":\"background\"",
+            "\"content-available\":1")
+        .doesNotContain("topic", "validate_only", "\"notification\"");
   }
 
   @ParameterizedTest

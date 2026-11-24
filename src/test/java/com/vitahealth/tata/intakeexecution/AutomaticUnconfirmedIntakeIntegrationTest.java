@@ -30,7 +30,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** Verifies automatic unresolved handoff, source locking and definitive omission evidence. */
-@SpringBootTest
+// The global reporting scan must only see fixtures owned by this test class.
+@SpringBootTest(
+    properties =
+        "spring.datasource.url=jdbc:h2:mem:automatic_unconfirmed_${random.uuid};DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000")
 @ActiveProfiles("test")
 class AutomaticUnconfirmedIntakeIntegrationTest {
 

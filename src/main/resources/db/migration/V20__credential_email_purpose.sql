@@ -1,0 +1,2 @@
+ALTER TABLE identity_verification_deliveries
+    ADD COLUMN IF NOT EXISTS purpose VARCHAR(40) NOT NULL DEFAULT 'ACCOUNT_VERIFICATION';

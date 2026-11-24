@@ -21,7 +21,7 @@ public final class Account {
   private final String id;
   private final String name;
   private final EmailAddress email;
-  private final String passwordHash;
+  private String passwordHash;
   private AccountStatus status;
   private VerificationChallenge verificationChallenge;
   private String currentPlanCode;
@@ -77,6 +77,16 @@ public final class Account {
         PlanCatalog.ESSENTIAL,
         SubscriptionStatus.ACTIVE,
         now.plus(SUBSCRIPTION_CYCLE));
+  }
+
+  /** Creates an active account only from server-verified social identity evidence. */
+  public static Account registerSocial(String name, EmailAddress email, String unusablePasswordHash,
+      Instant now) {
+    Objects.requireNonNull(now, "now");
+    return new Account(
+        UUID.randomUUID().toString(), name, email, unusablePasswordHash,
+        AccountStatus.ACTIVE, null, null, PlanCatalog.ESSENTIAL,
+        SubscriptionStatus.ACTIVE, now.plus(SUBSCRIPTION_CYCLE));
   }
 
   /** Reconstructs stored account state whose subscription fields use the essential defaults. */
@@ -162,6 +172,14 @@ public final class Account {
   /** Allows credential authentication only after the account is active. */
   public boolean canAuthenticate() {
     return status == AccountStatus.ACTIVE;
+  }
+
+  /**
+   * Replaces encoded credentials only for an active account; recovery authorization is external.
+   */
+  public void replacePasswordHash(String encodedPassword) {
+    if (!canAuthenticate()) throw new IllegalStateException("account is not active");
+    passwordHash = requireText(encodedPassword, "passwordHash");
   }
 
   /** Changes the active plan without extending the renewal date on an idempotent retry. */

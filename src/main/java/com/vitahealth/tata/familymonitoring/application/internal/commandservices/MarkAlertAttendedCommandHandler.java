@@ -1,6 +1,7 @@
 package com.vitahealth.tata.familymonitoring.application.internal.commandservices;
 
 import com.vitahealth.tata.familymonitoring.application.commandservices.MarkAlertAttendedCommandService;
+import com.vitahealth.tata.familymonitoring.application.internal.queryservices.AlertResultProjection;
 import com.vitahealth.tata.familymonitoring.application.internal.queryservices.FamilyMonitorSelectionService;
 import com.vitahealth.tata.familymonitoring.application.result.AlertResult;
 import com.vitahealth.tata.familymonitoring.domain.model.aggregates.FamilyMonitor;
@@ -15,12 +16,16 @@ public class MarkAlertAttendedCommandHandler implements MarkAlertAttendedCommand
 
   private final IFamilyMonitorRepository repository;
   private final FamilyMonitorSelectionService selection;
+  private final AlertResultProjection projection;
 
   /** Injects the context-owned follow-up repository. */
   public MarkAlertAttendedCommandHandler(
-      IFamilyMonitorRepository repository, FamilyMonitorSelectionService selection) {
+      IFamilyMonitorRepository repository,
+      FamilyMonitorSelectionService selection,
+      AlertResultProjection projection) {
     this.repository = repository;
     this.selection = selection;
+    this.projection = projection;
   }
 
   /** Records attendance on the requested alert without modifying another caregiver's history. */
@@ -30,6 +35,7 @@ public class MarkAlertAttendedCommandHandler implements MarkAlertAttendedCommand
     FamilyMonitor monitor =
         selection.requireCurrentForUpdate(command.olderAdultId(), command.caregiverId());
     monitor.markAlertAttended(command.alertId());
-    return AlertResult.from(repository.save(monitor).findAlert(command.alertId()));
+    return projection.project(
+        command.olderAdultId(), repository.save(monitor).findAlert(command.alertId()));
   }
 }

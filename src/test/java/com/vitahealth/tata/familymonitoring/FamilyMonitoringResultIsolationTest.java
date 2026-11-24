@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.vitahealth.tata.familymonitoring.application.internal.queryservices.AlertResultProjection;
 import com.vitahealth.tata.familymonitoring.application.internal.queryservices.FamilyMonitorSelectionService;
 import com.vitahealth.tata.familymonitoring.application.internal.queryservices.GetCaregiverNotesQueryHandler;
 import com.vitahealth.tata.familymonitoring.application.internal.queryservices.GetOlderAdultStatusQueryHandler;
@@ -20,6 +21,7 @@ import com.vitahealth.tata.familymonitoring.domain.model.entities.LowStockNotice
 import com.vitahealth.tata.familymonitoring.domain.model.queries.GetCaregiverNotesQuery;
 import com.vitahealth.tata.familymonitoring.domain.model.queries.GetOlderAdultStatusQuery;
 import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AdherenceSnapshot;
+import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AlertSeverity;
 import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.AlertStatus;
 import com.vitahealth.tata.familymonitoring.domain.model.valueobjects.OlderAdultStatus;
 import com.vitahealth.tata.familymonitoring.domain.ports.AdherenceSummaryPort;
@@ -28,6 +30,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -87,7 +90,9 @@ class FamilyMonitoringResultIsolationTest {
     when(history.findNextIntakeAt("adult")).thenReturn(Optional.empty());
     when(adherence.getWeeklySummary("adult")).thenReturn(new AdherenceSnapshot(0, 0));
     var query = new GetOlderAdultStatusQuery("adult", "caregiver");
-    var handler = new GetOlderAdultStatusQueryHandler(selection, history, adherence);
+    var handler =
+        new GetOlderAdultStatusQueryHandler(
+            selection, history, adherence, new AlertResultProjection((adult, ids) -> Map.of()));
 
     var captured = handler.handle(query);
     monitor.closeAlert(1L, NOW.plusSeconds(1));
@@ -107,7 +112,16 @@ class FamilyMonitoringResultIsolationTest {
     var alerts =
         new ArrayList<>(
             List.of(
-                new AlertResult(1L, "intake", "Name", NOW, "Reason", AlertStatus.OPEN, NOW, null)));
+                new AlertResult(
+                    1L,
+                    "intake",
+                    "Name",
+                    NOW,
+                    "Reason",
+                    AlertStatus.OPEN,
+                    NOW,
+                    null,
+                    AlertSeverity.UNKNOWN)));
     var stock = new ArrayList<>(List.of(new LowStockNoticeResult("medication", "Name", 1, 5, NOW)));
     var day = LocalDate.of(2026, 10, 19);
     var insights =

@@ -25,6 +25,21 @@ public interface OmissionCaseJpaRepository
 
   Optional<OmissionCasePersistenceEntity> findByIntakeId(String intakeId);
 
+  /** Scalar projection avoids loading alert and escalation collections for a status query. */
+  interface AttentionLevel {
+    String getIntakeId();
+
+    Integer getLevel();
+  }
+
+  /** Restricts both identity dimensions before aggregation; absent cases produce no row. */
+  @Query(
+      "select c.intakeId as intakeId, coalesce(max(e.level.value), 0) as level "
+          + "from OmissionCasePersistenceEntity c left join c.escalations e "
+          + "where c.olderAdultId = :olderAdultId and c.intakeId in :intakeIds group by c.intakeId")
+  List<AttentionLevel> findAttentionLevels(
+      @Param("olderAdultId") String olderAdultId, @Param("intakeIds") Collection<String> intakeIds);
+
   /** Selects expired references without reconstructing potentially corrupt case history. */
   @Query(
       "select c.id from OmissionCasePersistenceEntity c where c.id > :afterId and c.status ="
