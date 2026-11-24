@@ -1,0 +1,1 @@
+ALTER TABLE treatment_medications ADD COLUMN deleted BOOLEAN NOT NULL DEFAULT FALSE;

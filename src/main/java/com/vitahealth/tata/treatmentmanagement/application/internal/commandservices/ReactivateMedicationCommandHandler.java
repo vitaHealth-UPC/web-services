@@ -37,6 +37,9 @@ public class ReactivateMedicationCommandHandler {
                         TreatmentApplicationException.Code.MEDICATION_NOT_FOUND,
                         "medication not found"));
     access.requireAuthorized(command.caregiverId(), medication.olderAdultId());
+    if (medication.deleted())
+      throw new TreatmentApplicationException(
+          TreatmentApplicationException.Code.MEDICATION_NOT_FOUND, "medication not found");
     medication.reactivate();
     return TreatmentMapper.toResult(medications.save(medication));
   }

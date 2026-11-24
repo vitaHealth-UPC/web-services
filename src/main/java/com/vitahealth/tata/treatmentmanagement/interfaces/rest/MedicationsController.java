@@ -21,6 +21,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -136,6 +137,20 @@ public class MedicationsController {
         commands.deactivateMedication(new DeactivateMedicationCommand(caregiverId, medicationId)),
         HttpStatus.OK,
         MedicationResponseFromResultAssembler::toResource);
+  }
+
+  @Operation(summary = "Delete a medication from the catalog",
+      description = "Irreversibly hides the medication and pauses active treatments while preserving historical evidence.")
+  @ApiResponse(responseCode = "204", description = "Medication removed from the catalog")
+  @ApiResponse(responseCode = "403", description = "Caregiver not authorized")
+  @ApiResponse(responseCode = "404", description = "Medication not found")
+  @DeleteMapping("/medications/{medicationId}")
+  public ResponseEntity<?> delete(
+      @PathVariable String medicationId, @RequestParam String caregiverId) {
+    return TreatmentResponseAssembler.toResponse(
+        commands.deactivateMedication(new DeactivateMedicationCommand(caregiverId, medicationId, true)),
+        HttpStatus.NO_CONTENT,
+        result -> null);
   }
 
   @Operation(summary = "Reactivate medication without resuming its treatments")

@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -354,6 +355,61 @@ class TreatmentApiIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].medicationId").value(medicationId));
+  }
+
+  @Test
+  void deletingActiveMedicationPausesTreatmentAndPermanentlyHidesCatalogEntry() throws Exception {
+    var adult = newAdult();
+    var medication = registerMedication(adult, "Losartan");
+    var treatment = createTreatment(adult, "Control");
+    configure(treatment, medication);
+    mockMvc.perform(post("/api/v1/treatments/" + treatment + "/activation")
+        .param("caregiverId", CAREGIVER)).andExpect(status().isOk());
+    var path = "/api/v1/medications/" + medication;
+    var anonymous = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+    anonymous.perform(delete(path).param("caregiverId", CAREGIVER))
+        .andExpect(status().isUnauthorized());
+    var stranger = UUID.randomUUID().toString();
+    accounts.save(Account.rehydrate(stranger, "Other", new EmailAddress(stranger + "@example.com"),
+        "hash", AccountStatus.ACTIVE, null, null));
+    anonymous.perform(delete(path).param("caregiverId", stranger)
+        .header("Authorization", "Bearer " + tokens.issue(stranger).accessToken()))
+        .andExpect(status().isForbidden());
+    for (int retry = 0; retry < 2; retry++) {
+      mockMvc.perform(delete(path).param("caregiverId", CAREGIVER))
+          .andExpect(status().isNoContent());
+    }
+    entityManager.flush();
+    entityManager.clear();
+    var retained = medications.findById(medication).orElseThrow();
+    assertTrue(retained.deleted());
+    assertTrue(!retained.active());
+    mockMvc.perform(get("/api/v1/older-adults/" + adult + "/medications")
+        .param("caregiverId", CAREGIVER)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(0)));
+    mockMvc.perform(get("/api/v1/treatments/" + treatment).param("caregiverId", CAREGIVER))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("PAUSED"))
+        .andExpect(jsonPath("$.medicationId").value(medication));
+    mockMvc.perform(post(path + "/reactivation").param("caregiverId", CAREGIVER))
+        .andExpect(status().isNotFound());
+    mockMvc.perform(post("/api/v1/treatments/" + treatment + "/resume")
+        .param("caregiverId", CAREGIVER)).andExpect(status().isConflict());
+  }
+
+  @Test
+  void deletingRetiredOrUnusedMedicationDoesNotAffectOtherMedication() throws Exception {
+    var adult = newAdult();
+    var retired = registerMedication(adult, "Retired");
+    var unused = registerMedication(adult, "Unused");
+    var kept = registerMedication(adult, "Kept");
+    mockMvc.perform(post("/api/v1/medications/" + retired + "/deactivation")
+        .param("caregiverId", CAREGIVER)).andExpect(status().isOk());
+    for (var id : List.of(retired, unused)) {
+      mockMvc.perform(delete("/api/v1/medications/" + id).param("caregiverId", CAREGIVER))
+          .andExpect(status().isNoContent());
+    }
+    mockMvc.perform(get("/api/v1/older-adults/" + adult + "/medications")
+        .param("caregiverId", CAREGIVER)).andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1))).andExpect(jsonPath("$[0].id").value(kept));
   }
 
   @Test

@@ -34,6 +34,7 @@ public class GetMyMedicationCatalogQueryHandler {
                     treatment -> treatment.regimen().medicationId(),
                     Collectors.mapping(TreatmentMapper::toResult, Collectors.toList())));
     return medications.findByOlderAdultId(query.olderAdultId()).stream()
+        .filter(medication -> !medication.deleted())
         .map(
             medication ->
                 new MedicationCatalogItem(

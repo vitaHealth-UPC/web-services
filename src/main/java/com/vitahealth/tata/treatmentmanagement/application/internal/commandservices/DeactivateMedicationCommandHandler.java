@@ -44,7 +44,14 @@ public class DeactivateMedicationCommandHandler {
                         TreatmentApplicationException.Code.MEDICATION_NOT_FOUND,
                         "medication not found"));
     access.requireAuthorized(command.caregiverId(), medication.olderAdultId());
-    medication.deactivate();
+    if (command.delete()) {
+      medication.delete();
+    } else {
+      if (medication.deleted())
+        throw new TreatmentApplicationException(
+            TreatmentApplicationException.Code.MEDICATION_NOT_FOUND, "medication not found");
+      medication.deactivate();
+    }
     var saved = medications.save(medication);
     var dependentIds =
         treatments.findByMedicationId(saved.id()).stream().map(t -> t.id()).sorted().toList();

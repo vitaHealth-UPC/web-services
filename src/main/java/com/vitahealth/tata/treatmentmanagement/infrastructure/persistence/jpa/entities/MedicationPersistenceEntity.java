@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.ColumnDefault;
 
 /** Stores medication evidence; business lifecycle rules remain in the domain aggregate. */
 @Entity
@@ -24,6 +25,10 @@ public class MedicationPersistenceEntity {
   @Column(nullable = false)
   private boolean active;
 
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  private boolean deleted;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
@@ -37,12 +42,14 @@ public class MedicationPersistenceEntity {
       String name,
       String presentation,
       boolean active,
-      Instant createdAt) {
+      Instant createdAt,
+      boolean deleted) {
     this.id = id;
     this.olderAdultId = olderAdultId;
     this.name = name;
     this.presentation = presentation;
     this.active = active;
+    this.deleted = deleted;
     this.createdAt = createdAt;
   }
 
@@ -69,6 +76,10 @@ public class MedicationPersistenceEntity {
   /** Returns whether the medication remains available for treatment activation. */
   public boolean isActive() {
     return active;
+  }
+
+  public boolean isDeleted() {
+    return deleted;
   }
 
   /** Returns the original registration instant. */
