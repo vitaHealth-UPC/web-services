@@ -27,6 +27,7 @@ public class ListMedicationsQueryHandler {
   public List<MedicationResult> handle(ListMedicationsQuery query) {
     access.requireAuthorized(query.caregiverId(), query.olderAdultId());
     return medications.findByOlderAdultId(query.olderAdultId()).stream()
+        .filter(medication -> !medication.deleted())
         .map(TreatmentMapper::toResult)
         .toList();
   }

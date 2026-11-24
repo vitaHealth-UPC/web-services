@@ -20,7 +20,7 @@ public final class MedicationPersistenceAssembler {
         entity.getName(),
         entity.getPresentation(),
         entity.isActive(),
-        entity.getCreatedAt());
+        entity.getCreatedAt(), entity.isDeleted());
   }
 
   /**
@@ -35,6 +35,6 @@ public final class MedicationPersistenceAssembler {
         medication.name(),
         medication.presentation(),
         medication.active(),
-        medication.createdAt());
+        medication.createdAt(), medication.deleted());
   }
 }

@@ -14,6 +14,7 @@ public final class Medication {
   private String name;
   private String presentation;
   private boolean active;
+  private boolean deleted;
   private final Instant createdAt;
 
   private Medication(
@@ -49,6 +50,25 @@ public final class Medication {
     return new Medication(id, olderAdultId, name, presentation, active, createdAt);
   }
 
+  /** Restores a retained deletion marker without making the medication available. */
+  public static Medication rehydrate(
+      String id, String olderAdultId, String name, String presentation,
+      boolean active, Instant createdAt, boolean deleted) {
+    var medication = rehydrate(id, olderAdultId, name, presentation, active, createdAt);
+    if (deleted) medication.delete();
+    return medication;
+  }
+
+  /** Removes the medication from catalogs while retaining historical identity. */
+  public void delete() {
+    active = false;
+    deleted = true;
+  }
+
+  public boolean deleted() {
+    return deleted;
+  }
+
   /** Validates both replacement fields before mutating an active medication. */
   public void update(String name, String presentation) {
     if (!active) throw new IllegalStateException("inactive medication cannot be edited");
@@ -65,6 +85,7 @@ public final class Medication {
 
   /** Restores availability without changing identity or restarting any dependent regimen. */
   public void reactivate() {
+    if (deleted) throw new IllegalStateException("deleted medication cannot be reactivated");
     active = true;
   }
 
