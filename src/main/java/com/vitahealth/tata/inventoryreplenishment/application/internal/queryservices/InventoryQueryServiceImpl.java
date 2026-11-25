@@ -2,6 +2,7 @@ package com.vitahealth.tata.inventoryreplenishment.application.internal.queryser
 
 import com.vitahealth.tata.inventoryreplenishment.application.InventoryApplicationException;
 import com.vitahealth.tata.inventoryreplenishment.application.internal.InventoryMapper;
+import com.vitahealth.tata.inventoryreplenishment.application.internal.commandservices.InventoryCommandServiceImpl;
 import com.vitahealth.tata.inventoryreplenishment.application.internal.outboundservices.MedicationCatalog;
 import com.vitahealth.tata.inventoryreplenishment.application.queryservices.InventoryQueryService;
 import com.vitahealth.tata.inventoryreplenishment.application.result.InventoryResult;
@@ -31,7 +32,10 @@ public class InventoryQueryServiceImpl implements InventoryQueryService {
         .map(
             inventory ->
                 InventoryMapper.toResult(
-                    inventory, medications.dailyConsumptionUnits(inventory.medicationId())))
+                    inventory,
+                    medications.dailyConsumptionUnits(inventory.medicationId()),
+                    repository.findRecentConsumptions(
+                        inventory.id(), InventoryCommandServiceImpl.RECENT_CONSUMPTIONS)))
         .orElseThrow(
             () ->
                 new InventoryApplicationException(

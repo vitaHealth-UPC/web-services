@@ -39,6 +39,10 @@ public interface CareLinkJpaRepository extends JpaRepository<CareLinkPersistence
   int releaseExpiredCodeReservations(
       @Param("pending") CareLinkStatus pending, @Param("now") Instant now);
 
+  /** Relationships of an adult in the given states, oldest first. */
+  List<CareLinkPersistenceEntity> findByOlderAdultIdAndStatusInOrderByCreatedAtAscIdAsc(
+      String olderAdultId, Collection<CareLinkStatus> statuses);
+
   /** Restores active pair reservations and lets the named constraint reject ambiguous history. */
   @Modifying
   @Query(

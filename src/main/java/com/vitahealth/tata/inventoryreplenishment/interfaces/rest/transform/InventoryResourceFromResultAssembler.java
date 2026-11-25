@@ -27,6 +27,8 @@ public final class InventoryResourceFromResultAssembler {
         result.createdAt(),
         result.updatedAt(),
         result.daysRemaining(),
-        result.dailyConsumptionUnits());
+        result.dailyConsumptionUnits(),
+        result.latestReceiptCorrectable(),
+        result.recentConsumptions());
   }
 }

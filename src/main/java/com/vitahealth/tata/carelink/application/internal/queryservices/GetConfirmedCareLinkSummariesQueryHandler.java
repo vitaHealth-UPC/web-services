@@ -1,6 +1,7 @@
 package com.vitahealth.tata.carelink.application.internal.queryservices;
 
 import com.vitahealth.tata.carelink.application.CareLinkApplicationException;
+import com.vitahealth.tata.carelink.application.internal.outboundservices.AdultDevicePort;
 import com.vitahealth.tata.carelink.application.result.ConfirmedCareLinkResult;
 import com.vitahealth.tata.carelink.domain.model.queries.GetConfirmedCareLinkSummariesQuery;
 import com.vitahealth.tata.carelink.domain.repositories.CareLinkRepository;
@@ -17,12 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetConfirmedCareLinkSummariesQueryHandler {
   private final CareLinkRepository careLinkRepository;
   private final OlderAdultProfileRepository olderAdultRepository;
+  private final AdultDevicePort devices;
 
   /** Injects only persistence contracts required by this query. */
   public GetConfirmedCareLinkSummariesQueryHandler(
-      CareLinkRepository careLinkRepository, OlderAdultProfileRepository olderAdultRepository) {
+      CareLinkRepository careLinkRepository,
+      OlderAdultProfileRepository olderAdultRepository,
+      AdultDevicePort devices) {
     this.careLinkRepository = careLinkRepository;
     this.olderAdultRepository = olderAdultRepository;
+    this.devices = devices;
   }
 
   /** Loads credential-free display summaries through batched profile reads. */
@@ -34,6 +39,9 @@ public class GetConfirmedCareLinkSummariesQueryHandler {
             .findAllByIds(confirmed.stream().map(link -> link.olderAdultId()).distinct().toList())
             .stream()
             .collect(Collectors.toMap(profile -> profile.id(), Function.identity()));
+    var signedIn =
+        devices.withActiveSession(
+            confirmed.stream().map(link -> link.olderAdultId()).distinct().toList());
     return confirmed.stream()
         .map(
             link -> {
@@ -46,7 +54,8 @@ public class GetConfirmedCareLinkSummariesQueryHandler {
                   link.id(),
                   link.olderAdultId(),
                   profile.basicData().fullName(),
-                  link.confirmedAt());
+                  link.confirmedAt(),
+                  signedIn.contains(link.olderAdultId()));
             })
         .toList();
   }

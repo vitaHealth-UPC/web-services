@@ -1,13 +1,24 @@
 package com.vitahealth.tata.carelink.interfaces.rest;
 
+import com.vitahealth.tata.carelink.application.CareLinkApplicationException;
 import com.vitahealth.tata.carelink.application.commandservices.CareLinkCommandService;
 import com.vitahealth.tata.carelink.application.commandservices.LinkAuthenticationCommandService;
 import com.vitahealth.tata.carelink.application.queryservices.CareLinkQueryService;
+import com.vitahealth.tata.carelink.domain.model.commands.EndCareLinkCommand;
+import com.vitahealth.tata.carelink.domain.model.commands.IssueAdultAccessCodeCommand;
+import com.vitahealth.tata.carelink.domain.model.commands.RedeemAdultAccessCodeCommand;
 import com.vitahealth.tata.carelink.domain.model.queries.CheckCareRelationshipAuthorizationQuery;
 import com.vitahealth.tata.carelink.domain.model.queries.GetCareLinkByIdQuery;
 import com.vitahealth.tata.carelink.domain.model.queries.GetConfirmedCareLinkSummariesQuery;
 import com.vitahealth.tata.carelink.interfaces.rest.resources.AcceptCareLinkResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.AdultAccessCodeResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.AdultAccessRedemptionResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.CaregiverDecisionResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.CaregiverRequestResource;
 import com.vitahealth.tata.carelink.interfaces.rest.resources.GenerateLinkingCodeResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.IssueAdultAccessCodeResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.JoinAsCaregiverResource;
+import com.vitahealth.tata.carelink.interfaces.rest.resources.RedeemAdultAccessCodeResource;
 import com.vitahealth.tata.carelink.interfaces.rest.resources.RegisterConsentResource;
 import com.vitahealth.tata.carelink.interfaces.rest.transform.AcceptCareLinkCommandFromResourceAssembler;
 import com.vitahealth.tata.carelink.interfaces.rest.transform.AuthenticatedCareLinkResourceFromResultAssembler;
@@ -17,6 +28,7 @@ import com.vitahealth.tata.carelink.interfaces.rest.transform.ConfirmedCareLinkR
 import com.vitahealth.tata.carelink.interfaces.rest.transform.GenerateLinkingCodeCommandFromResourceAssembler;
 import com.vitahealth.tata.carelink.interfaces.rest.transform.RegisterConsentCommandFromResourceAssembler;
 import com.vitahealth.tata.carelink.interfaces.rest.transform.WithdrawCareLinkConsentCommandFromIdentityAssembler;
+import com.vitahealth.tata.identitysubscription.application.authentication.AuthenticatedSession.Role;
 import com.vitahealth.tata.identitysubscription.application.authentication.AuthenticatedSession;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -92,6 +104,137 @@ public class CareLinksController {
     return responses.toNoContent(
         commandService.withdrawConsent(
             WithdrawCareLinkConsentCommandFromIdentityAssembler.toCommand(careLinkId, session)));
+  }
+
+  /** Ends the caregiver's own relationship and revokes the adult access scoped to it. */
+  @DeleteMapping("/{careLinkId}")
+  @Operation(
+      summary = "End a care link",
+      description =
+          "The caregiver stops caring for the adult (removes the person from the family list)."
+              + " Other caregivers keep their relationships; history is preserved.")
+  public ResponseEntity<?> end(
+      @PathVariable String careLinkId, @RequestParam String caregiverId) {
+    return responses.toNoContent(
+        commandService.end(new EndCareLinkCommand(careLinkId, caregiverId)));
+  }
+
+  /** Issues a new sign-in code for the adult of a confirmed relationship. */
+  @PostMapping("/{careLinkId}/access-codes")
+  @Operation(
+      summary = "Issue an adult sign-in code",
+      description =
+          "Single-use code valid for 24 hours that lets the adult sign in on a new or reinstalled"
+              + " device. Issuing a new one invalidates the previous unused code.")
+  public ResponseEntity<?> issueAccessCode(
+      @PathVariable String careLinkId,
+      @Valid @RequestBody IssueAdultAccessCodeResource resource) {
+    return responses.toResponse(
+        commandService.issueAccessCode(
+            new IssueAdultAccessCodeCommand(careLinkId, resource.caregiverId())),
+        HttpStatus.CREATED,
+        result ->
+            new AdultAccessCodeResource(result.careLinkId(), result.code(), result.expiresAt()));
+  }
+
+  /** Redeems a sign-in code on the adult's device; public, the code is the credential. */
+  @PostMapping("/access-code-redemptions")
+  @Operation(
+      summary = "Redeem an adult sign-in code",
+      description =
+          "Identifies the adult on this device. If the adult has a PIN no session is returned and"
+              + " the device must sign in with it; otherwise a session allows creating the PIN.")
+  public ResponseEntity<?> redeemAccessCode(
+      @Valid @RequestBody RedeemAdultAccessCodeResource resource) {
+    return responses.toResponse(
+        commandService.redeemAccessCode(new RedeemAdultAccessCodeCommand(resource.code())),
+        result ->
+            new AdultAccessRedemptionResource(
+                result.careLinkId(),
+                result.olderAdultId(),
+                result.olderAdultName(),
+                result.pinRegistered(),
+                result.accessToken(),
+                result.expiresAt()));
+  }
+
+  /** A caregiver of the adult invites another caregiver with a code. */
+  @PostMapping("/{careLinkId}/caregiver-invitations")
+  @Operation(
+      summary = "Invite another caregiver",
+      description =
+          "Single-use code valid for 24 hours. The invited caregiver joins with it and waits until"
+              + " the adult accepts.")
+  public ResponseEntity<?> inviteCaregiver(
+      @PathVariable String careLinkId,
+      @Valid @RequestBody IssueAdultAccessCodeResource resource) {
+    return responses.toResponse(
+        commandService.inviteCaregiver(careLinkId, resource.caregiverId()),
+        HttpStatus.CREATED,
+        result ->
+            new AdultAccessCodeResource(result.careLinkId(), result.code(), result.expiresAt()));
+  }
+
+  /** Another caregiver joins with an invitation; the adult still has to accept. */
+  @PostMapping("/caregiver-joins")
+  @Operation(
+      summary = "Join as another caregiver",
+      description = "Creates a relationship that waits for the adult's decision.")
+  public ResponseEntity<?> joinAsCaregiver(@Valid @RequestBody JoinAsCaregiverResource resource) {
+    return responses.toResponse(
+        commandService.joinAsCaregiver(resource.caregiverId(), resource.code()),
+        HttpStatus.CREATED,
+        CareLinkResourceFromResultAssembler::toResource);
+  }
+
+  /** Caregivers waiting for the signed-in adult's decision. */
+  @GetMapping("/caregiver-requests")
+  @Operation(summary = "List caregiver requests for the signed-in adult")
+  public ResponseEntity<?> caregiverRequests(
+      @AuthenticationPrincipal(expression = "session()") AuthenticatedSession session) {
+    return responses.toResponse(
+        commandService.caregiverRequests(adult(session)),
+        requests ->
+            requests.stream()
+                .map(
+                    request ->
+                        new CaregiverRequestResource(
+                            request.careLinkId(),
+                            request.caregiverId(),
+                            request.caregiverName(),
+                            request.requestedAt()))
+                .toList());
+  }
+
+  /** The signed-in adult accepts or rejects another caregiver. */
+  @PostMapping("/caregiver-requests/{requestId}/decision")
+  @Operation(summary = "Accept or reject another caregiver")
+  public ResponseEntity<?> decideCaregiverRequest(
+      @PathVariable String requestId,
+      @Valid @RequestBody CaregiverDecisionResource resource,
+      @AuthenticationPrincipal(expression = "session()") AuthenticatedSession session) {
+    return responses.toResponse(
+        commandService.decideCaregiverRequest(adult(session), requestId, resource.accepted()),
+        CareLinkResourceFromResultAssembler::toResource);
+  }
+
+  /** The signed-in adult removes their account: every relationship ends. */
+  @DeleteMapping("/adult-account")
+  @Operation(
+      summary = "Remove the signed-in adult's account",
+      description =
+          "Ends every care relationship of the adult and deletes their PIN. Caregivers stop"
+              + " seeing the adult; history is kept for audit only.")
+  public ResponseEntity<?> removeAdultAccount(
+      @AuthenticationPrincipal(expression = "session()") AuthenticatedSession session) {
+    return responses.toNoContent(commandService.removeAdultAccount(adult(session)));
+  }
+
+  private static String adult(AuthenticatedSession session) {
+    if (session == null || session.role() != Role.OLDER_ADULT)
+      throw new CareLinkApplicationException(
+          CareLinkApplicationException.Code.CONSENT_REQUIRED, "only the adult can do this");
+    return session.subjectId();
   }
 
   /** Reads only relationship evidence authorized by the request's session scope. */

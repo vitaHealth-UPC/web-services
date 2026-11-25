@@ -2,7 +2,9 @@ package com.vitahealth.tata.inventoryreplenishment.interfaces.rest;
 
 import com.vitahealth.tata.inventoryreplenishment.application.commandservices.InventoryCommandService;
 import com.vitahealth.tata.inventoryreplenishment.application.queryservices.InventoryQueryService;
+import com.vitahealth.tata.inventoryreplenishment.domain.model.commands.CorrectLatestReceiptCommand;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.queries.GetRemainingStockQuery;
+import com.vitahealth.tata.inventoryreplenishment.interfaces.rest.resources.CorrectReceiptResource;
 import com.vitahealth.tata.inventoryreplenishment.interfaces.rest.resources.ErrorResource;
 import com.vitahealth.tata.inventoryreplenishment.interfaces.rest.resources.InventoryResource;
 import com.vitahealth.tata.inventoryreplenishment.interfaces.rest.resources.RegisterInitialInventoryResource;
@@ -20,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -82,6 +85,32 @@ public class InventoryController {
   public InventoryResource getRemainingStock(@PathVariable String medicationId) {
     return InventoryResourceFromResultAssembler.fromResult(
         queryService.getRemainingStock(new GetRemainingStockQuery(medicationId)));
+  }
+
+  /** Corrects the newest receipt once, before any unit was consumed after it. */
+  @Operation(
+      summary = "Correct the newest receipt",
+      description =
+          "Fixes a mistyped initial stock or last replenishment. Allowed once and only until a"
+              + " unit is consumed or another receipt is registered.")
+  @ApiResponse(responseCode = "200", description = "Receipt corrected; returns the inventory")
+  @ApiResponse(
+      responseCode = "409",
+      description = "The receipt is not the newest or can no longer be corrected",
+      content = @Content(schema = @Schema(implementation = ErrorResource.class)))
+  @PutMapping("/{medicationId}/batches/{batchId}")
+  public InventoryResource correctLatestReceipt(
+      @PathVariable String medicationId,
+      @PathVariable String batchId,
+      @Valid @RequestBody CorrectReceiptResource resource) {
+    return InventoryResourceFromResultAssembler.fromResult(
+        commandService.correctLatestReceipt(
+            new CorrectLatestReceiptCommand(
+                medicationId,
+                batchId,
+                resource.quantity(),
+                resource.lot(),
+                resource.replenishmentThreshold())));
   }
 
   /** Appends one replenishment receipt and returns the resulting stock. */

@@ -83,4 +83,29 @@ class RegimenFrequencyTest {
     assertEquals("Cada 12 horas", regimen.frequency());
     assertEquals(2, regimen.scheduledTimes().size());
   }
+
+  @Test
+  void customWholeHourIntervalsNeedTheirCompleteDailyCycle() {
+    assertEquals(RegimenFrequency.EVERY_INTERVAL, RegimenFrequency.fromLabel("Cada 6 horas"));
+    assertEquals(6, RegimenFrequency.intervalHours("cada 6  HORAS"));
+    var sixHours =
+        new TreatmentRegimen(
+            "medication",
+            "1 tableta",
+            "Cada 6 horas",
+            List.of(LocalTime.of(8, 0), LocalTime.of(14, 0), LocalTime.of(20, 0), LocalTime.of(2, 0)),
+            "",
+            0);
+    assertEquals(4, sixHours.scheduledTimes().size());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new TreatmentRegimen(
+                "medication",
+                "1 tableta",
+                "Cada 6 horas",
+                List.of(LocalTime.of(8, 0), LocalTime.of(14, 0)),
+                "",
+                0));
+  }
 }

@@ -142,6 +142,22 @@ public final class CareLink {
     return true;
   }
 
+  /**
+   * Ends the relationship on the caregiver's side (the adult is no longer in their care). Consent
+   * is recorded as withdrawn so every scoped credential stops working; history is preserved.
+   */
+  public boolean endByCaregiver(String actingCaregiverId, Instant now) {
+    if (!caregiverId.equals(requireText(actingCaregiverId, "actingCaregiverId"))) {
+      throw new IllegalArgumentException("only the linked caregiver can end the relationship");
+    }
+    if (status == CareLinkStatus.REVOKED) return false;
+    requireTransitionTime(now);
+    if (consent.recordedAt() != null) consent = Consent.record(false, now);
+    status = CareLinkStatus.REVOKED;
+    updatedAt = now;
+    return true;
+  }
+
   /** Reports whether confirmed consent currently permits relationship access. */
   public boolean isActive() {
     return status == CareLinkStatus.CONFIRMED && consent.isGranted();

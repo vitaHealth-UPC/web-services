@@ -62,4 +62,10 @@ public class PinCredentialRepositoryImpl implements PinCredentialRepository {
       throw exception;
     }
   }
+
+  @Override
+  public void deleteByOlderAdultId(String olderAdultId) {
+    repository.findByOlderAdultId(olderAdultId).ifPresent(repository::delete);
+    repository.flush();
+  }
 }

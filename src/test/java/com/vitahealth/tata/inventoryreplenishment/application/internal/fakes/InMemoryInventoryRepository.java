@@ -4,6 +4,7 @@ import com.vitahealth.tata.inventoryreplenishment.domain.model.aggregates.Invent
 import com.vitahealth.tata.inventoryreplenishment.domain.repositories.InventoryRepository;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -51,6 +52,16 @@ public final class InMemoryInventoryRepository implements InventoryRepository {
     if (consumptions.putIfAbsent(intakeId, inventoryId) != null) {
       throw new IllegalStateException("intake already consumed");
     }
+  }
+
+  @Override
+  public Inventory saveReceiptCorrection(Inventory inventory, String batchId) {
+    return save(inventory);
+  }
+
+  @Override
+  public List<Instant> findRecentConsumptions(String inventoryId, int limit) {
+    return List.of();
   }
 
   public int consumptionCount() {

@@ -11,6 +11,9 @@ public interface PinCredentialRepository {
   /** Requires a transaction and keeps the credential locked until that transaction completes. */
   Optional<PinCredential> findForAuthentication(String olderAdultId);
 
+  /** Deletes the adult's credential, if any. */
+  void deleteByOlderAdultId(String olderAdultId);
+
   /** Persists encoded credential state and its failed-attempt history. */
   PinCredential save(PinCredential credential);
 }

@@ -8,6 +8,7 @@ import com.vitahealth.tata.inventoryreplenishment.application.internal.outbounds
 import com.vitahealth.tata.inventoryreplenishment.application.result.InventoryResult;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.commands.ConsumeUnitCommand;
+import com.vitahealth.tata.inventoryreplenishment.domain.model.commands.CorrectLatestReceiptCommand;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.commands.RegisterInitialInventoryCommand;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.commands.RegisterReplenishmentCommand;
 import com.vitahealth.tata.inventoryreplenishment.domain.model.events.InventoryEvent;
@@ -25,6 +26,9 @@ public class InventoryCommandServiceImpl implements InventoryCommandService {
   private final InventoryEventPublisher eventPublisher;
   private final Clock clock;
   private final MedicationCatalog medications;
+
+  /** Newest decrements returned with the stock history. */
+  public static final int RECENT_CONSUMPTIONS = 30;
 
   /**
    * Injects stock storage, typed event publication, medication evidence and the application clock.
@@ -68,8 +72,11 @@ public class InventoryCommandServiceImpl implements InventoryCommandService {
     } catch (IllegalArgumentException | ArithmeticException exception) {
       throw error(InventoryApplicationException.Code.INVALID_QUANTITY, exception.getMessage());
     }
+    var saved = saveAndPublish(inventory);
     return InventoryMapper.toResult(
-        saveAndPublish(inventory), medications.dailyConsumptionUnits(inventory.medicationId()));
+        saved,
+        medications.dailyConsumptionUnits(saved.medicationId()),
+        repository.findRecentConsumptions(saved.id(), RECENT_CONSUMPTIONS));
   }
 
   /** Appends a validated receipt and publishes the resulting complete stock evidence. */
@@ -81,8 +88,52 @@ public class InventoryCommandServiceImpl implements InventoryCommandService {
     } catch (IllegalArgumentException | ArithmeticException exception) {
       throw error(InventoryApplicationException.Code.INVALID_QUANTITY, exception.getMessage());
     }
+    var saved = saveAndPublish(inventory);
     return InventoryMapper.toResult(
-        saveAndPublish(inventory), medications.dailyConsumptionUnits(inventory.medicationId()));
+        saved,
+        medications.dailyConsumptionUnits(saved.medicationId()),
+        repository.findRecentConsumptions(saved.id(), RECENT_CONSUMPTIONS));
+  }
+
+  /** Applies the single allowed correction of the newest receipt and republishes stock. */
+  @Override
+  public InventoryResult correctLatestReceipt(CorrectLatestReceiptCommand command) {
+    var inventory =
+        repository
+            .findByMedicationIdForUpdate(command.medicationId())
+            .orElseThrow(
+                () ->
+                    error(
+                        InventoryApplicationException.Code.INVENTORY_NOT_FOUND,
+                        "inventory not found"));
+    try {
+      inventory.correctLatestReceipt(
+          command.batchId(),
+          command.quantity(),
+          command.lot(),
+          command.replenishmentThreshold(),
+          clock.instant());
+    } catch (IllegalStateException exception) {
+      throw error(
+          InventoryApplicationException.Code.RECEIPT_NOT_CORRECTABLE, exception.getMessage());
+    } catch (IllegalArgumentException | ArithmeticException exception) {
+      throw error(InventoryApplicationException.Code.INVALID_QUANTITY, exception.getMessage());
+    }
+    var events = inventory.pullDomainEvents();
+    var saved = repository.saveReceiptCorrection(inventory, command.batchId());
+    events.stream().map(InventoryEvent.class::cast).forEach(eventPublisher::publish);
+    eventPublisher.publish(
+        new InventoryStockChanged(
+            saved.id(),
+            saved.medicationId(),
+            saved.remainingStock(),
+            saved.replenishmentThreshold(),
+            saved.revision(),
+            saved.updatedAt()));
+    return InventoryMapper.toResult(
+        saved,
+        medications.dailyConsumptionUnits(saved.medicationId()),
+        repository.findRecentConsumptions(saved.id(), RECENT_CONSUMPTIONS));
   }
 
   /** Consumes one unit under reservation while preserving intake idempotency and publication. */

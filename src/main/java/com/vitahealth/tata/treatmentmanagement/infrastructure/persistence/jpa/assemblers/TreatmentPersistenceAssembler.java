@@ -50,6 +50,7 @@ public final class TreatmentPersistenceAssembler {
         entity.getId(),
         entity.getOlderAdultId(),
         entity.getName(),
+        entity.getPlanId(),
         entity.getStatus(),
         regimen,
         entity.getCreatedAt());
@@ -79,6 +80,7 @@ public final class TreatmentPersistenceAssembler {
             regimen == null ? null : regimen.recurrence().zone(),
             regimen == null ? null : regimen.recurrence().anchor());
     entity.setFollowUpDelayMinutes(regimen == null ? null : regimen.followUpDelayMinutes());
+    entity.setPlanId(treatment.planId());
     return entity;
   }
 

@@ -115,6 +115,37 @@ public class InventoryPersistenceEntity {
     this.updatedAt = updatedAt;
   }
 
+  /**
+   * Replaces the newest receipt quantity/lot and the threshold after the aggregate validated the
+   * correction; every other stored receipt must stay identical.
+   */
+  public void correctLatestReceipt(
+      String batchId,
+      BatchPersistenceEntity corrected,
+      int remainingStock,
+      int replenishmentThreshold,
+      Instant updatedAt) {
+    Objects.requireNonNull(updatedAt, "updatedAt");
+    if (batches.isEmpty()
+        || updatedAt.isBefore(this.updatedAt)
+        || remainingStock < 0
+        || replenishmentThreshold < 0)
+      throw new IllegalStateException("invalid inventory correction");
+    var latest = batches.get(batches.size() - 1);
+    if (!latest.getId().equals(batchId)
+        || !corrected.getId().equals(batchId)
+        || !latest.getRegisteredAt().equals(corrected.getRegisteredAt())
+        || !this.updatedAt.equals(latest.getRegisteredAt()))
+      throw new IllegalStateException("only the untouched newest receipt can be corrected");
+    var delta = corrected.getQuantity() - latest.getQuantity();
+    if (Math.addExact(this.remainingStock, delta) != remainingStock)
+      throw new IllegalStateException("corrected stock must follow the receipt change");
+    latest.correct(corrected.getQuantity(), corrected.getLot());
+    this.remainingStock = remainingStock;
+    this.replenishmentThreshold = replenishmentThreshold;
+    this.updatedAt = updatedAt;
+  }
+
   /** Returns the revision used to reject obsolete domain snapshots. */
   public Long getVersion() {
     return version;
