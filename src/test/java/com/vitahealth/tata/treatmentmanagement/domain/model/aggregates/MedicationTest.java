@@ -42,11 +42,20 @@ class MedicationTest {
   }
 
   @Test
-  void inactiveMedicationRejectsEditsWithoutChangingItsDescription() {
+  void retiredMedicationCanBeEditedWithoutReactivation() {
     var medication = Medication.register("adult", "Losartan", "50 mg", Instant.EPOCH);
     medication.deactivate();
+    medication.update("Losartan corrected", "25 mg");
+    assertEquals(false, medication.active());
+    assertEquals("Losartan corrected", medication.name());
+    assertEquals("25 mg", medication.presentation());
+  }
+
+  @Test
+  void deletedMedicationRejectsEdits() {
+    var medication = Medication.register("adult", "Losartan", "50 mg", Instant.EPOCH);
+    medication.delete();
     assertThrows(IllegalStateException.class, () -> medication.update("Changed", "Changed"));
     assertEquals("Losartan", medication.name());
-    assertEquals("50 mg", medication.presentation());
   }
 }

@@ -35,7 +35,7 @@ public class UpdateMedicationCommandHandler {
     this.schedules = schedules;
   }
 
-  /** Validates an active medication and republishes its changed name before committing. */
+  /** Updates catalog details and republishes scheduled doses for active medications. */
   public MedicationResult handle(UpdateMedicationCommand command) {
     var medication =
         medications
@@ -46,13 +46,12 @@ public class UpdateMedicationCommandHandler {
                         TreatmentApplicationException.Code.MEDICATION_NOT_FOUND,
                         "medication not found"));
     access.requireAuthorized(command.caregiverId(), medication.olderAdultId());
-    try {
-      medication.update(command.name(), command.presentation());
-    } catch (IllegalStateException failure) {
+    if (medication.deleted())
       throw new TreatmentApplicationException(
-          TreatmentApplicationException.Code.MEDICATION_INACTIVE, failure.getMessage());
-    }
+          TreatmentApplicationException.Code.MEDICATION_NOT_FOUND, "medication not found");
+    medication.update(command.name(), command.presentation());
     var saved = medications.save(medication);
+    if (!saved.active()) return TreatmentMapper.toResult(saved);
     var dependentIds =
         treatments.findByMedicationId(saved.id()).stream().map(t -> t.id()).sorted().toList();
     for (var id : dependentIds) {

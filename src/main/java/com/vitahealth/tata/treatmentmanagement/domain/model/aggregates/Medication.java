@@ -69,9 +69,9 @@ public final class Medication {
     return deleted;
   }
 
-  /** Validates both replacement fields before mutating an active medication. */
+  /** Validates both replacement fields before mutating a catalog medication. */
   public void update(String name, String presentation) {
-    if (!active) throw new IllegalStateException("inactive medication cannot be edited");
+    if (deleted) throw new IllegalStateException("deleted medication cannot be edited");
     var validatedName = description(name, "name");
     var validatedPresentation = description(presentation, "presentation");
     this.name = validatedName;
