@@ -2,6 +2,8 @@ package com.vitahealth.tata.identitysubscription.infrastructure.persistence.jpa.
 
 import com.vitahealth.tata.identitysubscription.infrastructure.persistence.jpa.entities.AccountSessionPersistenceEntity;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,6 +18,18 @@ public interface AccountSessionJpaRepository
 
   /** Revokes every record matching the unique credential digest. */
   void deleteByTokenHash(String hash);
+
+  /** Distinct accounts among [accountIds] holding a live session of the role. */
+  @Query(
+      "select distinct s.accountId from AccountSessionPersistenceEntity s where s.accountId in"
+          + " :accountIds and s.role = :role and s.expiresAt > :now")
+  List<String> findLiveAccountIds(
+      @Param("accountIds") Collection<String> accountIds,
+      @Param("role") String role,
+      @Param("now") Instant now);
+
+  /** Reports whether a live session of the given role exists for the account. */
+  boolean existsByAccountIdAndRoleAndExpiresAtAfter(String accountId, String role, Instant now);
 
   /** Removes adult and setup credentials scoped to a withdrawn relationship. */
   void deleteByCareLinkId(String careLinkId);

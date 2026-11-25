@@ -36,7 +36,7 @@ class ConfirmedCareLinkBatchQueriesIntegrationTest {
   @Autowired private EntityManagerFactory factory;
 
   @Test
-  void severalRelationshipsLoadInTwoStatementsAndPreserveTheirDisplayOrder() {
+  void severalRelationshipsLoadInThreeStatementsAndPreserveTheirDisplayOrder() {
     var caregiver = UUID.randomUUID().toString();
     var names = new ArrayList<String>();
     var now = Instant.parse("2026-10-13T12:00:00Z");
@@ -66,7 +66,8 @@ class ConfirmedCareLinkBatchQueriesIntegrationTest {
             .toOptional()
             .orElseThrow();
     assertThat(result).extracting(item -> item.olderAdultName()).containsExactlyElementsOf(names);
-    assertThat(statistics.getPrepareStatementCount()).isEqualTo(2);
+    // Relationships, profiles and, in one batch, which adults are signed in.
+    assertThat(statistics.getPrepareStatementCount()).isEqualTo(3);
   }
 
   @Test

@@ -33,7 +33,8 @@ final class PublicSessionEndpoints {
                 "/api/v1/social-sessions",
                 "/api/v1/sessions",
                 "/api/v1/pin-sessions",
-                "/api/v1/care-links/acceptances")
+                "/api/v1/care-links/acceptances",
+                "/api/v1/care-links/access-code-redemptions")
             .contains(p);
   }
 

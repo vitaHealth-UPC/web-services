@@ -113,6 +113,30 @@ public class CareLinkRepositoryImpl implements CareLinkRepository {
         .toList();
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<CareLink> findAwaitingConsentByOlderAdult(String olderAdultId) {
+    return repository
+        .findByOlderAdultIdAndStatusInOrderByCreatedAtAscIdAsc(
+            olderAdultId, List.of(CareLinkStatus.AWAITING_CONSENT))
+        .stream()
+        .map(CareLinkPersistenceAssembler::toDomain)
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<CareLink> findOpenByOlderAdult(String olderAdultId) {
+    return repository
+        .findByOlderAdultIdAndStatusInOrderByCreatedAtAscIdAsc(
+            olderAdultId,
+            List.of(
+                CareLinkStatus.PENDING, CareLinkStatus.AWAITING_CONSENT, CareLinkStatus.CONFIRMED))
+        .stream()
+        .map(CareLinkPersistenceAssembler::toDomain)
+        .toList();
+  }
+
   /** Reads the confirmed member-pair relationship without changing its state. */
   @Override
   public Optional<CareLink> findConfirmed(String caregiverId, String olderAdultId) {

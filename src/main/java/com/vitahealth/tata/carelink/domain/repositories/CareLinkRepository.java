@@ -31,6 +31,12 @@ public interface CareLinkRepository {
   /** Finds a confirmed relationship between the specified logical context identities. */
   Optional<CareLink> findConfirmed(String caregiverId, String olderAdultId);
 
+  /** Lists relationships of the adult still waiting for the adult's decision. */
+  List<CareLink> findAwaitingConsentByOlderAdult(String olderAdultId);
+
+  /** Lists every relationship of the adult that is not revoked yet. */
+  List<CareLink> findOpenByOlderAdult(String olderAdultId);
+
   /** Lists active confirmed relationships without changing their consent evidence. */
   List<CareLink> findConfirmedByCaregiver(String caregiverId);
 

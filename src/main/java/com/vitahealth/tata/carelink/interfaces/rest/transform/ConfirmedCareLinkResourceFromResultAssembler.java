@@ -12,6 +12,10 @@ public final class ConfirmedCareLinkResourceFromResultAssembler {
   public static ConfirmedCareLinkResource toResource(ConfirmedCareLinkResult result) {
     Objects.requireNonNull(result, "result");
     return new ConfirmedCareLinkResource(
-        result.id(), result.olderAdultId(), result.olderAdultName(), result.confirmedAt());
+        result.id(),
+        result.olderAdultId(),
+        result.olderAdultName(),
+        result.confirmedAt(),
+        result.adultSignedIn());
   }
 }
