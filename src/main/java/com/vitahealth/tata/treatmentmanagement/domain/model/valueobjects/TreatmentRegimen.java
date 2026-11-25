@@ -36,7 +36,8 @@ public record TreatmentRegimen(
                 .sorted()
                 .toList());
     Objects.requireNonNull(recurrence, "recurrence").validateFrequency(frequencyKind);
-    frequencyKind.validateScheduledTimes(scheduledTimes);
+    frequencyKind.validateScheduledTimes(
+        scheduledTimes, RegimenFrequency.intervalHours(frequency));
     instructions = instructions == null ? "" : instructions.trim();
     if (instructions.length() > 500) {
       throw new IllegalArgumentException("instructions must not exceed 500 characters");

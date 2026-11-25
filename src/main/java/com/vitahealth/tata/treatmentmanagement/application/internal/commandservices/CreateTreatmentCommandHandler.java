@@ -1,5 +1,6 @@
 package com.vitahealth.tata.treatmentmanagement.application.internal.commandservices;
 
+import com.vitahealth.tata.treatmentmanagement.application.TreatmentApplicationException;
 import com.vitahealth.tata.treatmentmanagement.application.internal.TreatmentMapper;
 import com.vitahealth.tata.treatmentmanagement.application.internal.authorization.TreatmentCareLinkGuard;
 import com.vitahealth.tata.treatmentmanagement.application.result.TreatmentResult;
@@ -29,7 +30,21 @@ public class CreateTreatmentCommandHandler {
   /** Registers new evidence only after the caregiver relationship is authorized. */
   public TreatmentResult handle(CreateTreatmentCommand command) {
     access.requireAuthorized(command.caregiverId(), command.olderAdultId());
+    var planId = command.planId() == null || command.planId().isBlank() ? null : command.planId();
+    if (planId != null) {
+      var plan =
+          repository
+              .findById(planId)
+              .filter(existing -> existing.olderAdultId().equals(command.olderAdultId()))
+              .orElseThrow(
+                  () ->
+                      new TreatmentApplicationException(
+                          TreatmentApplicationException.Code.TREATMENT_NOT_FOUND,
+                          "treatment plan not found"));
+      planId = plan.planId();
+    }
     return TreatmentMapper.toResult(
-        repository.save(Treatment.create(command.olderAdultId(), command.name(), clock.instant())));
+        repository.save(
+            Treatment.create(command.olderAdultId(), command.name(), planId, clock.instant())));
   }
 }

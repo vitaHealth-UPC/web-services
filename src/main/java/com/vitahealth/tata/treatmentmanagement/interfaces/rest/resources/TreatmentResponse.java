@@ -24,7 +24,42 @@ public record TreatmentResponse(
     String recurrenceMode,
     String recurrenceZone,
     Instant recurrenceAnchor,
-    Integer followUpDelayMinutes) {
+    Integer followUpDelayMinutes,
+    String planId) {
+  /** Retains callers that predate multi-medication plans. */
+  public TreatmentResponse(
+      String id,
+      String olderAdultId,
+      String name,
+      String status,
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      Integer reminderLeadMinutes,
+      String recurrenceMode,
+      String recurrenceZone,
+      Instant recurrenceAnchor,
+      Integer followUpDelayMinutes) {
+    this(
+        id,
+        olderAdultId,
+        name,
+        status,
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrenceMode,
+        recurrenceZone,
+        recurrenceAnchor,
+        followUpDelayMinutes,
+        id);
+  }
+
   /** Preserves the UTC local-time contract for callers without explicit recurrence metadata. */
   public TreatmentResponse(
       String id,

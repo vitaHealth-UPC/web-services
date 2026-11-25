@@ -325,6 +325,46 @@ class TreatmentApiIntegrationTest {
   }
 
   @Test
+  void oneTreatmentPlanHoldsSeveralMedicationsWithTheirOwnRegimen() throws Exception {
+    var adult = newAdult();
+    var metformin = registerMedication(adult, "Metformina");
+    var glibenclamide = registerMedication(adult, "Glibenclamida");
+    var first = createTreatment(adult, "Diabetes");
+    var second =
+        json(
+            "/api/v1/older-adults/" + adult + "/treatments",
+            "{\"caregiverId\":\""
+                + CAREGIVER
+                + "\",\"name\":\"Diabetes\",\"planId\":\""
+                + first
+                + "\"}");
+    configure(first, metformin);
+    configure(second, glibenclamide);
+
+    mockMvc
+        .perform(
+            get("/api/v1/older-adults/" + adult + "/treatments").param("caregiverId", CAREGIVER))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].planId").value(first))
+        .andExpect(jsonPath("$[1].planId").value(first));
+
+    // A plan of another adult cannot be joined.
+    var other = newAdult();
+    mockMvc
+        .perform(
+            post("/api/v1/older-adults/" + other + "/treatments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"caregiverId\":\""
+                        + CAREGIVER
+                        + "\",\"name\":\"Diabetes\",\"planId\":\""
+                        + first
+                        + "\"}"))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
   void aTreatmentGoesFromDraftToActiveToPausedAndBack() throws Exception {
     var adult = newAdult();
     var medicationId = registerMedication(adult, "Losartán");

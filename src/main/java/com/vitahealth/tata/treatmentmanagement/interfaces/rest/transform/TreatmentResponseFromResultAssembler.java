@@ -23,6 +23,7 @@ public final class TreatmentResponseFromResultAssembler {
         result.recurrenceMode(),
         result.recurrenceZone(),
         result.recurrenceAnchor(),
-        result.followUpDelayMinutes());
+        result.followUpDelayMinutes(),
+        result.planId());
   }
 }

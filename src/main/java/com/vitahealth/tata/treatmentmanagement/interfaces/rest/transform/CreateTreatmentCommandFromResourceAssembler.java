@@ -10,6 +10,7 @@ public final class CreateTreatmentCommandFromResourceAssembler {
   /** Preserves caller data while taking the resource identity from the route. */
   public static CreateTreatmentCommand toCommand(
       String olderAdultId, CreateTreatmentRequest resource) {
-    return new CreateTreatmentCommand(resource.caregiverId(), olderAdultId, resource.name());
+    return new CreateTreatmentCommand(
+        resource.caregiverId(), olderAdultId, resource.name(), resource.planId());
   }
 }

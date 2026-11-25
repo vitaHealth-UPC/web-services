@@ -63,12 +63,27 @@ public class TreatmentPersistenceEntity {
     return followUpDelayMinutes;
   }
 
+  /** Returns the multi-medication plan identity, or null for a standalone legacy row. */
+  public String getPlanId() {
+    return planId;
+  }
+
+  /** Stores the multi-medication plan identity. */
+  public void setPlanId(String planId) {
+    this.planId = planId;
+  }
+
+  /** Stores the optional follow-up delay. */
   public void setFollowUpDelayMinutes(Integer minutes) {
     followUpDelayMinutes = minutes;
   }
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  /** Shared by the regimens of one multi-medication treatment; null for older rows. */
+  @Column(name = "plan_id", length = 36)
+  private String planId;
 
   @Column(name = "recurrence_mode", length = 30)
   private String recurrenceMode;

@@ -36,6 +36,7 @@ public final class TreatmentMapper {
         regimen == null ? null : regimen.recurrence().mode().name(),
         regimen == null ? null : regimen.recurrence().zone(),
         regimen == null ? null : regimen.recurrence().anchor(),
-        regimen == null ? null : regimen.followUpDelayMinutes());
+        regimen == null ? null : regimen.followUpDelayMinutes(),
+        treatment.planId());
   }
 }

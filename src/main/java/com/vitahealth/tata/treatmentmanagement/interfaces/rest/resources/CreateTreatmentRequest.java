@@ -12,4 +12,15 @@ public record CreateTreatmentRequest(
             example = "00000000-0000-0000-0000-000000000001")
         @NotBlank
         String caregiverId,
-    @Schema(example = "Control de presión") @NotBlank @Size(max = 160) String name) {}
+    @Schema(example = "Control de presión") @NotBlank @Size(max = 160) String name,
+    @Schema(
+            description =
+                "Optional plan of an existing treatment: adds another medication to it with its"
+                    + " own regimen")
+        @Size(max = 36)
+        String planId) {
+  /** Creates a standalone treatment. */
+  public CreateTreatmentRequest(String caregiverId, String name) {
+    this(caregiverId, name, null);
+  }
+}

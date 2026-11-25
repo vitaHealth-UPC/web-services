@@ -13,6 +13,7 @@ public final class Treatment {
   private final String id;
   private final String olderAdultId;
   private final String name;
+  private final String planId;
   private TreatmentStatus status;
   private TreatmentRegimen regimen;
   private final Instant createdAt;
@@ -21,10 +22,12 @@ public final class Treatment {
       String id,
       String olderAdultId,
       String name,
+      String planId,
       TreatmentStatus status,
       TreatmentRegimen regimen,
       Instant createdAt) {
     this.id = requireText(id, "id");
+    this.planId = planId == null || planId.isBlank() ? null : planId.strip();
     this.olderAdultId = requireText(olderAdultId, "olderAdultId");
     this.name = requireText(name, "name");
     if (this.name.length() > 160)
@@ -39,8 +42,22 @@ public final class Treatment {
 
   /** Creates an unconfigured draft using the supplied registration time. */
   public static Treatment create(String olderAdultId, String name, Instant now) {
+    return create(olderAdultId, name, null, now);
+  }
+
+  /**
+   * Creates a draft that joins the treatment plan {@code planId}: one treatment can hold several
+   * medications, each with its own regimen, sharing the plan identity and name.
+   */
+  public static Treatment create(String olderAdultId, String name, String planId, Instant now) {
     return new Treatment(
-        UUID.randomUUID().toString(), olderAdultId, name, TreatmentStatus.DRAFT, null, now);
+        UUID.randomUUID().toString(),
+        olderAdultId,
+        name,
+        planId,
+        TreatmentStatus.DRAFT,
+        null,
+        now);
   }
 
   /** Restores identity and lifecycle evidence without synthesizing a missing regimen. */
@@ -51,7 +68,19 @@ public final class Treatment {
       TreatmentStatus status,
       TreatmentRegimen regimen,
       Instant createdAt) {
-    return new Treatment(id, olderAdultId, name, status, regimen, createdAt);
+    return rehydrate(id, olderAdultId, name, null, status, regimen, createdAt);
+  }
+
+  /** Restores a regimen that belongs to a multi-medication plan. */
+  public static Treatment rehydrate(
+      String id,
+      String olderAdultId,
+      String name,
+      String planId,
+      TreatmentStatus status,
+      TreatmentRegimen regimen,
+      Instant createdAt) {
+    return new Treatment(id, olderAdultId, name, planId, status, regimen, createdAt);
   }
 
   /** Replaces the regimen only after a complete value has been constructed. */
@@ -88,6 +117,11 @@ public final class Treatment {
   /** Returns the adult owning this treatment. */
   public String olderAdultId() {
     return olderAdultId;
+  }
+
+  /** Returns the plan this regimen belongs to; a standalone treatment is its own plan. */
+  public String planId() {
+    return planId == null ? id : planId;
   }
 
   /** Returns its validated display name. */

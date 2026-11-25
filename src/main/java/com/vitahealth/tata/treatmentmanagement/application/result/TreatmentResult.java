@@ -20,10 +20,45 @@ public record TreatmentResult(
     String recurrenceMode,
     String recurrenceZone,
     Instant recurrenceAnchor,
-    Integer followUpDelayMinutes) {
+    Integer followUpDelayMinutes,
+    String planId) {
   /** Snapshots configured times while retaining null for a draft without a regimen. */
   public TreatmentResult {
     scheduledTimes = scheduledTimes == null ? null : List.copyOf(scheduledTimes);
+  }
+
+  /** Retains callers that predate multi-medication plans. */
+  public TreatmentResult(
+      String id,
+      String olderAdultId,
+      String name,
+      TreatmentStatus status,
+      String medicationId,
+      String dose,
+      String frequency,
+      List<LocalTime> scheduledTimes,
+      String instructions,
+      Integer reminderLeadMinutes,
+      String recurrenceMode,
+      String recurrenceZone,
+      Instant recurrenceAnchor,
+      Integer followUpDelayMinutes) {
+    this(
+        id,
+        olderAdultId,
+        name,
+        status,
+        medicationId,
+        dose,
+        frequency,
+        scheduledTimes,
+        instructions,
+        reminderLeadMinutes,
+        recurrenceMode,
+        recurrenceZone,
+        recurrenceAnchor,
+        followUpDelayMinutes,
+        id);
   }
 
   /** Preserves the UTC local-time contract for callers without explicit recurrence metadata. */
