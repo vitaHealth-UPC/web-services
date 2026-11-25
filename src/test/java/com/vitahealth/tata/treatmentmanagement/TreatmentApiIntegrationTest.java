@@ -440,6 +440,20 @@ class TreatmentApiIntegrationTest {
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.title").value("MEDICATION_INACTIVE"));
     var before = intakes.findFutureByTreatmentId(treatmentId, Instant.EPOCH).size();
+    mockMvc
+        .perform(
+            put("/api/v1/medications/" + medicationId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"caregiverId":"%s","name":"Losartan corregido","presentation":"25 mg"}
+                    """.formatted(CAREGIVER)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Losartan corregido"))
+        .andExpect(jsonPath("$.active").value(false));
+    mockMvc
+        .perform(get("/api/v1/treatments/" + treatmentId).param("caregiverId", CAREGIVER))
+        .andExpect(jsonPath("$.status").value("PAUSED"));
     for (int retry = 0; retry < 2; retry++) {
       mockMvc
           .perform(
