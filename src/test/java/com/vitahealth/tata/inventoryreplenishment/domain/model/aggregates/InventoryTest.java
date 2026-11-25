@@ -259,4 +259,61 @@ class InventoryTest {
     assertEquals(6, inventory.remainingStock());
     assertEquals(1, inventory.pullDomainEvents().size());
   }
+
+  @Test
+  void correctsMistypedInitialStockAndThresholdOnce() {
+    var inventory = Inventory.registerInitial("medication-1", 30, 5, NOW);
+    var initial = inventory.batches().getFirst();
+    assertTrue(inventory.latestReceiptCorrectable());
+
+    inventory.correctLatestReceipt(initial.id(), 20, null, 4, NOW.plusSeconds(60));
+
+    assertEquals(20, inventory.remainingStock());
+    assertEquals(4, inventory.replenishmentThreshold());
+    assertEquals(20, inventory.batches().getFirst().quantity());
+    assertFalse(inventory.latestReceiptCorrectable());
+    assertThrows(
+        IllegalStateException.class,
+        () -> inventory.correctLatestReceipt(initial.id(), 25, null, null, NOW.plusSeconds(120)));
+  }
+
+  @Test
+  void correctsLastReplenishmentUntilAUnitIsConsumed() {
+    var inventory = Inventory.registerInitial("medication-1", 10, 2, NOW);
+    var receipt = inventory.registerBatch(20, NOW.plusSeconds(60), "Lote 1");
+    var copy =
+        Inventory.rehydrate(
+            inventory.id(),
+            inventory.medicationId(),
+            inventory.remainingStock(),
+            inventory.replenishmentThreshold(),
+            inventory.batches(),
+            inventory.createdAt(),
+            inventory.updatedAt(),
+            0L);
+
+    copy.correctLatestReceipt(receipt.id(), 2, "Lote 1", null, NOW.plusSeconds(90));
+    assertEquals(12, copy.remainingStock());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            inventory.correctLatestReceipt(
+                receipt.id(), 2, null, 3, NOW.plusSeconds(90)));
+
+    inventory.consumeUnit(NOW.plusSeconds(120));
+    assertFalse(inventory.latestReceiptCorrectable());
+    assertThrows(
+        IllegalStateException.class,
+        () -> inventory.correctLatestReceipt(receipt.id(), 15, null, null, NOW.plusSeconds(180)));
+  }
+
+  @Test
+  void onlyTheNewestReceiptCanBeCorrected() {
+    var inventory = Inventory.registerInitial("medication-1", 10, 2, NOW);
+    var initial = inventory.batches().getFirst();
+    inventory.registerBatch(5, NOW.plusSeconds(60));
+    assertThrows(
+        IllegalStateException.class,
+        () -> inventory.correctLatestReceipt(initial.id(), 8, null, null, NOW.plusSeconds(90)));
+  }
 }

@@ -23,7 +23,7 @@ public final class Inventory extends AbstractDomainAggregateRoot {
   private Long revision;
   private final String medicationId;
   private int remainingStock;
-  private final int replenishmentThreshold;
+  private int replenishmentThreshold;
   private final List<Batch> batches;
   private final Instant createdAt;
   private Instant updatedAt;
@@ -120,6 +120,46 @@ public final class Inventory extends AbstractDomainAggregateRoot {
         new ReplenishmentRegistered(
             id, medicationId, batch.id(), batch.quantity(), remainingStock, now));
     return batch;
+  }
+
+  /**
+   * Corrects the newest receipt (the initial stock or the last replenishment) when it was typed
+   * wrong. Allowed once and only while nothing happened after it: a consumed unit, another receipt
+   * or an earlier correction all move {@code updatedAt} past the receipt and close the window. The
+   * threshold can only be corrected together with the initial stock.
+   */
+  public Batch correctLatestReceipt(
+      String batchId, int quantity, String lot, Integer threshold, Instant now) {
+    requireCurrentTime(now);
+    var index = batches.size() - 1;
+    var latest = batches.get(index);
+    if (!latest.id().equals(batchId))
+      throw new IllegalStateException("only the latest receipt can be corrected");
+    if (!latestReceiptCorrectable())
+      throw new IllegalStateException("receipt can no longer be corrected");
+    if (threshold != null && index != 0)
+      throw new IllegalArgumentException("threshold is corrected only with the initial stock");
+    var normalizedLot = lot == null || lot.isBlank() ? null : lot.strip();
+    var corrected =
+        Batch.rehydrate(latest.id(), quantity, latest.registeredAt(), normalizedLot);
+    var stock = Math.addExact(remainingStock, quantity - latest.quantity());
+    var newThreshold = threshold == null ? replenishmentThreshold : threshold;
+    if (stock < 0) throw new IllegalStateException("stock cannot be negative");
+    new StockLevel(stock, newThreshold);
+    var wasLow = isLowStock();
+    batches.set(index, corrected);
+    remainingStock = stock;
+    replenishmentThreshold = newThreshold;
+    updatedAt = now;
+    if (!wasLow && isLowStock())
+      registerDomainEvent(
+          new LowStockDetected(id, medicationId, remainingStock, replenishmentThreshold, now));
+    return corrected;
+  }
+
+  /** True while the newest receipt is still the last change applied to this stock. */
+  public boolean latestReceiptCorrectable() {
+    return !batches.isEmpty() && updatedAt.equals(batches.get(batches.size() - 1).registeredAt());
   }
 
   /**

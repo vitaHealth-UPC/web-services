@@ -32,7 +32,10 @@ public class InventoryExceptionHandler {
     var status =
         switch (exception.code()) {
           case MEDICATION_NOT_FOUND, INVENTORY_NOT_FOUND -> HttpStatus.NOT_FOUND;
-          case MEDICATION_INACTIVE, INVENTORY_ALREADY_EXISTS, INSUFFICIENT_STOCK ->
+          case MEDICATION_INACTIVE,
+                  INVENTORY_ALREADY_EXISTS,
+                  INSUFFICIENT_STOCK,
+                  RECEIPT_NOT_CORRECTABLE ->
               HttpStatus.CONFLICT;
           case INVALID_QUANTITY -> HttpStatus.BAD_REQUEST;
         };

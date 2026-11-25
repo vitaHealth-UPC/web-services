@@ -14,7 +14,9 @@ public record InventoryResult(
     Instant createdAt,
     Instant updatedAt,
     Integer daysRemaining,
-    Integer dailyConsumptionUnits) {
+    Integer dailyConsumptionUnits,
+    boolean latestReceiptCorrectable,
+    List<Instant> recentConsumptions) {
   /** Builds evidence without optional coverage or lot information. */
   public InventoryResult(
       String id,
@@ -38,8 +40,36 @@ public record InventoryResult(
         null);
   }
 
+  /** Builds evidence without correction or consumption history. */
+  public InventoryResult(
+      String id,
+      String medicationId,
+      int remainingStock,
+      int replenishmentThreshold,
+      boolean lowStock,
+      List<BatchResult> batches,
+      Instant createdAt,
+      Instant updatedAt,
+      Integer daysRemaining,
+      Integer dailyConsumptionUnits) {
+    this(
+        id,
+        medicationId,
+        remainingStock,
+        replenishmentThreshold,
+        lowStock,
+        batches,
+        createdAt,
+        updatedAt,
+        daysRemaining,
+        dailyConsumptionUnits,
+        false,
+        List.of());
+  }
+
   /** Copies receipt evidence so response history cannot follow caller list mutations. */
   public InventoryResult {
     batches = batches == null ? List.of() : List.copyOf(batches);
+    recentConsumptions = recentConsumptions == null ? List.of() : List.copyOf(recentConsumptions);
   }
 }

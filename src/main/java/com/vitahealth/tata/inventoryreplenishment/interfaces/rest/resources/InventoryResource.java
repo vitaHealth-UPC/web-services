@@ -21,9 +21,16 @@ public record InventoryResource(
     @Schema(description = "Whole days of coverage; null when the daily consumption rate is unknown")
         Integer daysRemaining,
     @Schema(description = "Inventory units per day; null when no reliable schedule is available")
-        Integer dailyConsumptionUnits) {
+        Integer dailyConsumptionUnits,
+    @Schema(
+            description =
+                "True while the newest receipt can still be corrected (nothing consumed after it)")
+        boolean latestReceiptCorrectable,
+    @Schema(description = "Newest one-unit decrements from confirmed intakes, most recent first")
+        List<Instant> recentConsumptions) {
   /** Copies receipt history so a response cannot change through an external mutable list. */
   public InventoryResource {
     batches = List.copyOf(batches);
+    recentConsumptions = recentConsumptions == null ? List.of() : List.copyOf(recentConsumptions);
   }
 }

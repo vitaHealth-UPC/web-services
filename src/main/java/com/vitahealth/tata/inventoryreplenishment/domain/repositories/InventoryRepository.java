@@ -2,6 +2,7 @@ package com.vitahealth.tata.inventoryreplenishment.domain.repositories;
 
 import com.vitahealth.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /** Stores inventory history and consumption evidence within application-owned transactions. */
@@ -26,6 +27,15 @@ public interface InventoryRepository {
    * constraint.
    */
   boolean hasConsumed(String intakeId);
+
+  /**
+   * Persists a corrected newest receipt; the only path allowed to change stored receipt facts or
+   * the threshold. Stock and revision checks match {@link #save(Inventory)}.
+   */
+  Inventory saveReceiptCorrection(Inventory inventory, String batchId);
+
+  /** Returns the newest decrement instants of one inventory, most recent first. */
+  List<Instant> findRecentConsumptions(String inventoryId, int limit);
 
   /** Appends unique intake consumption evidence in the same transaction as the decrement. */
   void registerConsumption(String intakeId, String inventoryId, Instant consumedAt);

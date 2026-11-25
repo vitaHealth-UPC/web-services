@@ -9,7 +9,8 @@ public final class InventoryApplicationException extends RuntimeException {
     INVENTORY_NOT_FOUND,
     INVENTORY_ALREADY_EXISTS,
     INVALID_QUANTITY,
-    INSUFFICIENT_STOCK
+    INSUFFICIENT_STOCK,
+    RECEIPT_NOT_CORRECTABLE
   }
 
   private final Code code;

@@ -3,6 +3,7 @@ package com.vitahealth.tata.inventoryreplenishment.infrastructure.persistence.jp
 import com.vitahealth.tata.inventoryreplenishment.domain.model.aggregates.Inventory;
 import com.vitahealth.tata.inventoryreplenishment.domain.repositories.InventoryRepository;
 import com.vitahealth.tata.inventoryreplenishment.infrastructure.persistence.jpa.assemblers.InventoryPersistenceAssembler;
+import com.vitahealth.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.BatchPersistenceEntity;
 import com.vitahealth.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.InventoryConsumptionPersistenceEntity;
 import com.vitahealth.tata.inventoryreplenishment.infrastructure.persistence.jpa.entities.InventoryPersistenceEntity;
 import com.vitahealth.tata.inventoryreplenishment.infrastructure.persistence.jpa.repositories.InventoryConsumptionJpaRepository;
@@ -11,8 +12,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.OptimisticLockException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +71,46 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     entities.lock(managed, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
     entities.flush();
     return InventoryPersistenceAssembler.toDomain(managed);
+  }
+
+  /** Applies a validated newest-receipt correction under the same revision guard as save. */
+  @Override
+  public Inventory saveReceiptCorrection(Inventory inventory, String batchId) {
+    if (inventory.revision() == null)
+      throw new IllegalStateException("only stored inventory receipts can be corrected");
+    var managed =
+        repository
+            .findById(inventory.id())
+            .orElseThrow(() -> new IllegalStateException("stored inventory is missing"));
+    entities.refresh(managed, LockModeType.PESSIMISTIC_WRITE);
+    if (!Objects.equals(managed.getVersion(), inventory.revision()))
+      throw new OptimisticLockException("inventory changed after snapshot was read");
+    var corrected =
+        inventory.batches().stream()
+            .filter(batch -> batch.id().equals(batchId))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("corrected receipt is missing"));
+    managed.correctLatestReceipt(
+        batchId,
+        new BatchPersistenceEntity(
+            corrected.id(), corrected.quantity(), corrected.registeredAt(), corrected.lot()),
+        inventory.remainingStock(),
+        inventory.replenishmentThreshold(),
+        inventory.updatedAt());
+    entities.lock(managed, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+    entities.flush();
+    return InventoryPersistenceAssembler.toDomain(managed);
+  }
+
+  /** Reads the newest decrement instants for the caregiver's stock history. */
+  @Override
+  @Transactional(readOnly = true)
+  public List<Instant> findRecentConsumptions(String inventoryId, int limit) {
+    return consumptionRepository
+        .findByInventoryIdOrderByConsumedAtDesc(inventoryId, PageRequest.of(0, limit))
+        .stream()
+        .map(InventoryConsumptionPersistenceEntity::getConsumedAt)
+        .toList();
   }
 
   /** Restores stock and complete receipt history without reserving a mutation. */

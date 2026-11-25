@@ -42,6 +42,13 @@ public class BatchPersistenceEntity {
     this.registeredAt = registeredAt;
   }
 
+  /** Applies the single allowed correction of the newest receipt. */
+  public void correct(int quantity, String lot) {
+    if (quantity <= 0) throw new IllegalStateException("invalid inventory receipt correction");
+    this.quantity = quantity;
+    this.lot = lot;
+  }
+
   /** Returns the receipt identity. */
   public String getId() {
     return id;
